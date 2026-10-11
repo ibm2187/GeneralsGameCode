@@ -44,6 +44,7 @@
 #define PROFILER_SECTION_NAME(name) ZoneScopedN(name)
 #define PROFILER_SECTION_COLOR(color) ZoneScopedC(color)
 #define PROFILER_SECTION_NAMECOLOR(name, color) ZoneScopedNC(name, color)
+#define PROFILER_SECTION_RUNTIME_NAME(name, size) ZoneScoped; ZoneName(name, size)
 #define PROFILER_FRAME_MARK FrameMark
 #define PROFILER_FRAME_MARK_NAME(name) FrameMarkNamed(name)
 #define PROFILER_FRAME_IMAGE(image, width, height, offset, flip) FrameImage(image, width, height, offset, flip)
@@ -59,6 +60,7 @@
 #define PROFILER_SECTION_NAME(name) ((void)0)
 #define PROFILER_SECTION_COLOR(color) ((void)0)
 #define PROFILER_SECTION_NAMECOLOR(name, color) ((void)0)
+#define PROFILER_SECTION_RUNTIME_NAME(name, size) ((void)0)
 #define PROFILER_FRAME_MARK ((void)0)
 #define PROFILER_FRAME_MARK_NAME(name) ((void)0)
 #define PROFILER_FRAME_IMAGE(image, width, height, offset, flip) ((void)0)

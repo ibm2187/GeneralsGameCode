@@ -642,6 +642,7 @@ void GameClient::update()
 
 
 		// call the update for all client drawables
+		PROFILER_SECTION_NAME("GameClient::UpdateDrawables");
 		const Real timeScale = TheFramePacer->getActualLogicTimeScaleOverFpsRatio();
 		Drawable* draw = firstDrawable();
 		while (draw)

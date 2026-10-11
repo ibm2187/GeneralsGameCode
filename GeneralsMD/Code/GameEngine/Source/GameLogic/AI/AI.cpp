@@ -356,7 +356,10 @@ void AI::reset()
 void AI::update()
 {
 	// Do pathfinding.
-	m_pathfinder->processPathfindQueue();
+	{
+		PROFILER_SECTION_NAME("Pathfinder::processPathfindQueue");
+		m_pathfinder->processPathfindQueue();
+	}
 
 	// run player updates
 	{

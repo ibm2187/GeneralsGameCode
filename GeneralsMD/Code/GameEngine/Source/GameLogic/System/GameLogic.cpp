@@ -3760,6 +3760,7 @@ void GameLogic::update()
 
 	if (generateForSolo || generateForMP)
 	{
+		PROFILER_SECTION_NAME("GameLogic::CRC");
 		m_CRC = getCRC( CRC_RECALC );
 		bool isPlayback = (TheRecorder && TheRecorder->isPlaybackMode());
 
@@ -3791,6 +3792,7 @@ void GameLogic::update()
 
 	// process client commands
 	{
+		PROFILER_SECTION_NAME("GameLogic::processCommandList");
 		processCommandList( TheCommandList );
 	}
 
@@ -3828,6 +3830,7 @@ void GameLogic::update()
 #endif
 
 	{
+		PROFILER_SECTION_NAME("GameLogic::ObjectUpdates");
 		while (!m_sleepyUpdates.empty())
 		{
 			UpdateModulePtr u = peekSleepyUpdate();

@@ -32,6 +32,8 @@
 #include "Common/INI.h"
 #include "Common/STLTypedefs.h"
 
+#include <rts/profile.h>
+
 class Xfer;
 
 //-------------------------------------------------------------------------------------------------
@@ -128,8 +130,9 @@ protected:
 	Bool m_dumpUpdate;
 	Bool m_dumpDraw;
 #else
-	void UPDATE() {update();}
-	void DRAW() {draw();}
+	// Each subsystem update and draw shows up as its own named zone in the Tracy profiler.
+	void UPDATE() { PROFILER_SECTION_RUNTIME_NAME(m_name.str(), m_name.getLength()); update(); }
+	void DRAW() { PROFILER_SECTION_RUNTIME_NAME(m_name.str(), m_name.getLength()); draw(); }
 #endif
 protected:
 	AsciiString m_name;

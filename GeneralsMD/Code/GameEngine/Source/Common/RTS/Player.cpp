@@ -669,7 +669,10 @@ void Player::addToPriorityBuildList(AsciiString templateName, Coord3D *pos, Real
 void Player::update()
 {
 	if (m_ai)
+	{
+		PROFILER_SECTION_NAME("AIPlayer::update");
 		m_ai->update();
+	}
 
 	// Allow the teams this player owns to update themselves.
 	for( PlayerTeamList::iterator it = m_playerTeamPrototypes.begin(); it != m_playerTeamPrototypes.end(); ++it )
