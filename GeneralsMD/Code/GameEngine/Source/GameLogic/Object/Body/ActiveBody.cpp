@@ -60,6 +60,8 @@
 #include "GameLogic/Module/DamageModule.h"
 #include "GameLogic/Module/DieModule.h"
 
+#include "Features/Economy/Economy.h" // IBM Engine hook
+
 
 
 #define YELLOW_DAMAGE_PERCENT (0.25f)
@@ -176,6 +178,16 @@ ActiveBody::ActiveBody( Thing *thing, const ModuleData* moduleData ) :
 	m_prevHealth = getActiveBodyModuleData()->m_initialHealth;
 	m_maxHealth = getActiveBodyModuleData()->m_maxHealth;
 	m_initialHealth = getActiveBodyModuleData()->m_initialHealth;
+
+	// IBM Engine hook: the Economy feature makes some units tougher.
+	const Real healthScale = IbmEngine::getEconomyScale(getObject()->getTemplate(), IbmEngine::EconomyStat_Health);
+	if (healthScale != 1.0f)
+	{
+		m_currentHealth *= healthScale;
+		m_prevHealth *= healthScale;
+		m_maxHealth *= healthScale;
+		m_initialHealth *= healthScale;
+	}
 
 	// force an initially-valid armor setup
 	validateArmorAndDamageFX();

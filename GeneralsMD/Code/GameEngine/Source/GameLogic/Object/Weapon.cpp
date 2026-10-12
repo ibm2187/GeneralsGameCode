@@ -78,6 +78,7 @@
 #include "GameLogic/TerrainLogic.h"
 
 #include "Features/Accuracy/Accuracy.h" // IBM Engine hook
+#include "Features/Economy/Economy.h" // IBM Engine hook
 
 #define RATIONALIZE_ATTACK_RANGE
 #define ATTACK_RANGE_IS_2D
@@ -1953,6 +1954,11 @@ void Weapon::computeBonus(const Object *source, WeaponBonusConditionFlags extraB
 	const WeaponBonusSet* extra = m_template->getExtraBonus();
 	if (extra)
 		extra->appendBonuses(flags, bonus);
+
+	// IBM Engine hook: the Economy feature makes some units hit harder, on top of their other bonuses.
+	const Real damageScale = IbmEngine::getEconomyScale(source->getTemplate(), IbmEngine::EconomyStat_Damage);
+	if (damageScale != 1.0f)
+		bonus.setField(WeaponBonus::DAMAGE, bonus.getField(WeaponBonus::DAMAGE) * damageScale);
 }
 
 //-------------------------------------------------------------------------------------------------

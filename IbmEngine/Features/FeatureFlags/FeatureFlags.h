@@ -15,6 +15,7 @@ enum Feature
 	Feature_Squads,
 	Feature_SquadsDemo,	///< test setup at game start (Squads slice, SquadDemo.cpp); needs Squads, has no pack
 	Feature_Accuracy,	///< direct fire can miss; veterancy, range, movement and cover change the odds
+	Feature_Economy,	///< fewer, tougher units: vehicles and aircraft cost more, build slower, move slower, last longer
 
 	Feature_Count
 };

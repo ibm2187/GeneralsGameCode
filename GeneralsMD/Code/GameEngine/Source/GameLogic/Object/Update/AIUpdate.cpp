@@ -73,6 +73,7 @@
 
 #include "GameLogic/Squad.h" // IBM Engine hook
 #include "Features/Squads/Squads.h" // IBM Engine hook
+#include "Features/Economy/Economy.h" // IBM Engine hook
 
 #define SLEEPY_AI
 
@@ -843,6 +844,7 @@ Bool AIUpdateInterface::chooseLocomotorSetExplicit(LocomotorSetType wst)
 			if (lt)
 				m_locomotorSet.addLocomotor(lt);
 		}
+		IbmEngine::applyEconomySpeed(getObject(), m_locomotorSet); // IBM Engine hook: the Economy feature slows some units
 		m_curLocomotorSet = wst;
 		return TRUE;
 	}

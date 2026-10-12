@@ -72,6 +72,10 @@
 
 #include "Common/UnitTimings.h" //Contains the DO_UNIT_TIMINGS define jba.
 
+#if RTS_ZEROHOUR
+#include "Features/Economy/Economy.h" // IBM Engine hook
+#endif
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -1568,6 +1572,9 @@ Int ThingTemplate::calcCostToBuild( const Player* player) const
 	// changePercent format is "-.2 equals 20% cheaper"
 	Real factionModifier = 1 + player->getProductionCostChangePercent( getName() );
 	factionModifier *= player->getProductionCostChangeBasedOnKindOf( m_kindof );
+#if RTS_ZEROHOUR
+	factionModifier *= IbmEngine::getEconomyScale(this, IbmEngine::EconomyStat_Cost); // IBM Engine hook
+#endif
 	return getBuildCost() * factionModifier * player->getHandicap()->getHandicap(Handicap::BUILDCOST, this);
 }
 
@@ -1580,6 +1587,9 @@ Int ThingTemplate::calcTimeToBuild( const Player* player) const
 {
 	Int buildTime = getBuildTime() * LOGICFRAMES_PER_SECOND;
 	buildTime *= player->getHandicap()->getHandicap(Handicap::BUILDTIME, this);
+#if RTS_ZEROHOUR
+	buildTime *= IbmEngine::getEconomyScale(this, IbmEngine::EconomyStat_BuildTime); // IBM Engine hook
+#endif
 
 	Real factionModifier = 1 + player->getProductionTimeChangePercent( getName() );
 	buildTime *= factionModifier;

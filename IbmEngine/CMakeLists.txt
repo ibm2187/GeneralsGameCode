@@ -7,6 +7,8 @@ add_library(ibm_engine INTERFACE)
 target_sources(ibm_engine INTERFACE
     Features/Accuracy/Accuracy.cpp
     Features/Accuracy/Accuracy.h
+    Features/Economy/Economy.cpp
+    Features/Economy/Economy.h
     Features/FeatureFlags/FeatureFlags.cpp
     Features/FeatureFlags/FeatureFlags.h
     Features/FeatureFlags/FeatureFlagsInternal.h

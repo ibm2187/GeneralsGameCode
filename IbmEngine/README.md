@@ -9,6 +9,7 @@ Each feature is a vertical slice under `Features/<Name>/`, holding everything fo
 | [FeatureFlags](Features/FeatureFlags/README.md) | Feature flags, INI packs loaded at game start, and the `ObjectCopy` INI block |
 | [Squads](Features/Squads/README.md) | Infantry squads and commando squads that heal and refill at the Barracks (flags `Squads`, `SquadsDemo`) |
 | [Accuracy](Features/Accuracy/README.md) | Direct fire can miss; veterancy, range, movement and cover change the odds (flag `Accuracy`) |
+| [Economy](Features/Economy/README.md) | Vehicles and aircraft cost more, build slower, move slower, have more health and hit harder (flag `Economy`) |
 
 ## Install
 
@@ -30,7 +31,7 @@ Every change to original engine files is small and marked `// IBM Engine hook` (
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/System/GameLogic.cpp` | `IbmEngine::onStartNewGame()` just before `map.ini` loads |
 | `Core/GameEngine/Include/GameNetwork/GameInfo.h` | `m_featureFlags` with getter and setter |
 | `Core/GameEngine/Source/GameNetwork/GameInfo.cpp` | flags reset to local flags; written as `FF=` in the game options only when non-zero; parsed back |
-| `Core/GameEngine/Source/Common/INI/INI.cpp` | registers the `ObjectCopy`, `IbmAccuracy` and `IbmSquadTransport` INI blocks |
+| `Core/GameEngine/Source/Common/INI/INI.cpp` | registers the `ObjectCopy`, `IbmAccuracy`, `IbmEconomy` and `IbmSquadTransport` INI blocks |
 | `GeneralsMD/Code/GameEngine/Source/GameClient/GUI/GUICallbacks/Menus/SkirmishGameOptionsMenu.cpp` | a skirmish uses the current local flags, not the ones saved with the last skirmish's settings |
 | `Core/GameEngine/Include/GameClient/ControlBar.h` | `postProcessCommands()` made public, so packs can resolve the images of buttons they add |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Locomotor.cpp` | fix: `LocomotorStore::reset` used an erased iterator, crashing at game end when an override INI added a locomotor |
@@ -49,6 +50,10 @@ Every change to original engine files is small and marked `// IBM Engine hook` (
 | `Core/GameEngine/Source/GameClient/GUI/ControlBar/ControlBarCommand.cpp` | a squad's skill buttons are evaluated for the member with the skill |
 | `GeneralsMD/Code/GameEngine/Source/Common/RTS/SpecialPower.cpp` | fix: `SpecialPowerStore::reset` gave a special power from a pack or map.ini a new ID every game, so replays of later games couldn't find it |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Weapon.cpp` | `fireWeaponTemplate`: the accuracy roll before the fire effects; a miss hits the ground beside the target and shows a dust puff |
+| `Core/GameEngine/Source/Common/Thing/ThingTemplate.cpp` | `calcCostToBuild`, `calcTimeToBuild`: the Economy cost and build-time multipliers |
+| `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Body/ActiveBody.cpp` | constructor: the Economy health multiplier |
+| `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Weapon.cpp` | `computeBonus`: the Economy damage multiplier |
+| `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Update/AIUpdate.cpp` | `chooseLocomotorSetExplicit`: the Economy speed multiplier caps each new locomotor |
 | `Core/GameEngineDevice/Source/MilesAudioDevice/MilesAudioManager.cpp` | fix: the audio file cache held its lock while stopping a sound whose Miles callback needed it, freezing the game ([upstream #256](https://github.com/TheSuperHackers/GeneralsGameCode/issues/256)) |
 
 Hooks in `Core/` are wrapped in `#if RTS_ZEROHOUR`, because Core is also compiled into the original Generals, which doesn't link this library.
