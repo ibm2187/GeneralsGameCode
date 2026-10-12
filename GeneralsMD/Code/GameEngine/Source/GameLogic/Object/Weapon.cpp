@@ -914,11 +914,21 @@ UnsignedInt WeaponTemplate::fireWeaponTemplate
 		}
 	}
 
+	// IBM Engine hook: with the Accuracy feature, direct fire can miss. A miss lands near the target:
+	// the fire effects aim there, bullets hurt nobody there, and projectiles fly there instead of homing in.
+	Coord3D accuracyMissPos;
+	const Bool accuracyMiss = !isProjectileDetonation
+		&& IbmEngine::rollAccuracyMiss(sourceObj, victimObj, victimPos, this, bonus, accuracyMissPos);
+
 	// call this even if FXList is null, because this also handles stuff like Gun Barrel Recoil
 	if (sourceObj && sourceObj->getDrawable())
 	{
 		Coord3D targetPos;
-		if( victimObj )
+		if( accuracyMiss )
+		{
+			targetPos.set( accuracyMissPos ); // IBM Engine hook
+		}
+		else if( victimObj )
 		{
 			victimObj->getGeometryInfo().getCenterPosition( *victimObj->getPosition(), targetPos );
 		}
@@ -1022,12 +1032,12 @@ UnsignedInt WeaponTemplate::fireWeaponTemplate
 		projectileDestination.z = TheTerrainLogic->getLayerHeight( projectileDestination.x, projectileDestination.y, targetLayer );
 	}
 
-	// IBM Engine hook: with the Accuracy feature, direct fire can miss. A miss lands near the target:
-	// bullets then hurt nobody there, and projectiles fly to that spot instead of homing in.
-	const Bool accuracyMiss = !isProjectileDetonation && victimObj != nullptr
-		&& IbmEngine::rollAccuracyMiss(sourceObj, victimObj, this, bonus, projectileDestination);
+	// IBM Engine hook: a miss (rolled above) aims at the ground beside the target.
 	if (accuracyMiss)
+	{
+		projectileDestination = accuracyMissPos;
 		scatterRadius = max(scatterRadius, max(getPrimaryDamageRadius(bonus), getSecondaryDamageRadius(bonus)) + 1.0f);
+	}
 
 	if (getProjectileTemplate() == nullptr || isProjectileDetonation)
 	{
@@ -1069,6 +1079,8 @@ UnsignedInt WeaponTemplate::fireWeaponTemplate
 		}
 
 		const Coord3D* damagePos = getDamageDealtAtSelfPosition() ? sourcePos : (accuracyMiss ? &projectileDestination : victimPos); // IBM Engine hook: accuracyMiss
+		if (accuracyMiss)
+			IbmEngine::playAccuracyMissFX(projectileDestination); // IBM Engine hook: show where the bullet landed
 		if (delayInFrames < 1.0f)
 		{
 			// go ahead and do it now

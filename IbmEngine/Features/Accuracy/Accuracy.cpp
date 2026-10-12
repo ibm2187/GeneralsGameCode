@@ -10,8 +10,11 @@
 #include "Common/GameCommon.h"
 #include "Common/INI.h"
 #include "Common/NameKeyGenerator.h"
+#include "Common/Player.h"
+#include "Common/PlayerList.h"
 #include "Common/RandomValue.h"
 #include "Common/ThingTemplate.h"
+#include "GameClient/FXList.h"
 #include "GameLogic/GameLogic.h"
 #include "GameLogic/Object.h"
 #include "GameLogic/PartitionManager.h"
@@ -48,14 +51,15 @@ struct AccuracySettings
 	Real cover;
 	Real coverRadius;			///< infantry this close to a building or bush is in cover
 	Real missDistance;			///< how far beyond the target's edge a miss lands, at most
+	AsciiString bulletMissFX;	///< FXList played where a missed bullet lands
 
 	AccuracySettings()
 	{
-		rifle = 0.65f;
-		machineGun = 0.50f;
+		rifle = 0.75f;
+		machineGun = 0.60f;
 		sniper = 0.95f;
-		tankGun = 0.75f;
-		rocket = 0.80f;
+		tankGun = 0.85f;
+		rocket = 0.85f;
 		rocketMaxRadius = 10.0f;
 		veteran = 1.15f;
 		elite = 1.30f;
@@ -70,6 +74,7 @@ struct AccuracySettings
 		cover = 0.70f;
 		coverRadius = 25.0f;
 		missDistance = 15.0f;
+		bulletMissFX = "FX_IbmAccuracyBulletMiss";
 	}
 };
 
@@ -107,6 +112,7 @@ const FieldParse s_fieldParse[] =
 	{ "Cover",				INI::parsePercentToReal,	nullptr, offsetof(AccuracySettings, cover) },
 	{ "CoverRadius",		INI::parseReal,				nullptr, offsetof(AccuracySettings, coverRadius) },
 	{ "MissDistance",		INI::parseReal,				nullptr, offsetof(AccuracySettings, missDistance) },
+	{ "BulletMissFX",		INI::parseAsciiString,		nullptr, offsetof(AccuracySettings, bulletMissFX) },
 	{ nullptr, nullptr, nullptr, 0 }
 };
 
@@ -240,16 +246,25 @@ void IbmEngine::parseAccuracyDefinition(INI *ini)
 }
 
 //-------------------------------------------------------------------------------------------------
-Bool IbmEngine::rollAccuracyMiss(const Object *source, const Object *victim, const WeaponTemplate *weapon,
-	const WeaponBonus &bonus, Coord3D &aimPos)
+Bool IbmEngine::rollAccuracyMiss(const Object *source, const Object *victim, const Coord3D *targetPos,
+	const WeaponTemplate *weapon, const WeaponBonus &bonus, Coord3D &aimPos)
 {
-	if (!isFeatureActive(Feature_Accuracy) || source == nullptr || victim == nullptr || weapon == nullptr)
+	if (!isFeatureActive(Feature_Accuracy) || source == nullptr || weapon == nullptr)
 		return FALSE;
 
-	// Only units roll: buildings are too big to miss, and missiles, mines and props aren't aimed at.
-	if (victim->isKindOf(KINDOF_STRUCTURE)
-		|| !(victim->isKindOf(KINDOF_INFANTRY) || victim->isKindOf(KINDOF_VEHICLE) || victim->isKindOf(KINDOF_AIRCRAFT)))
-		return FALSE;
+	// Units and spots on the ground roll: buildings are too big to miss, and missiles, mines and
+	// props aren't aimed at.
+	if (victim != nullptr)
+	{
+		if (victim->isKindOf(KINDOF_STRUCTURE)
+			|| !(victim->isKindOf(KINDOF_INFANTRY) || victim->isKindOf(KINDOF_VEHICLE) || victim->isKindOf(KINDOF_AIRCRAFT)))
+			return FALSE;
+	}
+	else if (targetPos == nullptr || weapon->getDamageDealtAtSelfPosition()
+		|| ThePartitionManager->getDistanceSquared(source, targetPos, FROM_BOUNDINGSPHERE_2D) < 1.0f)
+	{
+		return FALSE; // death weapons and others that go off where the shooter stands don't aim
+	}
 
 	const Real base = getBaseAccuracy(weapon, bonus);
 	if (base < 0.0f)
@@ -261,7 +276,9 @@ Bool IbmEngine::rollAccuracyMiss(const Object *source, const Object *victim, con
 	const Real range = weapon->getAttackRange(bonus);
 	if (range > 0.0f)
 	{
-		const Real dist = sqrtf(ThePartitionManager->getDistanceSquared(source, victim, FROM_BOUNDINGSPHERE_2D));
+		const Real dist = victim != nullptr
+			? sqrtf(ThePartitionManager->getDistanceSquared(source, victim, FROM_BOUNDINGSPHERE_2D))
+			: sqrtf(ThePartitionManager->getDistanceSquared(source, targetPos, FROM_BOUNDINGSPHERE_2D));
 		const Real start = range * s_settings.rangeFalloffStart;
 		if (dist > start && range > start)
 		{
@@ -272,9 +289,9 @@ Bool IbmEngine::rollAccuracyMiss(const Object *source, const Object *victim, con
 
 	if (isMoving(source))
 		chance *= s_settings.shooterMoving;
-	if (isMoving(victim))
+	if (victim != nullptr && isMoving(victim))
 		chance *= s_settings.targetMoving;
-	if (victim->isKindOf(KINDOF_INFANTRY) && isInCover(victim))
+	if (victim != nullptr && victim->isKindOf(KINDOF_INFANTRY) && isInCover(victim))
 		chance *= s_settings.cover;
 
 	chance = max(s_settings.minChance, min(s_settings.maxChance, chance));
@@ -294,12 +311,37 @@ Bool IbmEngine::rollAccuracyMiss(const Object *source, const Object *victim, con
 	if (hit)
 		return FALSE;
 
-	// The miss lands on the ground beside the target, or in the air beside a flying one.
+	// The miss lands on the ground beside the target, or in the air beside a flying one. A shot at
+	// the ground lands up to MissDistance from the spot.
 	const Real angle = GameLogicRandomValueReal(0.0f, 2.0f * PI);
-	const Real dist = victim->getGeometryInfo().getBoundingCircleRadius() + GameLogicRandomValueReal(0.5f, 1.0f) * s_settings.missDistance;
-	const Coord3D *pos = victim->getPosition();
-	aimPos.x = pos->x + dist * Cos(angle);
-	aimPos.y = pos->y + dist * Sin(angle);
-	aimPos.z = victim->isAboveTerrain() ? pos->z : TheTerrainLogic->getLayerHeight(aimPos.x, aimPos.y, victim->getLayer());
+	const Real spread = GameLogicRandomValueReal(0.5f, 1.0f) * s_settings.missDistance;
+	if (victim != nullptr)
+	{
+		const Real dist = victim->getGeometryInfo().getBoundingCircleRadius() + spread;
+		const Coord3D *pos = victim->getPosition();
+		aimPos.x = pos->x + dist * Cos(angle);
+		aimPos.y = pos->y + dist * Sin(angle);
+		aimPos.z = victim->isAboveTerrain() ? pos->z : TheTerrainLogic->getLayerHeight(aimPos.x, aimPos.y, victim->getLayer());
+	}
+	else
+	{
+		aimPos.x = targetPos->x + spread * Cos(angle);
+		aimPos.y = targetPos->y + spread * Sin(angle);
+		aimPos.z = TheTerrainLogic->getLayerHeight(aimPos.x, aimPos.y, TheTerrainLogic->getLayerForDestination(targetPos));
+	}
 	return TRUE;
+}
+
+//-------------------------------------------------------------------------------------------------
+void IbmEngine::playAccuracyMissFX(const Coord3D &pos)
+{
+	if (s_settings.bulletMissFX.isEmpty() || s_settings.bulletMissFX.compareNoCase("None") == 0)
+		return;
+
+	// Only where the local player can see: the effect would give away units under the shroud.
+	const Player *localPlayer = ThePlayerList->getLocalPlayer();
+	if (localPlayer != nullptr && ThePartitionManager->getShroudStatusForPlayer(localPlayer->getPlayerIndex(), &pos) != CELLSHROUD_CLEAR)
+		return;
+
+	FXList::doFXPos(TheFXListStore->findFXList(s_settings.bulletMissFX.str()), &pos);
 }
