@@ -14,6 +14,7 @@ Fewer, tougher units: every vehicle and aircraft costs more, takes longer to bui
 
 - Health goes up more than damage, so fights last longer and a hurt unit has time to pull back.
 - Shots hit harder but come much slower: ×1.25 damage at ×0.6 rate of fire is 75% of retail damage per second against vehicles, and with health ×1.5 a vehicle lasts twice as long. With the [Armor](../Armor/README.md) feature, deflections stretch that further.
+- Main guns, rockets and artillery have a reload in seconds instead (`Reload` lines), like Company of Heroes tanks: Scorpion, Technical and Humvee 4 s; Crusader, Battlemaster and Marauder 6 s; Paladin 7 s; Overlord a two-shot burst every 8 s; Rocket Buggy 10 s; Inferno 8 s; Tomahawk 12 s; Nuke Cannon and Scud Launcher 15 s. Retail main guns fire every 2 s. Veterancy and upgrades still speed them up.
 - Vehicle and aircraft weapons do ×1.5 against infantry (`VsInfantry`), so against infantry they do 1.125 times retail damage per second: tanks are a real threat to squads.
 - Each tank has its own speed: light units keep more of it (Humvee, Technical, Rocket Buggy ×0.9), main battle tanks get the baseline (Crusader, Battlemaster, Marauder ×0.8), and heavy ones lose the most (Paladin, Tomahawk, Inferno, Scud Launcher ×0.75; Overlord, Emperor ×0.7).
 - Scouts, transports and support vehicles (Humvee, Ambulance, Technical, Radar Van, Battle Bus, Combat Bikes, Troop Crawler, Listening Outpost) cost and build only ×1.5.
@@ -30,12 +31,14 @@ IbmEconomy
   Kind = VEHICLE  Cost:200% BuildTime:200% Health:150% Damage:125% RateOfFire:60% VsInfantry:150% Speed:80%
   Exempt = DOZER HARVESTER DRONE
   Unit = ChinaTankOverlord Speed:70%
+  Reload = CrusaderTankGun 6
 End
 ```
 
 - `Kind` applies to units a player can build (BuildCost above 0) with that KindOf. The first matching line wins, so `AIRCRAFT` comes before `VEHICLE` (helicopters have both).
 - `Exempt` units get no `Kind` multipliers.
 - `Unit` replaces only the stats it names, for that object and for the generals' versions of it: `Tank_ChinaTankOverlord` uses the `ChinaTankOverlord` line unless it has its own.
+- `Reload = <Weapon> <seconds>`: the weapon fires once per that many seconds. With no clip it waits that long between shots; with a clip (one shell, or a burst) it takes that long to reload. It replaces the unit's `RateOfFire` for that weapon, and also covers the generals' versions (`Nuke_OverlordTankGun`).
 
 ## Files
 
@@ -44,7 +47,7 @@ End
 | `Economy.cpp`, `Economy.h` | The multipliers and the `IbmEconomy` INI block |
 | `Data/INI/Features/Economy/10_Economy.ini` | Every number above |
 
-Hooks: `ThingTemplate::calcCostToBuild` and `calcTimeToBuild` (cost and build time, which the build buttons, AI, refunds and selling all use), `ActiveBody`'s constructor (health), `Weapon::computeBonus` (damage and rate of fire), `WeaponTemplate::dealDamageInternal` (damage against infantry), `AIUpdateInterface::chooseLocomotorSetExplicit` (speed); INI.cpp registers the block.
+Hooks: `ThingTemplate::calcCostToBuild` and `calcTimeToBuild` (cost and build time, which the build buttons, AI, refunds and selling all use), `ActiveBody`'s constructor (health), `Weapon::computeBonus` (damage and rate of fire), `WeaponTemplate::getDelayBetweenShots` and `getClipReloadTime` (reloads in seconds), `WeaponTemplate::dealDamageInternal` (damage against infantry), `AIUpdateInterface::chooseLocomotorSetExplicit` (speed); INI.cpp registers the block.
 
 ## Testing
 

@@ -9,6 +9,7 @@ class INI;
 class LocomotorSet;
 class Object;
 class ThingTemplate;
+class WeaponTemplate;
 
 namespace IbmEngine
 {
@@ -34,6 +35,13 @@ Real getEconomyScale(const ThingTemplate *tmpl, EconomyStat stat);
 // WeaponTemplate::dealDamageInternal, before each victim takes damage: the attacker's VsInfantry
 // multiplier when the victim is infantry, else 1. attacker may be null (it died).
 Real getEconomyDamageScaleAgainst(const Object *attacker, const Object *victim);
+
+// WeaponTemplate::getDelayBetweenShots and getClipReloadTime: a weapon with a "Reload = <Weapon>
+// <seconds>" line fires once per that many seconds: a weapon with no clip waits that long between
+// shots, a weapon with a clip (one shell, or a burst) takes that long to reload it. Returns the time
+// in logic frames, or -1 when the weapon has no line or the feature is off. Weapons with a line skip
+// the unit's RateOfFire multiplier; veterancy and upgrades still speed them up.
+Int getEconomyReloadFrames(const WeaponTemplate *weapon);
 
 // AIUpdateInterface::chooseLocomotorSetExplicit, after a new set is built: caps each locomotor's
 // speed at its normal speed times the unit's Speed multiplier.

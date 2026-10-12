@@ -54,7 +54,7 @@ Every change to original engine files is small and marked `// IBM Engine hook` (
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Weapon.cpp` | `fireWeaponTemplate`: the accuracy roll before the fire effects; a miss hits the ground beside the target and shows a dust puff |
 | `Core/GameEngine/Source/Common/Thing/ThingTemplate.cpp` | `calcCostToBuild`, `calcTimeToBuild`: the Economy cost and build-time multipliers |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Body/ActiveBody.cpp` | constructor: the Economy health multiplier |
-| `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Weapon.cpp` | `computeBonus`: the Economy damage and rate-of-fire multipliers; `dealDamageInternal`: Economy's damage against infantry and the Armor penetration roll |
+| `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Weapon.cpp` | `computeBonus`: the Economy damage and rate-of-fire multipliers; `getDelayBetweenShots`, `getClipReloadTime`: Economy reloads in seconds; `dealDamageInternal`: Economy's damage against infantry and the Armor penetration roll |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Update/AIUpdate.cpp` | `chooseLocomotorSetExplicit`: the Economy speed multiplier caps each new locomotor |
 | `Core/GameEngineDevice/Source/MilesAudioDevice/MilesAudioManager.cpp` | fix: the audio file cache held its lock while stopping a sound whose Miles callback needed it, freezing the game ([upstream #256](https://github.com/TheSuperHackers/GeneralsGameCode/issues/256)) |
 

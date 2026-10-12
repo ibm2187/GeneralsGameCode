@@ -14,6 +14,7 @@
 #include "GameLogic/Locomotor.h"
 #include "GameLogic/LocomotorSet.h"
 #include "GameLogic/Object.h"
+#include "GameLogic/Weapon.h"
 #include "GameLogic/Module/BodyModule.h"
 
 #include "Features/Economy/Economy.h"
@@ -51,6 +52,8 @@ std::vector<KindScales> s_kinds;					///< "Kind = VEHICLE Cost:200% ..." lines, 
 KindOfMaskType s_exempt;							///< "Exempt = DOZER HARVESTER": no Kind multipliers
 std::map<NameKeyType, EconomyScales> s_units;		///< "Unit = ChinaTankOverlord Speed:70%" lines
 std::map<const ThingTemplate *, EconomyScales> s_cache;
+std::map<NameKeyType, Real> s_reloadSeconds;		///< "Reload = CrusaderTankGun 6" lines
+std::map<const WeaponTemplate *, Int> s_reloadCache;	///< frames, or -1
 
 //-------------------------------------------------------------------------------------------------
 // Reads "Stat:Percent" tokens up to the end of the line.
@@ -109,11 +112,20 @@ void parseUnitLine(INI *ini, void * /*instance*/, void * /*store*/, const void *
 	s_units.insert(std::make_pair(NAMEKEY(name), parseScales(ini)));
 }
 
+//-------------------------------------------------------------------------------------------------
+// "Reload = CrusaderTankGun 6": seconds between shots, or to reload the weapon's clip.
+void parseReloadLine(INI *ini, void * /*instance*/, void * /*store*/, const void * /*userData*/)
+{
+	const char *name = ini->getNextToken();
+	s_reloadSeconds[NAMEKEY(name)] = INI::scanReal(ini->getNextToken());
+}
+
 const FieldParse s_fieldParse[] =
 {
 	{ "Kind",	parseKindLine,		nullptr, 0 },
 	{ "Exempt",	parseExemptLine,	nullptr, 0 },
 	{ "Unit",	parseUnitLine,		nullptr, 0 },
+	{ "Reload",	parseReloadLine,	nullptr, 0 },
 	{ nullptr, nullptr, nullptr, 0 }
 };
 
@@ -179,6 +191,8 @@ void IbmEngine::parseEconomyDefinition(INI *ini)
 	s_exempt.clear();
 	s_units.clear();
 	s_cache.clear();
+	s_reloadSeconds.clear();
+	s_reloadCache.clear();
 	Int unused = 0;
 	ini->initFromINI(&unused, s_fieldParse);
 }
@@ -189,6 +203,37 @@ Real IbmEngine::getEconomyScale(const ThingTemplate *tmpl, EconomyStat stat)
 	if (!isFeatureActive(Feature_Economy) || tmpl == nullptr)
 		return 1.0f;
 	return getScales(tmpl).scale[stat];
+}
+
+//-------------------------------------------------------------------------------------------------
+Int IbmEngine::getEconomyReloadFrames(const WeaponTemplate *weapon)
+{
+	if (!isFeatureActive(Feature_Economy) || weapon == nullptr || s_reloadSeconds.empty())
+		return -1;
+
+	std::map<const WeaponTemplate *, Int>::const_iterator cached = s_reloadCache.find(weapon);
+	if (cached != s_reloadCache.end())
+		return cached->second;
+
+	// Its own line, or the line of the weapon it is a general's version of ("Nuke_" + name).
+	Int frames = -1;
+	const char *name = weapon->getName().str();
+	while (name != nullptr && *name != '\0')
+	{
+		std::map<NameKeyType, Real>::const_iterator it = s_reloadSeconds.find(NAMEKEY(name));
+		if (it != s_reloadSeconds.end())
+		{
+			frames = REAL_TO_INT_CEIL(it->second * LOGICFRAMES_PER_SECOND);
+			break;
+		}
+
+		name = strchr(name, '_');
+		if (name != nullptr)
+			++name;
+	}
+
+	s_reloadCache[weapon] = frames;
+	return frames;
 }
 
 //-------------------------------------------------------------------------------------------------

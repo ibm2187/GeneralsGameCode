@@ -508,7 +508,10 @@ Int WeaponTemplate::getDelayBetweenShots(const WeaponBonus& bonus) const
 	// yes, divide, not multiply; the larger the rate-of-fire bonus, the shorter
 	// we want the delay time to be.
 	Int delayToUse;
-	if( m_minDelayBetweenShots == m_maxDelayBetweenShots )
+	const Int reloadFrames = getClipSize() == 0 ? IbmEngine::getEconomyReloadFrames(this) : -1; // IBM Engine hook: a reload time in seconds
+	if (reloadFrames >= 0)
+		delayToUse = reloadFrames;
+	else if( m_minDelayBetweenShots == m_maxDelayBetweenShots )
 		delayToUse = m_minDelayBetweenShots; // Random number thing doesn't like this case
 	else
 		delayToUse = GameLogicRandomValue( m_minDelayBetweenShots, m_maxDelayBetweenShots );
@@ -525,6 +528,9 @@ Int WeaponTemplate::getClipReloadTime(const WeaponBonus& bonus) const
 {
 	// yes, divide, not multiply; the larger the rate-of-fire bonus, the shorter
 	// we want the reload time to be.
+	const Int reloadFrames = getClipSize() > 0 ? IbmEngine::getEconomyReloadFrames(this) : -1; // IBM Engine hook: a reload time in seconds
+	if (reloadFrames >= 0)
+		return REAL_TO_INT_FLOOR(reloadFrames / bonus.getField(WeaponBonus::RATE_OF_FIRE));
 	return REAL_TO_INT_FLOOR(m_clipReloadTime / bonus.getField(WeaponBonus::RATE_OF_FIRE));
 }
 
@@ -1968,7 +1974,8 @@ void Weapon::computeBonus(const Object *source, WeaponBonusConditionFlags extraB
 	const Real damageScale = IbmEngine::getEconomyScale(source->getTemplate(), IbmEngine::EconomyStat_Damage);
 	if (damageScale != 1.0f)
 		bonus.setField(WeaponBonus::DAMAGE, bonus.getField(WeaponBonus::DAMAGE) * damageScale);
-	const Real rateOfFireScale = IbmEngine::getEconomyScale(source->getTemplate(), IbmEngine::EconomyStat_RateOfFire);
+	const Real rateOfFireScale = IbmEngine::getEconomyReloadFrames(m_template) >= 0 ? 1.0f // a reload in seconds replaces it
+		: IbmEngine::getEconomyScale(source->getTemplate(), IbmEngine::EconomyStat_RateOfFire);
 	if (rateOfFireScale != 1.0f)
 		bonus.setField(WeaponBonus::RATE_OF_FIRE, bonus.getField(WeaponBonus::RATE_OF_FIRE) * rateOfFireScale);
 }
