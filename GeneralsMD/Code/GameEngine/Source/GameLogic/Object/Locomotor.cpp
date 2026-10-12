@@ -576,7 +576,9 @@ void LocomotorStore::reset()
 		Overridable *locoTemp = it->second->deleteOverrides();
 		if (!locoTemp)
 		{
-			m_locomotorTemplates.erase(it);
+			// IBM Engine fix: erase(it) invalidated the iterator the loop kept using, which crashed
+			// at game end whenever an override INI (map.ini, feature pack) added a new locomotor.
+			m_locomotorTemplates.erase(it++);
 		}
 		else
 		{
