@@ -32,6 +32,7 @@ Saved games don't store the flags; loading a save uses the current local flags.
 | `Demo` | [Demo](../Demo/README.md): a test setup at game start for Squads and Economy (was `SquadsDemo`) | no |
 | `Accuracy` | [Accuracy](../Accuracy/README.md) | yes |
 | `Economy` | [Economy](../Economy/README.md) | yes |
+| `Armor` | [Armor](../Armor/README.md) | yes |
 
 ## INI packs
 

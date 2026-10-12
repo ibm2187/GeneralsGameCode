@@ -21,6 +21,7 @@ enum EconomyStat
 	EconomyStat_Damage,
 	EconomyStat_Speed,
 	EconomyStat_RateOfFire,
+	EconomyStat_VsInfantry,	///< damage multiplier against infantry
 
 	EconomyStat_Count
 };
@@ -29,6 +30,10 @@ enum EconomyStat
 // Hooks: ThingTemplate::calcCostToBuild and calcTimeToBuild, ActiveBody's constructor and
 // Weapon::computeBonus.
 Real getEconomyScale(const ThingTemplate *tmpl, EconomyStat stat);
+
+// WeaponTemplate::dealDamageInternal, before each victim takes damage: the attacker's VsInfantry
+// multiplier when the victim is infantry, else 1. attacker may be null (it died).
+Real getEconomyDamageScaleAgainst(const Object *attacker, const Object *victim);
 
 // AIUpdateInterface::chooseLocomotorSetExplicit, after a new set is built: caps each locomotor's
 // speed at its normal speed times the unit's Speed multiplier.

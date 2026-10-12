@@ -16,6 +16,7 @@ enum Feature
 	Feature_Demo,		///< test setup at game start for the features that are on (Demo slice); has no pack. Was SquadsDemo
 	Feature_Accuracy,	///< direct fire can miss; veterancy, range, movement and cover change the odds
 	Feature_Economy,	///< fewer, tougher units: vehicles and aircraft cost more, build slower, move slower, last longer
+	Feature_Armor,		///< vehicles have front, side and rear armor; weapons have penetration
 
 	Feature_Count
 };

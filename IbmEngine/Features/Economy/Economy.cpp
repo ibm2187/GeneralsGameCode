@@ -25,7 +25,7 @@ namespace
 using IbmEngine::EconomyStat;
 using IbmEngine::EconomyStat_Count;
 
-const char *const s_statNames[] = { "Cost", "BuildTime", "Health", "Damage", "Speed", "RateOfFire" };
+const char *const s_statNames[] = { "Cost", "BuildTime", "Health", "Damage", "Speed", "RateOfFire", "VsInfantry" };
 static_assert(ARRAY_SIZE(s_statNames) == EconomyStat_Count, "s_statNames must match EconomyStat");
 
 //-------------------------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ EconomyScales parseScales(INI *ini)
 
 		if (colon == nullptr || stat == EconomyStat_Count)
 		{
-			DEBUG_CRASH(("IbmEconomy: '%s' should be Stat:Percent, with Stat one of Cost, BuildTime, Health, Damage, Speed, RateOfFire", token));
+			DEBUG_CRASH(("IbmEconomy: '%s' should be Stat:Percent, with Stat one of Cost, BuildTime, Health, Damage, Speed, RateOfFire, VsInfantry", token));
 			throw INI_INVALID_DATA;
 		}
 		scales.scale[stat] = INI::scanPercentToReal(colon + 1);
@@ -189,6 +189,14 @@ Real IbmEngine::getEconomyScale(const ThingTemplate *tmpl, EconomyStat stat)
 	if (!isFeatureActive(Feature_Economy) || tmpl == nullptr)
 		return 1.0f;
 	return getScales(tmpl).scale[stat];
+}
+
+//-------------------------------------------------------------------------------------------------
+Real IbmEngine::getEconomyDamageScaleAgainst(const Object *attacker, const Object *victim)
+{
+	if (attacker == nullptr || victim == nullptr || !victim->isKindOf(KINDOF_INFANTRY))
+		return 1.0f;
+	return getEconomyScale(attacker->getTemplate(), EconomyStat_VsInfantry);
 }
 
 //-------------------------------------------------------------------------------------------------

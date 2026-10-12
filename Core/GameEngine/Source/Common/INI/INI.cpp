@@ -62,6 +62,7 @@
 #if RTS_ZEROHOUR
 #include "Features/FeatureFlags/FeatureFlags.h" // IBM Engine hook
 #include "Features/Accuracy/Accuracy.h" // IBM Engine hook
+#include "Features/Armor/Armor.h" // IBM Engine hook
 #include "Features/Economy/Economy.h" // IBM Engine hook
 #include "Features/Squads/Squads.h" // IBM Engine hook
 #endif
@@ -122,6 +123,7 @@ static const BlockParse theTypeTable[] =
 	{ "HeaderTemplate",                 INI::parseHeaderTemplateDefinition },
 #if RTS_ZEROHOUR
 	{ "IbmAccuracy",                    IbmEngine::parseAccuracyDefinition }, // IBM Engine hook
+	{ "IbmArmor",                       IbmEngine::parseArmorDefinition }, // IBM Engine hook
 	{ "IbmEconomy",                     IbmEngine::parseEconomyDefinition }, // IBM Engine hook
 	{ "IbmSquadTransport",              IbmEngine::parseSquadTransportDefinition }, // IBM Engine hook
 #endif

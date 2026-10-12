@@ -79,6 +79,7 @@
 
 #include "Features/Accuracy/Accuracy.h" // IBM Engine hook
 #include "Features/Economy/Economy.h" // IBM Engine hook
+#include "Features/Armor/Armor.h" // IBM Engine hook
 
 #define RATIONALIZE_ATTACK_RANGE
 #define ATTACK_RANGE_IS_2D
@@ -1594,6 +1595,14 @@ void WeaponTemplate::dealDamageInternal(ObjectID sourceID, ObjectID victimID, co
 						break;
 					}
 				}
+			}
+
+			// IBM Engine hook: Economy's damage against infantry, and Armor's penetration roll for a direct hit.
+			if (!killSelf)
+			{
+				const Object *attacker = damageInfo.in.m_sourceID == sourceID ? source : TheGameLogic->findObjectByID(damageInfo.in.m_sourceID);
+				damageInfo.in.m_amount *= IbmEngine::getEconomyDamageScaleAgainst(attacker, curVictim);
+				damageInfo.in.m_amount *= IbmEngine::rollArmorPenetration(this, source, curVictim, curVictim == primaryVictim);
 			}
 
 			curVictim->attemptDamage(&damageInfo);

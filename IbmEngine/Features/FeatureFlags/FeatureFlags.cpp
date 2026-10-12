@@ -14,6 +14,7 @@ static const char *const s_featureNames[Feature_Count] =
 	"Demo",
 	"Accuracy",
 	"Economy",
+	"Armor",
 };
 
 // Whether the feature has an INI pack in Data\INI\Features\<Name>\.
@@ -23,6 +24,7 @@ static const Bool s_featureHasPack[Feature_Count] =
 	FALSE,	// Demo
 	TRUE,	// Accuracy
 	TRUE,	// Economy
+	TRUE,	// Armor
 };
 
 static FeatureMask s_localFeatures = 0;
