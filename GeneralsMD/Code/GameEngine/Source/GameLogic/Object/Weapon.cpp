@@ -1955,10 +1955,13 @@ void Weapon::computeBonus(const Object *source, WeaponBonusConditionFlags extraB
 	if (extra)
 		extra->appendBonuses(flags, bonus);
 
-	// IBM Engine hook: the Economy feature makes some units hit harder, on top of their other bonuses.
+	// IBM Engine hook: the Economy feature makes some units hit harder and fire slower, on top of their other bonuses.
 	const Real damageScale = IbmEngine::getEconomyScale(source->getTemplate(), IbmEngine::EconomyStat_Damage);
 	if (damageScale != 1.0f)
 		bonus.setField(WeaponBonus::DAMAGE, bonus.getField(WeaponBonus::DAMAGE) * damageScale);
+	const Real rateOfFireScale = IbmEngine::getEconomyScale(source->getTemplate(), IbmEngine::EconomyStat_RateOfFire);
+	if (rateOfFireScale != 1.0f)
+		bonus.setField(WeaponBonus::RATE_OF_FIRE, bonus.getField(WeaponBonus::RATE_OF_FIRE) * rateOfFireScale);
 }
 
 //-------------------------------------------------------------------------------------------------

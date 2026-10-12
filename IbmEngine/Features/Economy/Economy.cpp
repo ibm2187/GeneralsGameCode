@@ -25,7 +25,7 @@ namespace
 using IbmEngine::EconomyStat;
 using IbmEngine::EconomyStat_Count;
 
-const char *const s_statNames[] = { "Cost", "BuildTime", "Health", "Damage", "Speed" };
+const char *const s_statNames[] = { "Cost", "BuildTime", "Health", "Damage", "Speed", "RateOfFire" };
 static_assert(ARRAY_SIZE(s_statNames) == EconomyStat_Count, "s_statNames must match EconomyStat");
 
 //-------------------------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ EconomyScales parseScales(INI *ini)
 
 		if (colon == nullptr || stat == EconomyStat_Count)
 		{
-			DEBUG_CRASH(("IbmEconomy: '%s' should be Stat:Percent, with Stat one of Cost, BuildTime, Health, Damage, Speed", token));
+			DEBUG_CRASH(("IbmEconomy: '%s' should be Stat:Percent, with Stat one of Cost, BuildTime, Health, Damage, Speed, RateOfFire", token));
 			throw INI_INVALID_DATA;
 		}
 		scales.scale[stat] = INI::scanPercentToReal(colon + 1);

@@ -1,7 +1,7 @@
 // IBM Engine: economy, the functions the engine's hooks call. With the Economy feature on, units
 // are scarcer and tougher: the IbmEconomy INI block (in the Economy pack) multiplies the cost,
-// build time, health, weapon damage and speed of whole kinds of units (vehicles, aircraft) and of
-// single units, so each one is worth more and lives longer.
+// build time, health, weapon damage, rate of fire and speed of whole kinds of units (vehicles,
+// aircraft) and of single units, so each one is worth more and lives longer.
 
 #pragma once
 
@@ -20,6 +20,7 @@ enum EconomyStat
 	EconomyStat_Health,
 	EconomyStat_Damage,
 	EconomyStat_Speed,
+	EconomyStat_RateOfFire,
 
 	EconomyStat_Count
 };

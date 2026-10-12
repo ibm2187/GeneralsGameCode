@@ -1,6 +1,6 @@
 # Economy
 
-Fewer, tougher units: every vehicle and aircraft costs more, takes longer to build, has more health, hits harder and moves slower, so each one is worth more and losing one matters. Feature flag: `Economy`.
+Fewer, tougher units: every vehicle and aircraft costs more, takes longer to build, has more health, hits harder but fires slower, and moves slower, so each one is worth more and losing one matters. Feature flag: `Economy`.
 
 | Stat | Vehicles | Aircraft |
 |---|---|---|
@@ -8,22 +8,24 @@ Fewer, tougher units: every vehicle and aircraft costs more, takes longer to bui
 | Build time | ×2 | ×2 |
 | Health | ×1.5 | ×1.5 |
 | Damage | ×1.25 | ×1.25 |
+| Rate of fire | ×0.8 | ×0.8 |
 | Speed | ×0.8 | ×0.85 |
 
 - Health goes up more than damage, so fights last longer and a hurt unit has time to pull back.
+- Shots hit harder but come slower: ×1.25 damage at ×0.8 rate of fire keeps damage per second at retail, while health ×1.5 makes each unit last 1.5 times as long.
 - Each tank has its own speed: light units keep more of it (Humvee, Technical, Rocket Buggy ×0.9), main battle tanks get the baseline (Crusader, Battlemaster, Marauder ×0.8), and heavy ones lose the most (Paladin, Tomahawk, Inferno, Scud Launcher ×0.75; Overlord, Emperor ×0.7).
 - Scouts, transports and support vehicles (Humvee, Ambulance, Technical, Radar Van, Battle Bus, Combat Bikes, Troop Crawler, Listening Outpost) cost and build only ×1.5.
 - Dozers, supply trucks, Chinooks and drones keep their retail stats (`Exempt`). So do units no player can build (civilian cars, campaign units).
 - Supply income and buildings are unchanged, so units become scarcer compared with the base.
-- Damage multiplies the unit's total weapon bonus, so it stacks on top of veterancy and upgrades.
+- Damage and rate of fire multiply the unit's total weapon bonus, so they stack on top of veterancy and upgrades. Rate of fire stretches both the delay between shots and the clip reload.
 - Speed caps the unit's normal top speed. Its speed when badly damaged stays the retail value, unless that is faster.
 
 ## The IbmEconomy block
 
 ```ini
 IbmEconomy
-  Kind = AIRCRAFT Cost:200% BuildTime:200% Health:150% Damage:125% Speed:85%
-  Kind = VEHICLE  Cost:200% BuildTime:200% Health:150% Damage:125% Speed:80%
+  Kind = AIRCRAFT Cost:200% BuildTime:200% Health:150% Damage:125% RateOfFire:80% Speed:85%
+  Kind = VEHICLE  Cost:200% BuildTime:200% Health:150% Damage:125% RateOfFire:80% Speed:80%
   Exempt = DOZER HARVESTER DRONE
   Unit = ChinaTankOverlord Speed:70%
 End
@@ -40,7 +42,7 @@ End
 | `Economy.cpp`, `Economy.h` | The multipliers and the `IbmEconomy` INI block |
 | `Data/INI/Features/Economy/10_Economy.ini` | Every number above |
 
-Hooks: `ThingTemplate::calcCostToBuild` and `calcTimeToBuild` (cost and build time, which the build buttons, AI, refunds and selling all use), `ActiveBody`'s constructor (health), `Weapon::computeBonus` (damage), `AIUpdateInterface::chooseLocomotorSetExplicit` (speed); INI.cpp registers the block.
+Hooks: `ThingTemplate::calcCostToBuild` and `calcTimeToBuild` (cost and build time, which the build buttons, AI, refunds and selling all use), `ActiveBody`'s constructor (health), `Weapon::computeBonus` (damage and rate of fire), `AIUpdateInterface::chooseLocomotorSetExplicit` (speed); INI.cpp registers the block.
 
 ## Testing
 
