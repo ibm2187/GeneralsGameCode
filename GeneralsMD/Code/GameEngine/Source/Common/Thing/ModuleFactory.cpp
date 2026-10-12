@@ -280,6 +280,8 @@
 #include "GameClient/Module/SwayClientUpdate.h"
 #include "GameClient/Module/BeaconClientUpdate.h"
 
+#include "Features/Squads/SquadUpdate.h" // IBM Engine hook
+
 // PUBLIC DATA ////////////////////////////////////////////////////////////////////////////////////
 ModuleFactory *TheModuleFactory = nullptr;  ///< the module factory singleton
 
@@ -557,6 +559,9 @@ void ModuleFactory::init()
 	addModule( AnimatedParticleSysBoneClientUpdate );
 	addModule( SwayClientUpdate );
 	addModule( BeaconClientUpdate );
+
+	// IBM Engine hook: the Squads feature's module. INI packs use it only when the feature is on.
+	addModule( IbmSquadUpdate );
 
 }
 

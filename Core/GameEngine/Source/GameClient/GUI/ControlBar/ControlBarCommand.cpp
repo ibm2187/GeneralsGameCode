@@ -59,6 +59,10 @@
 #include "GameClient/GameWindowManager.h"
 #include "GameClient/GadgetPushButton.h"
 
+#if RTS_ZEROHOUR
+#include "Features/Squads/Squads.h" // IBM Engine hook
+#endif
+
 
 // PRIVATE DATA ///////////////////////////////////////////////////////////////////////////////////
 static GameWindow *commandWindows[ MAX_COMMANDS_PER_SET ];
@@ -1029,6 +1033,13 @@ CommandAvailability ControlBar::getCommandAvailability( const CommandButton *com
 
 	if (obj == nullptr)
 		return COMMAND_HIDDEN;	// probably better than crashing....
+
+#if RTS_ZEROHOUR
+	// IBM Engine hook: a squad's skill buttons are evaluated for the member that has the skill.
+	CommandAvailability squadAvailability;
+	if (IbmEngine::evaluateSquadCommand(command, obj, squadAvailability))
+		return squadAvailability;
+#endif
 
 	Player *player = obj->getControllingPlayer();
 

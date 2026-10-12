@@ -24,9 +24,16 @@ Logic code checks `IbmEngine::isFeatureActive(IbmEngine::Feature_Squads)`, never
 
 Saved games don't store the flags; loading a save uses the current local flags.
 
+## Flags
+
+| Flag | What it switches on | INI pack |
+|---|---|---|
+| `Squads` | [Squads](../Squads/README.md) | yes |
+| `SquadsDemo` | a test setup at game start; needs `Squads` | no |
+
 ## INI packs
 
-When a flag is active, `Data\INI\Features\<Name>\*.ini` loads at game start in override mode, the same mode as a map's `map.ini`. A pack can add objects, weapons, buttons and button sets, and change existing ones; the game removes them when the game ends. `map.ini` loads after packs, so a map can still override a pack.
+When a flag that has a pack is active, `Data\INI\Features\<Name>\*.ini` loads at game start in override mode, the same mode as a map's `map.ini`. A pack can add objects, weapons, buttons and button sets, and change existing ones; the game removes them when the game ends. `map.ini` loads after packs, so a map can still override a pack.
 
 - Files load in name order, so packs number their files (`10_Locomotor.ini`, `20_Weapon.ini`, ...). Define things before they're referenced.
 - In override mode, modules must be added with `AddModule`, `RemoveModule` or `ReplaceModule`, even on new objects.

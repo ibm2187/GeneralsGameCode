@@ -7,7 +7,7 @@ Each feature is a vertical slice under `Features/<Name>/`, holding everything fo
 | Slice | What it does |
 |---|---|
 | [FeatureFlags](Features/FeatureFlags/README.md) | Feature flags, INI packs loaded at game start, and the `ObjectCopy` INI block |
-| [Squads](Features/Squads/README.md) | Infantry squads, commando squads and the Medical Center (flag `Squads`) |
+| [Squads](Features/Squads/README.md) | Infantry squads and commando squads that heal and refill at the Barracks (flags `Squads`, `SquadsDemo`) |
 
 ## Install
 
@@ -33,5 +33,17 @@ Every change to original engine files is small and marked `// IBM Engine hook` (
 | `GeneralsMD/Code/GameEngine/Source/GameClient/GUI/GUICallbacks/Menus/SkirmishGameOptionsMenu.cpp` | a skirmish uses the current local flags, not the ones saved with the last skirmish's settings |
 | `Core/GameEngine/Include/GameClient/ControlBar.h` | `postProcessCommands()` made public, so packs can resolve the images of buttons they add |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Locomotor.cpp` | fix: `LocomotorStore::reset` used an erased iterator, crashing at game end when an override INI added a locomotor |
+| `GeneralsMD/Code/GameEngine/Source/GameLogic/System/GameLogic.cpp` | `IbmEngine::setUpSquadsDemo()` after the starting bases are placed (not when loading a save) |
+| `GeneralsMD/Code/GameEngine/Source/Common/Thing/ModuleFactory.cpp` | registers the `IbmSquadUpdate` module |
+| `GeneralsMD/Code/GameEngine/Include/GameLogic/Module/SpawnBehavior.h`, `.../Behavior/SpawnBehavior.cpp` | `getSlaveIDs()` and `adoptSlave()`: squads read their members and take back the ones the Barracks returns |
+| `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Update/MobMemberSlavedUpdate.cpp` | a squad member using a skill or riding in a container isn't pulled back to its leader |
+| `GeneralsMD/Code/GameEngine/Source/Common/RTS/ActionManager.cpp` | `canEnterObject`: squads may enter containers |
+| `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Update/AIUpdate.cpp`, `Include/.../AIUpdate.h` | enter and exit: whole squads; attack and force attack on a trooper attack the whole squad (`privateAttackSquadOf`) |
+| `GeneralsMD/Code/GameEngine/Include/GameLogic/AIStateMachine.h`, `Source/GameLogic/AI/AIStates.cpp` | new state `AI_FORCE_ATTACK_SQUAD` (appended, so saved state ids don't change); attack-squad victims spread over a squad |
+| `GeneralsMD/Code/GameEngine/Source/Common/RTS/Team.cpp` | `TeamTemplateInfo`: AI teams build squads instead of basic infantry |
+| `Core/GameEngine/Source/GameLogic/System/GameLogicDispatch.cpp` | skill orders given to a squad go to the member with the skill |
+| `Core/GameEngine/Source/GameClient/GUI/ControlBar/ControlBarCommand.cpp` | a squad's skill buttons are evaluated for the member with the skill |
+| `GeneralsMD/Code/GameEngine/Source/Common/RTS/SpecialPower.cpp` | fix: `SpecialPowerStore::reset` gave a special power from a pack or map.ini a new ID every game, so replays of later games couldn't find it |
+| `Core/GameEngineDevice/Source/MilesAudioDevice/MilesAudioManager.cpp` | fix: the audio file cache held its lock while stopping a sound whose Miles callback needed it, freezing the game ([upstream #256](https://github.com/TheSuperHackers/GeneralsGameCode/issues/256)) |
 
 Hooks in `Core/` are wrapped in `#if RTS_ZEROHOUR`, because Core is also compiled into the original Generals, which doesn't link this library.

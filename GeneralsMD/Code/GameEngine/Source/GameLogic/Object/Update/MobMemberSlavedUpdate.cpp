@@ -49,6 +49,7 @@
 #include "GameLogic/Module/SpawnBehavior.h"
 #include "Common/ThingFactory.h"
 #include "Common/ThingTemplate.h"
+#include "Features/Squads/Squads.h" // IBM Engine hook
 
 
 
@@ -180,6 +181,13 @@ UpdateSleepTime MobMemberSlavedUpdate::update()
 		return UPDATE_SLEEP_NONE;
 
 	m_framesToWait = 0;
+
+	// IBM Engine hook: a squad member using a skill or riding in a container is left alone.
+	if ( IbmEngine::isSquadMemberOnOwnOrder( me, master ) )
+	{
+		m_catchUpCrisisTimer = 0;
+		return UPDATE_SLEEP_NONE;
+	}
 
 
 	Locomotor *locomotor = myAI->getCurLocomotor();

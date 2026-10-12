@@ -65,6 +65,8 @@
 
 #include "GameLogic/ExperienceTracker.h"//LORENZEN
 
+#include "Features/Squads/Squads.h" // IBM Engine hook
+
 
 // GLOBAL /////////////////////////////////////////////////////////////////////////////////////////
 ActionManager *TheActionManager = nullptr;
@@ -565,8 +567,12 @@ Bool ActionManager::canEnterObject( const Object *obj, const Object *objectToEnt
 		obj->isKindOf( KINDOF_MOB_NEXUS ) ||
 		objectToEnter->isKindOf( KINDOF_IGNORED_IN_GUI ) )  // As in Cargo Planes
 	{
-
-		return FALSE;
+		// IBM Engine hook: squads may enter containers; their members are checked like any infantry.
+		const IbmEngine::SquadEnterCheck squadCheck = IbmEngine::checkSquadEnter( obj, objectToEnter, commandSource, mode );
+		if ( squadCheck == IbmEngine::SQUAD_ENTER_YES )
+			return TRUE;
+		if ( squadCheck != IbmEngine::SQUAD_ENTER_CHECK_AS_USUAL )
+			return FALSE;
 	}
 
 

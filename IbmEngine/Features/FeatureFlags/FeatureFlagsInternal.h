@@ -8,6 +8,7 @@ namespace IbmEngine
 {
 
 Bool findFeatureByName(const char *name, Feature &feature);
+Bool featureHasPack(Feature feature);
 void setLocalFeatures(FeatureMask features);
 void setActiveFeatures(FeatureMask features);
 

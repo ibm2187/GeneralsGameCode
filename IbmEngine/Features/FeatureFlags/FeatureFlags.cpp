@@ -11,6 +11,14 @@ namespace IbmEngine
 static const char *const s_featureNames[Feature_Count] =
 {
 	"Squads",
+	"SquadsDemo",
+};
+
+// Whether the feature has an INI pack in Data\INI\Features\<Name>\.
+static const Bool s_featureHasPack[Feature_Count] =
+{
+	TRUE,	// Squads
+	FALSE,	// SquadsDemo
 };
 
 static FeatureMask s_localFeatures = 0;
@@ -20,6 +28,11 @@ const char *getFeatureName(Feature feature)
 {
 	DEBUG_ASSERTCRASH(feature >= 0 && feature < Feature_Count, ("Invalid feature %d", feature));
 	return s_featureNames[feature];
+}
+
+Bool featureHasPack(Feature feature)
+{
+	return s_featureHasPack[feature];
 }
 
 Bool findFeatureByName(const char *name, Feature &feature)

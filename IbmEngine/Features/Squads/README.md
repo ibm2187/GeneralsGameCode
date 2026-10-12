@@ -1,8 +1,8 @@
 # Squads
 
-Infantry fight in squads, like in Company of Heroes. Feature flag: `Squads`. Design notes, including side effects: [Squads and Hard Counters](https://claude.ai/code/artifact/e8ffd0c8-9273-44a0-a357-b3ef7b126972).
+Infantry fight in squads, like in Company of Heroes. Feature flag: `Squads` (plus `SquadsDemo`, a ready-made test setup). Design notes, including side effects: [Squads and Hard Counters](https://claude.ai/code/artifact/e8ffd0c8-9273-44a0-a357-b3ef7b126972).
 
-Everything is in the INI pack `Data/INI/Features/Squads/`; this slice has no C++ yet.
+The slice has an INI pack (`Data/INI/Features/Squads/`) and C++ for what INI can't do. The C++ does nothing for objects that aren't squads, so games without the pack play exactly as before.
 
 ## Rosters
 
@@ -15,41 +15,57 @@ Every squad has a rifle core that fights infantry, plus a specialist. Cost is th
 | GLA | Rebel Squad: 5 Rebels (675) | RPG Squad: 2 Rebels + 2 RPG Troopers (810) | Stinger Squad: 2 Rebels + 2 Stinger Troopers (810) | Suicide Squad: marksman (Jarmen Kell), 2 bombers, 2 RPG fighters |
 
 - Squads replace slots 1 and 2 of each barracks (the basic infantry). The anti-aircraft squad and the commandos take empty slots.
-- Commandos need the hero's building: Strategy Center, Propaganda Center or Palace. Their members are stealthed while they hold still. GLA bombers explode when killed.
+- Commandos need the hero's building: Strategy Center, Propaganda Center or Palace. Their members are stealthed while they hold still, and so is the squad's health bar. The commando's buttons are the hero's: Burton's knife and C4, Black Lotus's hacks, Kell's sniper attack, and the bombers' Detonate, which blows all the squad's bombers up on the spot.
 - Anti-air specialists fire new air-only missiles: 55 damage, range 225 (the regular infantry missiles do 40 at range 175).
-- **Medical Center** (800, needs a Barracks), built by the dozer or worker: heals friendly infantry within 150, and infantry can go inside to heal. It reuses the barracks model.
+- **The Barracks is the hospital.** It heals friendly infantry within 150, and a squad within 200 of its faction's Barracks gets one lost member back every 2 seconds, for free, specialists first.
+- **Attacking a squad attacks the whole squad.** An attack or force attack on any trooper spreads the attackers over the squad's troopers, and they move on to the next trooper until the squad is gone. Skill shots (Kell's snipe, Burton's knife) still hit the man you click.
+- **Transports and garrisons** take squads: all members must fit; they go in one by one and the invisible leader rides along. When one member gets out, the rest follow.
+- **The skirmish AI builds squads**: AI teams that ask for basic infantry get the squad instead, with team sizes divided by squad size.
 
 ## How it works
 
-Each squad is a copy of the GLA Angry Mob's invisible leader (`GLAInfantryAngryMobNexus`), made with `ObjectCopy`. The leader spawns its members once (`SpawnBehavior`, `OneShot = Yes`), shows one shared health bar (`AggregateHealth`), and picks targets with a harmless weapon. Its members attack what it targets. Selecting any member selects the squad (`KindOf = +IGNORED_IN_GUI` on members). The squad dies when its last member dies.
+Each squad is a copy of the GLA Angry Mob's invisible leader (`GLAInfantryAngryMobNexus`), made with `ObjectCopy`, with an `IbmSquadUpdate` module. The leader spawns its members once (`SpawnBehavior`, `OneShot = Yes`), shows one shared health bar (`AggregateHealth`), and picks targets with a harmless weapon. Its members attack what it targets. Selecting any member selects the squad (`KindOf = +IGNORED_IN_GUI` on members). The squad dies when its last member dies.
 
-Members are `ObjectCopy` copies of the retail soldiers with `MobMemberSlavedUpdate` added. `AutoFindHealingUpdate` is removed so injured members don't walk away from their squad.
+Members are `ObjectCopy` copies of the retail soldiers with `MobMemberSlavedUpdate` added (`MustCatchUpRadius = 40`, the retail Angry Mob's). `AutoFindHealingUpdate` is removed so injured members don't walk away from their squad. Members that get stealth replace the engine's default infantry stealth module (`ModuleTag_DefaultStealthUpdate`) instead of adding a second one.
 
-| File | Contents |
+| C++ file | What it does |
+|---|---|
+| `SquadUpdate.cpp/.h` | `IbmSquadUpdate`: members on their own order, parking the leader in containers, leader stealth, reinforcement timer |
+| `SquadReinforce.cpp` | Brings back lost members near the Barracks (`ReinforceAt`) |
+| `SquadAttack.cpp` | An attack on a trooper becomes an attack on the squad (`AI_ATTACK_SQUAD`, `AI_FORCE_ATTACK_SQUAD`) |
+| `SquadCommands.cpp` | Skill orders go to the member with the skill; skill buttons are evaluated for that member |
+| `SquadTransport.cpp` | Entering and leaving transports and buildings |
+| `SquadAI.cpp` | AI teams build squads instead of basic infantry |
+| `SquadDemo.cpp` | The `SquadsDemo` test setup |
+| `Squads.h` | What the engine hooks call |
+
+| INI file | Contents |
 |---|---|
 | `20_Weapon.ini` | Leader targeting weapons (ground-only for rifle squads, ground and air for the rest); air-only missiles |
 | `30_USA.ini`, `40_China.ini`, `50_GLA.ini` | Members and squads |
-| `60_MedicalCenter.ini` | Medical Centers |
-| `80_CommandButton.ini`, `90_CommandSet.ini` | Build buttons; barracks and dozer button sets (overrides change only the listed slots) |
+| `60_Barracks.ini` | The healing on each faction's Barracks |
+| `80_CommandButton.ini`, `90_CommandSet.ini` | Build buttons, Detonate; barracks and squad button sets (overrides change only the listed slots) |
 | `Squads.str` | Names and tooltips |
+
+## SquadsDemo
+
+With `SquadsDemo` and `Squads` on, every human player of a skirmish or LAN game starts with, toward the map's middle from their Command Center: all three Barracks, one of each squad, a Humvee, Troop Crawler, Technical and Chinook, and $100,000. The first enemy player gets a Rebel, Red Guard and Ranger squad, a Battlemaster, a Technical, a Comanche and a Supply Center a little further on. It has no INI pack, it is placed inside the game logic (so replays work), and loading a saved game doesn't place it again.
 
 ## Known limits
 
-- Commando hero skills (C4, hacks, kill-driver shot) don't work yet: the abilities belong to members, but you command the leader. Needs skill routing in C++.
-- Squads can't enter transports or garrison buildings; the leader has `TransportSlotCount = 0`.
-- Lost members aren't replaced. Reinforcing at the Medical Center needs C++.
-- The skirmish AI still builds single infantry; it builds from its own lists, not the barracks buttons.
 - Only USA, China and GLA. The generals' sub-factions (`AirF_`, `Lazr_`, `SupW_`, `Tank_`, `Infa_`, `Nuke_`, `Demo_`, `Chem_`, `Slth_`) keep retail infantry.
 - A map with its own `map.str` replaces the pack's tooltips (names stay).
+- Lost members come back only at the faction's own Barracks, not the generals' versions of it.
+
+## To do
+
+- **Transports carry squads, not soldiers.** A transport's capacity counts squads, and bigger transports carry more of them (a Humvee one squad, a Chinook several), instead of counting each member as a seat.
+- **Healing feedback.** A squad healing and getting members back at its Barracks shows it, with an icon over the squad or similar.
+- **Members drift apart** (seen after members came back at the Barracks). `MustCatchUpRadius` was 90; now 40. Retest.
 
 ## Testing
 
-Tested on 11 October 2026 in skirmish (China on Alpine Assault):
+Checked in play (11 and 12 October 2026): squads build, move and fight; the Barracks heals and refills squads; attacks and force attacks spread over a squad. Headless replays of a squads game (with `SquadsDemo`) and of a game with no features play back with no mismatch. The full checklist is in the test plan doc.
 
-- Squads build, spawn their members, select as one unit, move and attack-move together.
-- The Medical Center builds, shows its name and requires a Barracks.
-- Ending a game, restarting and exiting to the menu work; the pack loads again in the next game.
-- A replay of a squads game plays back headless with no mismatch (`generalszh.exe -headless -replay 00000000.rep`).
+- `generalszh_dbg.exe -headless -file "Maps\AllBuildingsAllSidesUnitTest_Save\AllBuildingsAllSidesUnitTest_Save.map" -feature Squads=1` loads the pack strictly; search `DebugLogFileD.txt` for `IbmEngine` and `ASSERTION`.
 - Games started with **Restart Game** don't replay (mismatch on frame 0) with or without squads; that's an existing engine issue.
-
-Not yet checked in a game: USA and GLA squads, commandos, anti-air squads shooting aircraft, and Medical Center healing.

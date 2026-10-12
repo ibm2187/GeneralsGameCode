@@ -782,6 +782,36 @@ void SpawnBehavior::onSpawnDeath( ObjectID deadSpawn, DamageInfo *damageInfo )
 }
 
 //-------------------------------------------------------------------------------------------------
+// IBM Engine hook: takes in a slave someone else created (a squad member brought back at the
+// Barracks), as if we had spawned it ourselves. It fills the place of one dead slave.
+void SpawnBehavior::adoptSlave( Object *slave )
+{
+	Object *parent = getObject();
+	slave->setProducer( parent );
+
+	for (BehaviorModule** update = slave->getBehaviorModules(); *update; ++update)
+	{
+		SlavedUpdateInterface* sdu = (*update)->getSlavedUpdateInterface();
+		if (sdu != nullptr)
+		{
+			sdu->onEnslave( parent );
+			break;
+		}
+	}
+
+	m_spawnIDs.push_back( slave->getID() );
+
+	if ( m_spawnCount == NONE_SPAWNED_YET )
+		m_spawnCount = 1;
+	else
+		++m_spawnCount;
+
+	// onSpawnDeath queued a replacement for the slave this one replaces.
+	if ( !m_replacementTimes.empty() )
+		m_replacementTimes.pop_front();
+}
+
+//-------------------------------------------------------------------------------------------------
 void SpawnBehavior::stopSpawning()
 {
 	m_active = FALSE;

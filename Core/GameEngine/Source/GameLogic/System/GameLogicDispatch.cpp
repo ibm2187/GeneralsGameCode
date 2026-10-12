@@ -85,6 +85,10 @@
 
 #include "GameNetwork/NetworkInterface.h"
 
+#if RTS_ZEROHOUR
+#include "Features/Squads/Squads.h" // IBM Engine hook
+#endif
+
 
 
 
@@ -398,6 +402,16 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				if (currentlySelectedGroup)
 					if (currentlySelectedGroup->removeAnyObjectsNotOwnedByPlayer(msgPlayer))
 						currentlySelectedGroup = nullptr;
+
+#if RTS_ZEROHOUR
+				// IBM Engine hook: a skill order given to a squad goes to the member that has the skill.
+				if (currentlySelectedGroup)
+#if RETAIL_COMPATIBLE_AIGROUP
+					IbmEngine::routeSquadCommand(msg, currentlySelectedGroup);
+#else
+					IbmEngine::routeSquadCommand(msg, currentlySelectedGroup.Peek());
+#endif
+#endif
 
 				if(TheStatsCollector)
 					TheStatsCollector->collectMsgStats(msg);

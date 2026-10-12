@@ -46,12 +46,8 @@ OBJECT:IbmGLASuicideSquad
 "Suicide Squad"
 END
 
-OBJECT:IbmMedicalCenter
-"Medical Center"
-END
-
 CONTROLBAR:IbmConstructUSARangerSquad
-"&Ranger Squad"
+"Ran&ger Squad"
 END
 
 CONTROLBAR:IbmToolTipUSARangerSquad
@@ -83,7 +79,7 @@ CONTROLBAR:IbmToolTipUSASealTeam
 END
 
 CONTROLBAR:IbmConstructChinaRedguardSquad
-"&Red Guard Squad"
+"Red &Guard Squad"
 END
 
 CONTROLBAR:IbmToolTipChinaRedguardSquad
@@ -115,7 +111,7 @@ CONTROLBAR:IbmToolTipChinaInfiltrators
 END
 
 CONTROLBAR:IbmConstructGLARebelSquad
-"&Rebel Squad"
+"Re&bel Squad"
 END
 
 CONTROLBAR:IbmToolTipGLARebelSquad
@@ -131,7 +127,7 @@ CONTROLBAR:IbmToolTipGLARPGSquad
 END
 
 CONTROLBAR:IbmConstructGLAAntiAirSquad
-"S&tinger Squad"
+"Stin&ger Squad"
 END
 
 CONTROLBAR:IbmToolTipGLAAntiAirSquad
@@ -146,10 +142,10 @@ CONTROLBAR:IbmToolTipGLASuicideSquad
 "Commandos: a marksman with Jarmen Kell's skills, 2 bombers who explode when killed and 2 RPG fighters. Stealthed while still.\nStrong against: Infantry, Vehicles, Aircraft\nOnly one at a time."
 END
 
-CONTROLBAR:IbmConstructMedicalCenter
-"Medical &Center"
+CONTROLBAR:IbmSquadDetonate
+"&Detonate"
 END
 
-CONTROLBAR:IbmToolTipMedicalCenter
-"Heals your infantry nearby, and infantry can go inside to heal.\nRequires: Barracks"
+CONTROLBAR:IbmToolTipSquadDetonate
+"All the squad's bombers blow themselves up where they stand."
 END

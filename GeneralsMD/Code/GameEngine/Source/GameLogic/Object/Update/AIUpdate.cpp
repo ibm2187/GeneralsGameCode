@@ -71,6 +71,9 @@
 #include "GameLogic/Weapon.h"
 #include "Common/Radar.h"									// For TheRadar
 
+#include "GameLogic/Squad.h" // IBM Engine hook
+#include "Features/Squads/Squads.h" // IBM Engine hook
+
 #define SLEEPY_AI
 
 
@@ -3437,6 +3440,10 @@ void AIUpdateInterface::privateAttackObject( Object *victim, Int maxShotsToFire,
 		return;
 	}
 
+	// IBM Engine hook: an attack on a squad's trooper attacks the whole squad, one trooper after another.
+	if (privateAttackSquadOf( victim, maxShotsToFire, cmdSource, AI_ATTACK_SQUAD ))
+		return;
+
 	getStateMachine()->clear();
 	getStateMachine()->setGoalObject( victim );
 	setLastCommandSource( cmdSource );
@@ -3449,11 +3456,41 @@ void AIUpdateInterface::privateAttackObject( Object *victim, Int maxShotsToFire,
 }
 
 //-----------------------------------------------------------------------------------------
+// IBM Engine hook: attacks the squad the victim belongs to (see IbmEngine::makeSquadTarget).
+// Returns FALSE, doing nothing, when the victim isn't in a squad or the attack must stay on him.
+Bool AIUpdateInterface::privateAttackSquadOf( Object *victim, Int maxShotsToFire, CommandSourceType cmdSource, AIStateType attackState )
+{
+	if (!IbmEngine::isSquadMemberOrLeader(victim))
+		return FALSE;
+
+	Squad *squad = newInstance(Squad);
+	const Bool attackSquad = IbmEngine::makeSquadTarget(getObject(), victim, *squad);
+	if (attackSquad)
+	{
+		getStateMachine()->clear();
+		getStateMachine()->setGoalSquad( squad );
+		setLastCommandSource( cmdSource );
+		getStateMachine()->setState( attackState );
+
+		// do this after setting it as the current state, as the max-shots-to-fire is reset in AttackState::onEnter()
+		Weapon* weapon = getObject()->getCurrentWeapon();
+		if (weapon)
+			weapon->setMaxShotCount(maxShotsToFire);
+	}
+	deleteInstance(squad);
+	return attackSquad;
+}
+
+//-----------------------------------------------------------------------------------------
 void AIUpdateInterface::privateForceAttackObject( Object *victim, Int maxShotsToFire, CommandSourceType cmdSource )
 {
 	if (!victim) {
 		return;
 	}
+
+	// IBM Engine hook: a force attack on a squad's trooper force-attacks the whole squad.
+	if (privateAttackSquadOf( victim, maxShotsToFire, cmdSource, AI_FORCE_ATTACK_SQUAD ))
+		return;
 
 	getStateMachine()->clear();
 	getStateMachine()->setGoalObject( victim );
@@ -3779,6 +3816,10 @@ void AIUpdateInterface::privateEnter( Object *obj, CommandSourceType cmdSource )
 	if( me->isMobile() == FALSE )
 		return;
 
+	// IBM Engine hook: a squad leader sends its members in and walks along.
+	if( IbmEngine::onSquadEnter( me, obj, cmdSource ) )
+		return;
+
 	//Resetting the locomotor here was initially added for scripting purposes. It has been moved
 	//to the responsibility of the script to reset the locomotor before moving. This is needed because
 	//other systems (like the battle drone) change the locomotor based on what it's trying to do, and
@@ -3855,6 +3896,9 @@ void AIUpdateInterface::privateExit( Object *objectToExit, CommandSourceType cmd
 	getStateMachine()->setGoalObject( objectToExit );
 	setLastCommandSource( cmdSource );
 	getStateMachine()->setState( AI_EXIT );
+
+	// IBM Engine hook: when a squad member leaves, the rest of its squad leaves too.
+	IbmEngine::onSquadMemberExit( us, objectToExit, cmdSource );
 }
 
 //----------------------------------------------------------------------------------------

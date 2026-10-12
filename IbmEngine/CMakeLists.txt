@@ -11,6 +11,16 @@ target_sources(ibm_engine INTERFACE
     Features/FeatureFlags/FeaturePacks.cpp
     Features/FeatureFlags/FeatureSettings.cpp
     Features/FeatureFlags/ObjectCopy.cpp
+    Features/Squads/SquadAI.cpp
+    Features/Squads/SquadAttack.cpp
+    Features/Squads/SquadCommands.cpp
+    Features/Squads/SquadDemo.cpp
+    Features/Squads/SquadReinforce.cpp
+    Features/Squads/Squads.h
+    Features/Squads/SquadsInternal.h
+    Features/Squads/SquadTransport.cpp
+    Features/Squads/SquadUpdate.cpp
+    Features/Squads/SquadUpdate.h
 )
 
 target_include_directories(ibm_engine INTERFACE

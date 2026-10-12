@@ -69,6 +69,8 @@
 #include "GameLogic/Module/PhysicsUpdate.h"
 #include "GameLogic/Module/StealthUpdate.h"
 
+#include "Features/Squads/Squads.h" // IBM Engine hook
+
 
 static Bool cannotPossiblyAttackObject( State *thisState, void* userData );
 
@@ -708,6 +710,7 @@ AIStateMachine::AIStateMachine( Object *obj, AsciiString name ) : StateMachine( 
 
 	defineState( AI_ATTACK_AND_FOLLOW_OBJECT,		newInstance(AIAttackState)( this, true, true, false, nullptr ), AI_IDLE, AI_IDLE );
 	defineState( AI_ATTACK_SQUAD,								newInstance(AIAttackSquadState)( this, nullptr ), AI_IDLE, AI_IDLE );
+	defineState( AI_FORCE_ATTACK_SQUAD,					newInstance(AIAttackSquadState)( this, nullptr, true ), AI_IDLE, AI_IDLE ); // IBM Engine hook
 	defineState( AI_WANDER,											newInstance(AIWanderState)( this ), AI_IDLE, AI_MOVE_AWAY_FROM_REPULSORS );
 	defineState( AI_PANIC,											newInstance(AIPanicState)( this ), AI_IDLE, AI_MOVE_AWAY_FROM_REPULSORS );
 	defineState( AI_DEAD,												newInstance(AIDeadState)( this ), AI_IDLE, AI_IDLE );
@@ -5762,7 +5765,7 @@ class AIAttackThenIdleStateMachine : public StateMachine
 
 public:
 
-	AIAttackThenIdleStateMachine( Object *owner, AsciiString name );
+	AIAttackThenIdleStateMachine( Object *owner, AsciiString name, Bool forceAttack = false ); // IBM Engine hook: forceAttack
 protected:
 	// snapshot interface .
 	virtual void crc( Xfer *xfer ) override;
@@ -5799,10 +5802,10 @@ void AIAttackThenIdleStateMachine::loadPostProcess()
 }
 
 //-----------------------------------------------------------------------------------------------------------
-AIAttackThenIdleStateMachine::AIAttackThenIdleStateMachine(Object *owner, AsciiString name) : StateMachine(owner, name)
+AIAttackThenIdleStateMachine::AIAttackThenIdleStateMachine(Object *owner, AsciiString name, Bool forceAttack) : StateMachine(owner, name)
 {
 	// order matters: first state is the default state.
-	defineState( AI_ATTACK_OBJECT,	newInstance(AIAttackState)(this, false, true, false, nullptr ), AI_IDLE, AI_IDLE );
+	defineState( AI_ATTACK_OBJECT,	newInstance(AIAttackState)(this, false, true, forceAttack, nullptr ), AI_IDLE, AI_IDLE );
 	defineState( AI_PICK_UP_CRATE, newInstance(AIPickUpCrateState)( this ), AI_IDLE, AI_IDLE );
 	defineState( AI_IDLE, newInstance(AIIdleState)( this, AIIdleState::DO_NOT_LOOK_FOR_TARGETS ), AI_IDLE, AI_IDLE );
 }
@@ -5848,7 +5851,7 @@ void AIAttackSquadState::xfer( Xfer *xfer )
 
 	if (hasMachine && m_attackSquadMachine==nullptr)	{
 		// create new state machine for attack behavior
-		m_attackSquadMachine = newInstance(AIAttackThenIdleStateMachine)( getMachineOwner(), "AIAttackMachine"  );
+		m_attackSquadMachine = newInstance(AIAttackThenIdleStateMachine)( getMachineOwner(), "AIAttackMachine", m_isForceAttacking ); // IBM Engine hook: m_isForceAttacking
 	}
 
 	if (hasMachine) {
@@ -5883,7 +5886,7 @@ AsciiString AIAttackSquadState::getName(  ) const
 StateReturnType AIAttackSquadState::onEnter()
 {
 	// create new state machine for attack behavior
-	m_attackSquadMachine = newInstance(AIAttackThenIdleStateMachine)( getMachineOwner(), "AIAttackMachine"  );
+	m_attackSquadMachine = newInstance(AIAttackThenIdleStateMachine)( getMachineOwner(), "AIAttackMachine", m_isForceAttacking ); // IBM Engine hook: m_isForceAttacking
 
 	Object *victim = chooseVictim();
 	// tell the attack machine who the victim of the attack is
@@ -5987,6 +5990,11 @@ Object *AIAttackSquadState::chooseVictim()
 
 	GameDifficulty difficulty = owner->getControllingPlayer()->getPlayerDifficulty();
 	const CommandSourceType cmdSource = ai->getLastCommandSource();
+
+	// IBM Engine hook: attackers of a squad spread their fire over its troopers.
+	Object *squadVictim;
+	if (IbmEngine::chooseSquadVictim(owner, victimSquad, cmdSource, m_isForceAttacking, squadVictim))
+		return squadVictim;
 
 	if (cmdSource == CMD_FROM_PLAYER)
 	{

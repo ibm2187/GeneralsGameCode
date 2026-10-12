@@ -13,6 +13,7 @@ namespace IbmEngine
 enum Feature
 {
 	Feature_Squads,
+	Feature_SquadsDemo,	///< test setup at game start (Squads slice, SquadDemo.cpp); needs Squads, has no pack
 
 	Feature_Count
 };

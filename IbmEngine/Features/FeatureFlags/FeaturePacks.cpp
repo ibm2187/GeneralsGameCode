@@ -55,7 +55,7 @@ void onStartNewGame(Int gameMode)
 	Bool loadedPack = FALSE;
 	for (Int i = 0; i < Feature_Count; ++i)
 	{
-		if (features & featureBit((Feature)i))
+		if ((features & featureBit((Feature)i)) && featureHasPack((Feature)i))
 		{
 			loadFeaturePack((Feature)i);
 			loadedPack = TRUE;

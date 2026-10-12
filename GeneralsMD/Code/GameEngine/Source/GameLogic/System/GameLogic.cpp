@@ -114,6 +114,7 @@
 #include <rts/profile.h>
 
 #include "Features/FeatureFlags/FeatureFlags.h" // IBM Engine hook
+#include "Features/Squads/Squads.h" // IBM Engine hook
 
 struct QuitGameException {};
 
@@ -2055,6 +2056,10 @@ void GameLogic::tryStartNewGame( Bool loadingSaveGame )
 	}
 	// update the loadscreen
 	updateLoadProgress(LOAD_PROGRESS_POST_INITIAL_NETWORK_BUILDINGS);
+
+	// IBM Engine hook: the SquadsDemo test setup, next to the starting bases. A saved game has it already.
+	if (!loadingSaveGame)
+		IbmEngine::setUpSquadsDemo();
 
 	//
 	// tell the client to pre-load some assets that we will use such as faction things we

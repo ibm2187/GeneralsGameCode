@@ -103,6 +103,7 @@ enum AIStateType CPP_11(: Int)
 	AI_BUSY,																	///< This is a state that things will be in when they are busy doing random stuff that doesn't require AI interaction.
 	AI_EXIT_INSTANTLY,												///< exit this obj, without waiting -- do it in the onEnter! This frame!
 	AI_GUARD_RETALIATE,												///< attacks attacker but with restrictions (hybrid of attack and guard).
+	AI_FORCE_ATTACK_SQUAD,										///< IBM Engine hook: AI_ATTACK_SQUAD with force fire (a force attack on a squad).
 };
 
 //-----------------------------------------------------------------------------------------------------------
@@ -1023,8 +1024,9 @@ class AIAttackSquadState : public State
 {
 	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(AIAttackSquadState, "AIAttackSquadState")
 public:
-	AIAttackSquadState( StateMachine *machine, AttackExitConditionsInterface *attackParameters = nullptr) :
-			State( machine , "AIAttackSquadState") {	}
+	// IBM Engine hook: forceAttack, for force attacks on a squad.
+	AIAttackSquadState( StateMachine *machine, AttackExitConditionsInterface *attackParameters = nullptr, Bool forceAttack = false ) :
+			State( machine , "AIAttackSquadState"), m_isForceAttacking(forceAttack) {	}
 	//~AIAttackSquadState();
 
 	virtual Bool isAttack() const override { return m_attackSquadMachine ? m_attackSquadMachine->isInAttackState() : FALSE; }
@@ -1045,6 +1047,7 @@ protected:
 
 private:
 	StateMachine *m_attackSquadMachine;						///< state sub-machine for attack behavior
+	const Bool m_isForceAttacking;								///< IBM Engine hook: force fire on the squad
 };
 
 //-----------------------------------------------------------------------------------------------------------

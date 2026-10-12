@@ -123,6 +123,10 @@ public:
 	virtual void revealSlaves() = 0;
 	virtual Bool doSlavesHaveFreedom() const = 0;
 	virtual Int getSlaveCount() const = 0;
+
+	// IBM Engine hook: squads read their members, and add the ones they buy back.
+	virtual const std::list<ObjectID>& getSlaveIDs() const = 0;
+	virtual void adoptSlave( Object *slave ) = 0;
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -179,6 +183,8 @@ public:
 	virtual void revealSlaves() override;
 	virtual Bool doSlavesHaveFreedom() const override { return getSpawnBehaviorModuleData()->m_slavesHaveFreeWill; }
 	virtual Int getSlaveCount() const override { return m_spawnCount; }
+	virtual const std::list<ObjectID>& getSlaveIDs() const override { return m_spawnIDs; } // IBM Engine hook
+	virtual void adoptSlave( Object *slave ) override; // IBM Engine hook
 
 	// **********************************************************************************************
 	// our own methods
