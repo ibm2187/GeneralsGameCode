@@ -77,6 +77,8 @@
 #include "GameLogic/Module/SpawnBehavior.h"
 #include "GameLogic/TerrainLogic.h"
 
+#include "Features/Accuracy/Accuracy.h" // IBM Engine hook
+
 #define RATIONALIZE_ATTACK_RANGE
 #define ATTACK_RANGE_IS_2D
 
@@ -1020,6 +1022,13 @@ UnsignedInt WeaponTemplate::fireWeaponTemplate
 		projectileDestination.z = TheTerrainLogic->getLayerHeight( projectileDestination.x, projectileDestination.y, targetLayer );
 	}
 
+	// IBM Engine hook: with the Accuracy feature, direct fire can miss. A miss lands near the target:
+	// bullets then hurt nobody there, and projectiles fly to that spot instead of homing in.
+	const Bool accuracyMiss = !isProjectileDetonation && victimObj != nullptr
+		&& IbmEngine::rollAccuracyMiss(sourceObj, victimObj, this, bonus, projectileDestination);
+	if (accuracyMiss)
+		scatterRadius = max(scatterRadius, max(getPrimaryDamageRadius(bonus), getSecondaryDamageRadius(bonus)) + 1.0f);
+
 	if (getProjectileTemplate() == nullptr || isProjectileDetonation)
 	{
 		// see if we need to be called back at a later point to deal the damage.
@@ -1031,6 +1040,8 @@ UnsignedInt WeaponTemplate::fireWeaponTemplate
 		Real delayInFrames = (v.length() / getWeaponSpeed());
 
 		ObjectID damageID = getDamageDealtAtSelfPosition() ? INVALID_ID : victimID;
+		if (accuracyMiss)
+			damageID = INVALID_ID; // IBM Engine hook: the shot hits the ground at projectileDestination
 
 		if( firingWeapon->isLaser() )
 		{
@@ -1057,7 +1068,7 @@ UnsignedInt WeaponTemplate::fireWeaponTemplate
 			return TheGameLogic->getFrame();
 		}
 
-		const Coord3D* damagePos = getDamageDealtAtSelfPosition() ? sourcePos : victimPos;
+		const Coord3D* damagePos = getDamageDealtAtSelfPosition() ? sourcePos : (accuracyMiss ? &projectileDestination : victimPos); // IBM Engine hook: accuracyMiss
 		if (delayInFrames < 1.0f)
 		{
 			// go ahead and do it now

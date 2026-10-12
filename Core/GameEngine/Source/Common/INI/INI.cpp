@@ -61,6 +61,7 @@
 
 #if RTS_ZEROHOUR
 #include "Features/FeatureFlags/FeatureFlags.h" // IBM Engine hook
+#include "Features/Accuracy/Accuracy.h" // IBM Engine hook
 #endif
 
 #if __cplusplus >= 201611L
@@ -117,6 +118,9 @@ static const BlockParse theTypeTable[] =
 	{ "FXList",                         INI::parseFXListDefinition },
 	{ "GameData",                       INI::parseGameDataDefinition },
 	{ "HeaderTemplate",                 INI::parseHeaderTemplateDefinition },
+#if RTS_ZEROHOUR
+	{ "IbmAccuracy",                    IbmEngine::parseAccuracyDefinition }, // IBM Engine hook
+#endif
 	{ "InGameUI",                       INI::parseInGameUIDefinition },
 	{ "LODPreset",                      INI::parseLODPreset },
 	{ "Language",                       INI::parseLanguageDefinition },

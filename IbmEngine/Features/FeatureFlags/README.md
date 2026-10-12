@@ -30,6 +30,7 @@ Saved games don't store the flags; loading a save uses the current local flags.
 |---|---|---|
 | `Squads` | [Squads](../Squads/README.md) | yes |
 | `SquadsDemo` | a test setup at game start; needs `Squads` | no |
+| `Accuracy` | [Accuracy](../Accuracy/README.md) | yes |
 
 ## INI packs
 
