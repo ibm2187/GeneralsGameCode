@@ -3188,6 +3188,17 @@ void *AudioFileCache::openFile( AudioEventRTS *eventToOpenFrom )
 			releaseOpenAudioFile(&openedAudioFile);
 			return nullptr;
 		}
+
+		// IBM Engine fix: freeEnoughSpaceForSample lets go of the lock while it stops sounds, so another
+		// thread may have opened this file meanwhile. Use its copy.
+		OpenFilesHashIt opened = m_openFiles.find(strToFind);
+		if (opened != m_openFiles.end()) {
+			m_currentlyUsedSize -= openedAudioFile.m_fileSize;
+			openedAudioFile.m_openCount = 0;
+			releaseOpenAudioFile(&openedAudioFile);
+			++opened->second.m_openCount;
+			return opened->second.m_file;
+		}
 	}
 
 	m_openFiles[strToFind] = openedAudioFile;
@@ -3291,14 +3302,29 @@ Bool AudioFileCache::freeEnoughSpaceForSample(const OpenAudioFile& sampleThatNee
 		return FALSE;
 	}
 
+	// IBM Engine fix: take the files out of the cache first, then stop the sounds still using them
+	// without holding the cache lock. Stopping a sample waits for its end-of-sample callback, which
+	// runs on Miles's thread and may need this lock to close or open a file, so holding the lock here
+	// froze the game (upstream issue #256). A callback that runs meanwhile no longer finds the file.
+	std::vector<OpenAudioFile> evicted;
 	std::list<AsciiString>::iterator ait;
 	for (ait = filesToClose.begin(); ait != filesToClose.end(); ++ait) {
 		OpenFilesHashIt itToErase = m_openFiles.find(*ait);
 		if (itToErase != m_openFiles.end()) {
-			releaseOpenAudioFile(&itToErase->second);
+			evicted.push_back(itToErase->second);
 			m_currentlyUsedSize -= itToErase->second.m_fileSize;
 			m_openFiles.erase(itToErase);
 		}
+	}
+
+	for (std::vector<OpenAudioFile>::iterator eit = evicted.begin(); eit != evicted.end(); ++eit) {
+		if (eit->m_openCount > 0) {
+			ReleaseMutex(m_mutex);
+			TheAudio->closeAnySamplesUsingFile(eit->m_file);
+			WaitForSingleObject(m_mutex, INFINITE);
+			eit->m_openCount = 0;
+		}
+		releaseOpenAudioFile(&*eit);
 	}
 
 	return TRUE;
