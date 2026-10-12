@@ -59,6 +59,10 @@
 #include "GameLogic/ScriptEngine.h"
 #include "GameLogic/Weapon.h"
 
+#if RTS_ZEROHOUR
+#include "Features/FeatureFlags/FeatureFlags.h" // IBM Engine hook
+#endif
+
 #if __cplusplus >= 201611L
 #define USE_STD_FROM_CHARS_PARSING 1
 #else
@@ -128,6 +132,9 @@ static const BlockParse theTypeTable[] =
 	{ "MultiplayerStartingMoneyChoice", INI::parseMultiplayerStartingMoneyChoiceDefinition },
 	{ "MusicTrack",                     INI::parseMusicTrackDefinition },
 	{ "Object",                         INI::parseObjectDefinition },
+#if RTS_ZEROHOUR
+	{ "ObjectCopy",                     IbmEngine::parseObjectCopyDefinition }, // IBM Engine hook
+#endif
 	{ "ObjectCreationList",             INI::parseObjectCreationListDefinition },
 	{ "ObjectReskin",                   INI::parseObjectReskinDefinition },
 	{ "OnlineChatColors",               INI::parseOnlineChatColorDefinition },

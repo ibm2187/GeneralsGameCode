@@ -113,6 +113,8 @@
 
 #include <rts/profile.h>
 
+#include "Features/FeatureFlags/FeatureFlags.h" // IBM Engine hook
+
 struct QuitGameException {};
 
 DECLARE_PERF_TIMER(SleepyMaintenance)
@@ -1342,6 +1344,10 @@ void GameLogic::tryStartNewGame( Bool loadingSaveGame )
 		updateLoadProgress(LOAD_PROGRESS_POST_PARTICLE_INI_LOAD);
 
 	DEBUG_ASSERTCRASH(m_frame == 0, ("framecounter expected to be 0 here"));
+
+	// IBM Engine hook: set this game's feature flags and load their INI packs. Before map.ini,
+	// so a map can still override a pack.
+	IbmEngine::onStartNewGame( m_gameMode );
 
 	// before loading the map, load the map.ini file in the same directory.
 	loadMapINI( TheGlobalData->m_mapName );

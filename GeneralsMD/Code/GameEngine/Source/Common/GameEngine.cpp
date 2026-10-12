@@ -108,6 +108,8 @@
 
 #include "Common/version.h"
 
+#include "Features/FeatureFlags/FeatureFlags.h" // IBM Engine hook
+
 
 //-------------------------------------------------------------------------------------------------
 
@@ -471,6 +473,9 @@ void GameEngine::init()
 
 		// special-case: parse command-line parameters after loading global data
 		CommandLine::parseCommandLineForEngineInit();
+
+		// IBM Engine hook: read the local feature flags (Features.ini and -feature).
+		IbmEngine::initFeatureFlags();
 
 		TheArchiveFileSystem->loadMods();
 

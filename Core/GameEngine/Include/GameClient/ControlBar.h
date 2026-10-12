@@ -696,6 +696,10 @@ public:
 	/// find existing command set
 	const CommandSet *findCommandSet( const AsciiString& name );
 
+	/// post process step, after all commands and command sets are loaded
+	// IBM Engine hook: public so feature packs can resolve the button images of the buttons they add.
+	void postProcessCommands();
+
 	void showPurchaseScience();
 	void hidePurchaseScience();
 	void togglePurchaseScience();
@@ -827,9 +831,6 @@ protected:
 
 	/// show rally point at world location, a nullptr location will hide any visible rally point marker
 	void showRallyPoint( const Coord3D *loc );
-
-	/// post process step, after all commands and command sets are loaded
-	void postProcessCommands();
 
 	// the following methods are for resetting data for various contexts
 	void resetCommonCommandData();	/// reset shared command data

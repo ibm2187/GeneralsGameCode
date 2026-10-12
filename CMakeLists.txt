@@ -90,6 +90,9 @@ add_subdirectory(resources)
 
 add_subdirectory(Core)
 
+# IBM Engine hook: this fork's own features (see IbmEngine/README.md).
+add_subdirectory(IbmEngine)
+
 # Add main build targets
 if(RTS_BUILD_ZEROHOUR)
     add_subdirectory(GeneralsMD)

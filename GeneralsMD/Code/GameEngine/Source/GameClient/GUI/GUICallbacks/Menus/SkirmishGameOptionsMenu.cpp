@@ -69,6 +69,8 @@
 #include "GameNetwork/IPEnumeration.h"
 #include "WWDownload/Registry.h"
 
+#include "Features/FeatureFlags/FeatureFlags.h" // IBM Engine hook
+
 
 SkirmishGameInfo *TheSkirmishGameInfo = nullptr;
 
@@ -1308,6 +1310,9 @@ void SkirmishGameOptionsMenuInit( WindowLayout *layout, void *userData )
 
 	ParseAsciiStringToGameInfo(TheSkirmishGameInfo, prefs.getSlotList());
 	TheSkirmishGameInfo->setSeed(GetTickCount());
+	// IBM Engine hook: a skirmish uses this PC's current feature flags, not the ones saved with
+	// the last skirmish's settings.
+	TheSkirmishGameInfo->setFeatureFlags(IbmEngine::getLocalFeatures());
 
 	UnsignedInt isPreorder = 0;
 	GetUnsignedIntFromRegistry("", "Preorder", isPreorder);

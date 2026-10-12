@@ -233,6 +233,10 @@ public:
   inline Bool oldFactionsOnly() const;
   inline void setOldFactionsOnly( Bool oldFactionsOnly );
 
+	// IBM Engine hook: the feature flags of this game (IbmEngine::FeatureMask).
+	inline UnsignedInt getFeatureFlags() const;
+	inline void setFeatureFlags( UnsignedInt featureFlags );
+
 protected:
 	Int m_preorderMask;
 	Int m_crcInterval;
@@ -254,6 +258,7 @@ protected:
   Money         m_startingCash;
   UnsignedShort m_superweaponRestriction;
   Bool m_oldFactionsOnly; // Only USA, China, GLA -- not USA Air Force General, GLA Toxic General, et al
+	UnsignedInt m_featureFlags; // IBM Engine hook
 };
 
 extern GameInfo *TheGameInfo;
@@ -275,6 +280,8 @@ const Money&GameInfo::getStartingCash() const         { return m_startingCash; }
 UnsignedShort GameInfo::getSuperweaponRestriction() const { return m_superweaponRestriction; }
 Bool        GameInfo::oldFactionsOnly() const           { return m_oldFactionsOnly; }
 void        GameInfo::setOldFactionsOnly( Bool oldFactionsOnly ) { m_oldFactionsOnly = oldFactionsOnly; }
+UnsignedInt GameInfo::getFeatureFlags() const { return m_featureFlags; }
+void        GameInfo::setFeatureFlags( UnsignedInt featureFlags ) { m_featureFlags = featureFlags; }
 
 AsciiString GameInfoToAsciiString( const GameInfo *game );
 Bool ParseAsciiStringToGameInfo( GameInfo *game, AsciiString options );

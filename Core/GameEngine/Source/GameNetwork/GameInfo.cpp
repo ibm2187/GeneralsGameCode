@@ -46,6 +46,10 @@
 #include "WWLib/strtok_r.h"
 #include "WWLib/utf8.h"
 
+#if RTS_ZEROHOUR
+#include "Features/FeatureFlags/FeatureFlags.h" // IBM Engine hook
+#endif
+
 
 
 GameInfo *TheGameInfo = nullptr;
@@ -326,6 +330,13 @@ void GameInfo::reset()
 	m_mapSize = 0;
   m_superweaponRestriction = 0;
   m_startingCash = TheGlobalData->m_defaultStartingCash;
+#if RTS_ZEROHOUR
+	// IBM Engine hook: games this PC sets up use its local flags; joined games and replays
+	// take them from the parsed game options instead.
+	m_featureFlags = IbmEngine::getLocalFeatures();
+#else
+	m_featureFlags = 0;
+#endif
 
 	for (Int i=0; i<MAX_SLOTS; ++i)
 	{
@@ -1001,6 +1012,15 @@ static AsciiString buildGameInfoAsciiString(const GameInfo& game, const AsciiStr
 	optionsString.format("US=%d;M=%2.2x%s;MC=%X;MS=%d;SD=%d;C=%d;SR=%u;SC=%u;O=%c;", game.getUseStats(), game.getMapContentsMask(), newMapName.str(),
 		game.getMapCRC(), game.getMapSize(), game.getSeed(), game.getCRCInterval(), game.getSuperweaponRestriction(),
 		game.getStartingCash().countMoney(), game.oldFactionsOnly() ? 'Y' : 'N' );
+
+	// IBM Engine hook: written only when a feature is on, so games without features keep
+	// the retail format.
+	if (game.getFeatureFlags() != 0)
+	{
+		AsciiString featureFlags;
+		featureFlags.format("FF=%X;", game.getFeatureFlags());
+		optionsString.concat(featureFlags);
+	}
 #endif
 
 	//add player info for each slot
@@ -1127,6 +1147,7 @@ Bool ParseAsciiStringToGameInfo(GameInfo *game, AsciiString options)
 	Int useStats = TRUE;
   Money startingCash = TheGlobalData->m_defaultStartingCash;
   UnsignedShort restriction = 0; // Always the default
+	UnsignedInt featureFlags = 0; // IBM Engine hook: absent means no features
 
 	Bool sawMap = FALSE;
 	Bool sawMapCRC = FALSE;
@@ -1246,6 +1267,12 @@ Bool ParseAsciiStringToGameInfo(GameInfo *game, AsciiString options)
       oldFactionsOnly = ( val.compareNoCase( "Y" ) == 0 );
       sawOldFactions = TRUE;
     }
+#if RTS_ZEROHOUR
+		else if (key.compare("FF") == 0) // IBM Engine hook
+		{
+			featureFlags = strtoul( val.str(), nullptr, 16 );
+		}
+#endif
 		else if (key.getLength() == 1 && *key.str() == slotListID)
 		{
 			sawSlotlist = true;
@@ -1614,6 +1641,7 @@ Bool ParseAsciiStringToGameInfo(GameInfo *game, AsciiString options)
 		game->setSuperweaponRestriction(restriction);
 		game->setStartingCash(startingCash);
 		game->setOldFactionsOnly(oldFactionsOnly);
+		game->setFeatureFlags(featureFlags); // IBM Engine hook
 
 		return true;
 	}

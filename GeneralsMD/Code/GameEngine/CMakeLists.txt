@@ -1163,6 +1163,7 @@ target_include_directories(z_gameengine PRIVATE
 target_link_libraries(z_gameengine PRIVATE
     corei_gameengine_private
     zi_always
+    ibm_engine # IBM Engine hook
 )
 
 target_link_libraries(z_gameengine PUBLIC
