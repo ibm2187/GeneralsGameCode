@@ -96,7 +96,4 @@ Bool isSquadHealing(const Object *obj);
 // squad's size, rounded up, so the team has about as many soldiers as before.
 void replaceTeamUnitWithSquad(AsciiString &unitThingName, Int &minUnits, Int &maxUnits);
 
-// GameLogic::startNewGame, once the players' starting bases are placed: the SquadsDemo test setup.
-void setUpSquadsDemo();
-
 } // namespace IbmEngine

@@ -1,12 +1,17 @@
-// IBM Engine: the SquadsDemo flag, a ready-made test setup for squads. With it (and Squads) on,
-// every human player of a skirmish or LAN game starts with, next to their Command Center:
-//   - every faction's Barracks, so every squad has somewhere to heal and get members back,
-//   - one of each squad, the transports of every faction and a Chinook, and $100,000,
-// and the first enemy player gets a small group a little further towards the map's middle:
-// squads to shoot at, vehicles for Kell's snipe and Black Lotus's hack, a helicopter for the
-// anti-air squads, and a building to capture or blow up.
+// IBM Engine: the Demo flag, a ready-made test setup for the features that are on. Every human
+// player of a skirmish or LAN game starts with $100,000 and, toward the map's middle from their
+// Command Center:
+//   - Squads: every faction's Barracks, one of each squad, the transports of every faction and a
+//     Chinook; the first enemy player gets a small group further on: squads to shoot at, vehicles
+//     for Kell's snipe and Black Lotus's hack, a helicopter for the anti-air squads, and a building
+//     to capture or blow up.
+//   - Economy: every faction's War Factory, Airfield and tech buildings (with power plants and the
+//     sciences the tanks need), so every tank can be built and timed, plus one of each tank and
+//     helicopter; the first enemy player gets a tank group to fight.
+// Accuracy needs nothing of its own: the enemy groups are targets.
 //
-// It all happens at game start inside the game logic, so replays of demo games play back.
+// It all happens at game start inside the game logic, so replays of demo games play back. The
+// squads part comes first and is unchanged from the old SquadsDemo flag, so its replays still match.
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
@@ -14,6 +19,7 @@
 #include "Common/Money.h"
 #include "Common/Player.h"
 #include "Common/PlayerList.h"
+#include "Common/Science.h"
 #include "Common/Team.h"
 #include "Common/ThingFactory.h"
 #include "Common/ThingTemplate.h"
@@ -25,11 +31,12 @@
 #include "GameLogic/TerrainLogic.h"
 
 #include "Features/FeatureFlags/FeatureFlags.h"
-#include "Features/Squads/Squads.h"
+#include "Features/Demo/Demo.h"
 
 namespace
 {
 
+// Squads
 const char *const s_friendlyBuildings[] =
 {
 	"AmericaBarracks", "ChinaBarracks", "GLABarracks",
@@ -54,15 +61,49 @@ const char *const s_enemyUnits[] =
 	"ChinaTankBattleMaster", "GLAVehicleTechnical", "AmericaVehicleComanche",
 };
 
+// Economy
+const char *const s_economyBuildings[] =
+{
+	"AmericaPowerPlant", "AmericaPowerPlant", "ChinaPowerPlant", "ChinaPowerPlant",
+	"AmericaWarFactory", "AmericaAirfield", "AmericaStrategyCenter",
+	"ChinaWarFactory", "ChinaAirfield", "ChinaPropagandaCenter",
+	"GLAArmsDealer", "GLAPalace",
+};
+
+const char *const s_economySciences[] =
+{
+	"SCIENCE_PaladinTank", "SCIENCE_NukeLauncher", "SCIENCE_ScudLauncher", "SCIENCE_MarauderTank",
+};
+
+const char *const s_economyUnits[] =
+{
+	"AmericaVehicleHumvee", "AmericaTankCrusader", "AmericaTankPaladin", "AmericaTankMicrowave",
+	"AmericaTankAvenger", "AmericaVehicleTomahawk", "AmericaVehicleMedic", "AmericaVehicleComanche",
+	"ChinaTankGattling", "ChinaTankBattleMaster", "ChinaTankOverlord", "ChinaTankDragon", "ChinaTankECM",
+	"ChinaVehicleInfernoCannon", "ChinaVehicleNukeLauncher", "ChinaVehicleTroopCrawler",
+	"ChinaVehicleListeningOutpost", "ChinaVehicleHelix",
+	"GLAVehicleTechnical", "GLAVehicleRocketBuggy", "GLAVehicleCombatBike", "GLATankScorpion",
+	"GLATankMarauder", "GLAVehicleQuadCannon", "GLAVehicleToxinTruck", "GLAVehicleBombTruck",
+	"GLAVehicleScudLauncher", "GLAVehicleBattleBus", "GLAVehicleRadarVan",
+	"AmericaVehicleDozer", "ChinaVehicleSupplyTruck",	// exempt: retail stats, to compare
+};
+
+const char *const s_economyEnemyUnits[] =
+{
+	"AmericaTankCrusader", "AmericaTankCrusader", "ChinaTankBattleMaster", "ChinaTankBattleMaster",
+	"ChinaTankOverlord", "GLATankScorpion", "GLATankScorpion", "GLATankMarauder", "ChinaVehicleHelix",
+};
+
 const Int DEMO_MONEY = 100000;
 const Real FRIENDLY_DISTANCE = 220.0f;	///< from the Command Center towards the map's middle
 const Real ENEMY_DISTANCE = 650.0f;
+const Real ECONOMY_SIDE_DISTANCE = 450.0f;	///< the Economy groups sit beside the Squads ones, across the line to the middle
 
 // Puts an object in the world as if the map had placed it (see GameLogic's placeObjectAtPosition).
 Object *placeObject(const char *templateName, Player *player, const Coord3D &where)
 {
 	const ThingTemplate *tmpl = TheThingFactory->findTemplate(templateName);
-	DEBUG_ASSERTCRASH(tmpl != nullptr, ("SquadsDemo: no object '%s'", templateName));
+	DEBUG_ASSERTCRASH(tmpl != nullptr, ("Demo: no object '%s'", templateName));
 	if (tmpl == nullptr)
 		return nullptr;
 
@@ -144,7 +185,7 @@ void placeGroup(Player *player, const Coord3D &center, const char *const *buildi
 		if (findBuildingSpot(buildings[i], player, center, spot))
 			placeObject(buildings[i], player, spot);
 		else
-			DEBUG_LOG(("SquadsDemo: no room for %s", buildings[i]));
+			DEBUG_LOG(("Demo: no room for %s", buildings[i]));
 	}
 
 	for (Int i = 0; i < unitCount; ++i)
@@ -153,7 +194,7 @@ void placeGroup(Player *player, const Coord3D &center, const char *const *buildi
 		if (findUnitSpot(center, spot))
 			placeObject(units[i], player, spot);
 		else
-			DEBUG_LOG(("SquadsDemo: no room for %s", units[i]));
+			DEBUG_LOG(("Demo: no room for %s", units[i]));
 	}
 }
 
@@ -188,17 +229,37 @@ Player *findEnemy(Player *player)
 	return fallback;
 }
 
+void clampInto(Coord3D &pos, const Region3D &region)
+{
+	pos.x = clamp(region.lo.x, pos.x, region.hi.x);
+	pos.y = clamp(region.lo.y, pos.y, region.hi.y);
+}
+
+void grantSciences(Player *player, const char *const *sciences, Int count)
+{
+	for (Int i = 0; i < count; ++i)
+	{
+		const ScienceType science = TheScienceStore->getScienceFromInternalName(sciences[i]);
+		if (science != SCIENCE_INVALID)
+			player->grantScience(science);
+		else
+			DEBUG_LOG(("Demo: no science %s", sciences[i]));
+	}
+}
+
 } // namespace
 
 //-------------------------------------------------------------------------------------------------
-void IbmEngine::setUpSquadsDemo()
+void IbmEngine::setUpDemo()
 {
-	if (!isFeatureActive(Feature_SquadsDemo))
+	if (!isFeatureActive(Feature_Demo))
 		return;
 
-	if (!isFeatureActive(Feature_Squads))
+	const Bool squads = isFeatureActive(Feature_Squads);
+	const Bool economy = isFeatureActive(Feature_Economy);
+	if (!squads && !economy)
 	{
-		DEBUG_LOG(("SquadsDemo: needs the Squads feature; nothing placed"));
+		DEBUG_LOG(("Demo: no feature with a demo is on (Squads, Economy); nothing placed"));
 		return;
 	}
 
@@ -208,6 +269,14 @@ void IbmEngine::setUpSquadsDemo()
 	mapCenter.x = (extent.lo.x + extent.hi.x) / 2.0f;
 	mapCenter.y = (extent.lo.y + extent.hi.y) / 2.0f;
 	mapCenter.z = 0.0f;
+
+	// Group centers stay this far inside the map's edge.
+	const Real margin = 150.0f;
+	Region3D inner = extent;
+	inner.lo.x += margin;
+	inner.lo.y += margin;
+	inner.hi.x -= margin;
+	inner.hi.y -= margin;
 
 	for (Int i = 0; i < ThePlayerList->getPlayerCount(); ++i)
 	{
@@ -231,21 +300,49 @@ void IbmEngine::setUpSquadsDemo()
 		dir.normalize();
 
 		player->getMoney()->deposit(DEMO_MONEY, FALSE, FALSE);
-
-		Coord3D friendly = base;
-		friendly.x += dir.x * FRIENDLY_DISTANCE;
-		friendly.y += dir.y * FRIENDLY_DISTANCE;
-		placeGroup(player, friendly, s_friendlyBuildings, ARRAY_SIZE(s_friendlyBuildings), s_friendlyUnits, ARRAY_SIZE(s_friendlyUnits));
-
 		Player *enemy = findEnemy(player);
-		if (enemy != nullptr)
+
+		if (squads)
 		{
-			Coord3D hostile = base;
-			hostile.x += dir.x * ENEMY_DISTANCE;
-			hostile.y += dir.y * ENEMY_DISTANCE;
-			placeGroup(enemy, hostile, s_enemyBuildings, ARRAY_SIZE(s_enemyBuildings), s_enemyUnits, ARRAY_SIZE(s_enemyUnits));
+			Coord3D friendly = base;
+			friendly.x += dir.x * FRIENDLY_DISTANCE;
+			friendly.y += dir.y * FRIENDLY_DISTANCE;
+			placeGroup(player, friendly, s_friendlyBuildings, ARRAY_SIZE(s_friendlyBuildings), s_friendlyUnits, ARRAY_SIZE(s_friendlyUnits));
+
+			if (enemy != nullptr)
+			{
+				Coord3D hostile = base;
+				hostile.x += dir.x * ENEMY_DISTANCE;
+				hostile.y += dir.y * ENEMY_DISTANCE;
+				placeGroup(enemy, hostile, s_enemyBuildings, ARRAY_SIZE(s_enemyBuildings), s_enemyUnits, ARRAY_SIZE(s_enemyUnits));
+			}
 		}
 
-		DEBUG_LOG(("SquadsDemo: set up for player %d", i));
+		if (economy)
+		{
+			// Beside the line to the middle, so it doesn't crowd the Squads groups.
+			Coord2D side;
+			side.x = -dir.y;
+			side.y = dir.x;
+
+			grantSciences(player, s_economySciences, ARRAY_SIZE(s_economySciences));
+
+			Coord3D friendly = base;
+			friendly.x += dir.x * FRIENDLY_DISTANCE + side.x * ECONOMY_SIDE_DISTANCE;
+			friendly.y += dir.y * FRIENDLY_DISTANCE + side.y * ECONOMY_SIDE_DISTANCE;
+			clampInto(friendly, inner);
+			placeGroup(player, friendly, s_economyBuildings, ARRAY_SIZE(s_economyBuildings), s_economyUnits, ARRAY_SIZE(s_economyUnits));
+
+			if (enemy != nullptr)
+			{
+				Coord3D hostile = base;
+				hostile.x += dir.x * ENEMY_DISTANCE + side.x * ECONOMY_SIDE_DISTANCE;
+				hostile.y += dir.y * ENEMY_DISTANCE + side.y * ECONOMY_SIDE_DISTANCE;
+				clampInto(hostile, inner);
+				placeGroup(enemy, hostile, nullptr, 0, s_economyEnemyUnits, ARRAY_SIZE(s_economyEnemyUnits));
+			}
+		}
+
+		DEBUG_LOG(("Demo: set up for player %d", i));
 	}
 }

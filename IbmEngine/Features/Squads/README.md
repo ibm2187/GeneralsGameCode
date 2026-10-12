@@ -1,6 +1,6 @@
 # Squads
 
-Infantry fight in squads, like in Company of Heroes. Feature flag: `Squads` (plus `SquadsDemo`, a ready-made test setup). Design notes, including side effects: [Squads and Hard Counters](https://claude.ai/code/artifact/e8ffd0c8-9273-44a0-a357-b3ef7b126972).
+Infantry fight in squads, like in Company of Heroes. Feature flag: `Squads` (the [Demo](../Demo/README.md) flag adds a ready-made test setup). Design notes, including side effects: [Squads and Hard Counters](https://claude.ai/code/artifact/e8ffd0c8-9273-44a0-a357-b3ef7b126972).
 
 The slice has an INI pack (`Data/INI/Features/Squads/`) and C++ for what INI can't do. The C++ does nothing for objects that aren't squads, so games without the pack play exactly as before.
 
@@ -37,7 +37,6 @@ Members are `ObjectCopy` copies of the retail soldiers with `MobMemberSlavedUpda
 | `SquadCommands.cpp` | Skill orders go to the member with the skill; skill buttons are evaluated for that member |
 | `SquadTransport.cpp` | Entering and leaving transports and buildings; transport places (`IbmSquadTransport`), the passenger panel and pips |
 | `SquadAI.cpp` | AI teams build squads instead of basic infantry |
-| `SquadDemo.cpp` | The `SquadsDemo` test setup |
 | `Squads.h` | What the engine hooks call |
 
 | INI file | Contents |
@@ -49,9 +48,9 @@ Members are `ObjectCopy` copies of the retail soldiers with `MobMemberSlavedUpda
 | `80_CommandButton.ini`, `90_CommandSet.ini` | Build buttons, Detonate; barracks and squad button sets (overrides change only the listed slots) |
 | `Squads.str` | Names and tooltips |
 
-## SquadsDemo
+## Demo
 
-With `SquadsDemo` and `Squads` on, every human player of a skirmish or LAN game starts with, toward the map's middle from their Command Center: all three Barracks, one of each squad, a Humvee, Troop Crawler, Technical and Chinook, and $100,000. The first enemy player gets a Rebel, Red Guard and Ranger squad, a Battlemaster, a Technical, a Comanche and a Supply Center a little further on. It has no INI pack, it is placed inside the game logic (so replays work), and loading a saved game doesn't place it again.
+The test setup moved to the [Demo](../Demo/README.md) slice; with `Demo` and `Squads` on it places the same squads group as the old `SquadsDemo` flag.
 
 ## Known limits
 
@@ -65,7 +64,7 @@ With `SquadsDemo` and `Squads` on, every human player of a skirmish or LAN game 
 
 ## Testing
 
-Checked in play (11 and 12 October 2026): squads build, move and fight; the Barracks heals and refills squads; attacks and force attacks spread over a squad. Headless replays of a squads game (with `SquadsDemo`) and of a game with no features play back with no mismatch. The full checklist is in the test plan doc.
+Checked in play (11 and 12 October 2026): squads build, move and fight; the Barracks heals and refills squads; attacks and force attacks spread over a squad. Headless replays of a squads game (with `SquadsDemo`, now `Demo`) and of a game with no features play back with no mismatch. The full checklist is in the test plan doc.
 
 - `generalszh_dbg.exe -headless -file "Maps\AllBuildingsAllSidesUnitTest_Save\AllBuildingsAllSidesUnitTest_Save.map" -feature Squads=1` loads the pack strictly; search `DebugLogFileD.txt` for `IbmEngine` and `ASSERTION`.
 - Games started with **Restart Game** don't replay (mismatch on frame 0) with or without squads; that's an existing engine issue.

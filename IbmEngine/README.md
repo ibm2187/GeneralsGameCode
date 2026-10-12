@@ -7,8 +7,9 @@ Each feature is a vertical slice under `Features/<Name>/`, holding everything fo
 | Slice | What it does |
 |---|---|
 | [FeatureFlags](Features/FeatureFlags/README.md) | Feature flags, INI packs loaded at game start, and the `ObjectCopy` INI block |
-| [Squads](Features/Squads/README.md) | Infantry squads and commando squads that heal and refill at the Barracks (flags `Squads`, `SquadsDemo`) |
+| [Squads](Features/Squads/README.md) | Infantry squads and commando squads that heal and refill at the Barracks (flag `Squads`) |
 | [Accuracy](Features/Accuracy/README.md) | Direct fire can miss; veterancy, range, movement and cover change the odds (flag `Accuracy`) |
+| [Demo](Features/Demo/README.md) | A ready-made test setup at game start for the features that are on (flag `Demo`) |
 | [Economy](Features/Economy/README.md) | Vehicles and aircraft cost more, build slower, move slower, have more health and hit harder (flag `Economy`) |
 
 ## Install
@@ -35,7 +36,7 @@ Every change to original engine files is small and marked `// IBM Engine hook` (
 | `GeneralsMD/Code/GameEngine/Source/GameClient/GUI/GUICallbacks/Menus/SkirmishGameOptionsMenu.cpp` | a skirmish uses the current local flags, not the ones saved with the last skirmish's settings |
 | `Core/GameEngine/Include/GameClient/ControlBar.h` | `postProcessCommands()` made public, so packs can resolve the images of buttons they add |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Locomotor.cpp` | fix: `LocomotorStore::reset` used an erased iterator, crashing at game end when an override INI added a locomotor |
-| `GeneralsMD/Code/GameEngine/Source/GameLogic/System/GameLogic.cpp` | `IbmEngine::setUpSquadsDemo()` after the starting bases are placed (not when loading a save) |
+| `GeneralsMD/Code/GameEngine/Source/GameLogic/System/GameLogic.cpp` | `IbmEngine::setUpDemo()` after the starting bases are placed (not when loading a save) |
 | `GeneralsMD/Code/GameEngine/Source/Common/Thing/ModuleFactory.cpp` | registers the `IbmSquadUpdate` module |
 | `GeneralsMD/Code/GameEngine/Include/GameLogic/Module/SpawnBehavior.h`, `.../Behavior/SpawnBehavior.cpp` | `getSlaveIDs()` and `adoptSlave()`: squads read their members and take back the ones the Barracks returns |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Update/MobMemberSlavedUpdate.cpp` | a squad member using a skill or riding in a container isn't pulled back to its leader |

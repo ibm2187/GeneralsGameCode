@@ -7,6 +7,8 @@ add_library(ibm_engine INTERFACE)
 target_sources(ibm_engine INTERFACE
     Features/Accuracy/Accuracy.cpp
     Features/Accuracy/Accuracy.h
+    Features/Demo/Demo.cpp
+    Features/Demo/Demo.h
     Features/Economy/Economy.cpp
     Features/Economy/Economy.h
     Features/FeatureFlags/FeatureFlags.cpp
@@ -18,7 +20,6 @@ target_sources(ibm_engine INTERFACE
     Features/Squads/SquadAI.cpp
     Features/Squads/SquadAttack.cpp
     Features/Squads/SquadCommands.cpp
-    Features/Squads/SquadDemo.cpp
     Features/Squads/SquadReinforce.cpp
     Features/Squads/Squads.h
     Features/Squads/SquadsInternal.h

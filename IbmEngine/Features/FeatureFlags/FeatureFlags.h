@@ -13,7 +13,7 @@ namespace IbmEngine
 enum Feature
 {
 	Feature_Squads,
-	Feature_SquadsDemo,	///< test setup at game start (Squads slice, SquadDemo.cpp); needs Squads, has no pack
+	Feature_Demo,		///< test setup at game start for the features that are on (Demo slice); has no pack. Was SquadsDemo
 	Feature_Accuracy,	///< direct fire can miss; veterancy, range, movement and cover change the odds
 	Feature_Economy,	///< fewer, tougher units: vehicles and aircraft cost more, build slower, move slower, last longer
 

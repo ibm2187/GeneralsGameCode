@@ -11,7 +11,7 @@ namespace IbmEngine
 static const char *const s_featureNames[Feature_Count] =
 {
 	"Squads",
-	"SquadsDemo",
+	"Demo",
 	"Accuracy",
 	"Economy",
 };
@@ -20,7 +20,7 @@ static const char *const s_featureNames[Feature_Count] =
 static const Bool s_featureHasPack[Feature_Count] =
 {
 	TRUE,	// Squads
-	FALSE,	// SquadsDemo
+	FALSE,	// Demo
 	TRUE,	// Accuracy
 	TRUE,	// Economy
 };
