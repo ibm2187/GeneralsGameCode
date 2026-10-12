@@ -1,0 +1,155 @@
+OBJECT:IbmUSARangerSquad
+"Ranger Squad"
+END
+
+OBJECT:IbmUSAMissileSquad
+"Missile Squad"
+END
+
+OBJECT:IbmUSAAntiAirSquad
+"Stinger Squad"
+END
+
+OBJECT:IbmUSASealTeam
+"Navy SEAL Team"
+END
+
+OBJECT:IbmChinaRedguardSquad
+"Red Guard Squad"
+END
+
+OBJECT:IbmChinaTankHunterSquad
+"Tank Hunter Squad"
+END
+
+OBJECT:IbmChinaAntiAirSquad
+"Sky Guard Squad"
+END
+
+OBJECT:IbmChinaInfiltrators
+"Infiltrators"
+END
+
+OBJECT:IbmGLARebelSquad
+"Rebel Squad"
+END
+
+OBJECT:IbmGLARPGSquad
+"RPG Squad"
+END
+
+OBJECT:IbmGLAAntiAirSquad
+"Stinger Squad"
+END
+
+OBJECT:IbmGLASuicideSquad
+"Suicide Squad"
+END
+
+OBJECT:IbmMedicalCenter
+"Medical Center"
+END
+
+CONTROLBAR:IbmConstructUSARangerSquad
+"&Ranger Squad"
+END
+
+CONTROLBAR:IbmToolTipUSARangerSquad
+"4 Rangers who fight as one unit.\nStrong against: Infantry"
+END
+
+CONTROLBAR:IbmConstructUSAMissileSquad
+"&Missile Squad"
+END
+
+CONTROLBAR:IbmToolTipUSAMissileSquad
+"2 Rangers and 1 Missile Defender.\nStrong against: Vehicles, Aircraft\nCan fight: Infantry"
+END
+
+CONTROLBAR:IbmConstructUSAAntiAirSquad
+"S&tinger Squad"
+END
+
+CONTROLBAR:IbmToolTipUSAAntiAirSquad
+"2 Rangers and 1 anti-air Missile Defender.\nStrong against: Aircraft\nCan fight: Infantry"
+END
+
+CONTROLBAR:IbmConstructUSASealTeam
+"Navy S&EAL Team"
+END
+
+CONTROLBAR:IbmToolTipUSASealTeam
+"Commandos: a demolitions expert with Colonel Burton's skills, 2 riflemen and a missile specialist. Stealthed while still.\nStrong against: Infantry, Vehicles, Aircraft, Buildings\nOnly one at a time."
+END
+
+CONTROLBAR:IbmConstructChinaRedguardSquad
+"&Red Guard Squad"
+END
+
+CONTROLBAR:IbmToolTipChinaRedguardSquad
+"6 Red Guards who fight as one unit.\nStrong against: Infantry"
+END
+
+CONTROLBAR:IbmConstructChinaTankHunterSquad
+"&Tank Hunter Squad"
+END
+
+CONTROLBAR:IbmToolTipChinaTankHunterSquad
+"3 Red Guards and 2 Tank Hunters.\nStrong against: Vehicles, Aircraft\nCan fight: Infantry"
+END
+
+CONTROLBAR:IbmConstructChinaAntiAirSquad
+"S&ky Guard Squad"
+END
+
+CONTROLBAR:IbmToolTipChinaAntiAirSquad
+"3 Red Guards and 2 anti-air Tank Hunters.\nStrong against: Aircraft\nCan fight: Infantry"
+END
+
+CONTROLBAR:IbmConstructChinaInfiltrators
+"&Infiltrators"
+END
+
+CONTROLBAR:IbmToolTipChinaInfiltrators
+"Commandos: a leader with Black Lotus's skills, 2 gunners and a missile gunner. Stealthed while still.\nStrong against: Infantry, Vehicles, Aircraft, Buildings\nOnly one at a time."
+END
+
+CONTROLBAR:IbmConstructGLARebelSquad
+"&Rebel Squad"
+END
+
+CONTROLBAR:IbmToolTipGLARebelSquad
+"5 Rebels who fight as one unit.\nStrong against: Infantry"
+END
+
+CONTROLBAR:IbmConstructGLARPGSquad
+"R&PG Squad"
+END
+
+CONTROLBAR:IbmToolTipGLARPGSquad
+"2 Rebels and 2 RPG Troopers.\nStrong against: Vehicles, Aircraft\nCan fight: Infantry"
+END
+
+CONTROLBAR:IbmConstructGLAAntiAirSquad
+"S&tinger Squad"
+END
+
+CONTROLBAR:IbmToolTipGLAAntiAirSquad
+"2 Rebels and 2 Stinger Troopers.\nStrong against: Aircraft\nCan fight: Infantry"
+END
+
+CONTROLBAR:IbmConstructGLASuicideSquad
+"S&uicide Squad"
+END
+
+CONTROLBAR:IbmToolTipGLASuicideSquad
+"Commandos: a marksman with Jarmen Kell's skills, 2 bombers who explode when killed and 2 RPG fighters. Stealthed while still.\nStrong against: Infantry, Vehicles, Aircraft\nOnly one at a time."
+END
+
+CONTROLBAR:IbmConstructMedicalCenter
+"Medical &Center"
+END
+
+CONTROLBAR:IbmToolTipMedicalCenter
+"Heals your infantry nearby, and infantry can go inside to heal.\nRequires: Barracks"
+END
