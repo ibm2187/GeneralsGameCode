@@ -33,8 +33,10 @@ enum EconomyStat
 Real getEconomyScale(const ThingTemplate *tmpl, EconomyStat stat);
 
 // WeaponTemplate::dealDamageInternal, before each victim takes damage: the attacker's VsInfantry
-// multiplier when the victim is infantry, else 1. attacker may be null (it died).
-Real getEconomyDamageScaleAgainst(const Object *attacker, const Object *victim);
+// multiplier when the victim is infantry, else 1. A "VsInfantryByDamage = <DamageType> <percent>"
+// line replaces it for the weapons of that type, for attackers that have one (tank guns, whose
+// shells retail infantry armor cuts to 10%). attacker may be null (it died).
+Real getEconomyDamageScaleAgainst(const WeaponTemplate *weapon, const Object *attacker, const Object *victim);
 
 // WeaponTemplate::getDelayBetweenShots and getClipReloadTime: a weapon with a "Reload = <Weapon>
 // <seconds>" line fires once per that many seconds: a weapon with no clip waits that long between

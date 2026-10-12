@@ -1607,7 +1607,7 @@ void WeaponTemplate::dealDamageInternal(ObjectID sourceID, ObjectID victimID, co
 			if (!killSelf)
 			{
 				const Object *attacker = damageInfo.in.m_sourceID == sourceID ? source : TheGameLogic->findObjectByID(damageInfo.in.m_sourceID);
-				damageInfo.in.m_amount *= IbmEngine::getEconomyDamageScaleAgainst(attacker, curVictim);
+				damageInfo.in.m_amount *= IbmEngine::getEconomyDamageScaleAgainst(this, attacker, curVictim);
 				damageInfo.in.m_amount *= IbmEngine::rollArmorPenetration(this, source, curVictim, curVictim == primaryVictim);
 			}
 

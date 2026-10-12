@@ -11,6 +11,7 @@
 #include "Common/KindOf.h"
 #include "Common/NameKeyGenerator.h"
 #include "Common/ThingTemplate.h"
+#include "GameLogic/Damage.h"
 #include "GameLogic/Locomotor.h"
 #include "GameLogic/LocomotorSet.h"
 #include "GameLogic/Object.h"
@@ -54,6 +55,7 @@ std::map<NameKeyType, EconomyScales> s_units;		///< "Unit = ChinaTankOverlord Sp
 std::map<const ThingTemplate *, EconomyScales> s_cache;
 std::map<NameKeyType, Real> s_reloadSeconds;		///< "Reload = CrusaderTankGun 6" lines
 std::map<const WeaponTemplate *, Int> s_reloadCache;	///< frames, or -1
+std::map<Int, Real> s_vsInfantryByDamage;			///< "VsInfantryByDamage = ARMOR_PIERCING 1000%" lines, by DamageType
 
 //-------------------------------------------------------------------------------------------------
 // Reads "Stat:Percent" tokens up to the end of the line.
@@ -120,12 +122,27 @@ void parseReloadLine(INI *ini, void * /*instance*/, void * /*store*/, const void
 	s_reloadSeconds[NAMEKEY(name)] = INI::scanReal(ini->getNextToken());
 }
 
+//-------------------------------------------------------------------------------------------------
+// "VsInfantryByDamage = ARMOR_PIERCING 1000%": the VsInfantry of weapons of that DamageType.
+void parseVsInfantryByDamageLine(INI *ini, void * /*instance*/, void * /*store*/, const void * /*userData*/)
+{
+	const char *name = ini->getNextToken();
+	const Int type = DamageTypeFlags::getSingleBitFromName(name);
+	if (type < 0)
+	{
+		DEBUG_CRASH(("IbmEconomy: unknown DamageType '%s'", name));
+		throw INI_INVALID_DATA;
+	}
+	s_vsInfantryByDamage[type] = INI::scanPercentToReal(ini->getNextToken());
+}
+
 const FieldParse s_fieldParse[] =
 {
 	{ "Kind",	parseKindLine,		nullptr, 0 },
 	{ "Exempt",	parseExemptLine,	nullptr, 0 },
 	{ "Unit",	parseUnitLine,		nullptr, 0 },
 	{ "Reload",	parseReloadLine,	nullptr, 0 },
+	{ "VsInfantryByDamage",	parseVsInfantryByDamageLine,	nullptr, 0 },
 	{ nullptr, nullptr, nullptr, 0 }
 };
 
@@ -193,6 +210,7 @@ void IbmEngine::parseEconomyDefinition(INI *ini)
 	s_cache.clear();
 	s_reloadSeconds.clear();
 	s_reloadCache.clear();
+	s_vsInfantryByDamage.clear();
 	Int unused = 0;
 	ini->initFromINI(&unused, s_fieldParse);
 }
@@ -237,11 +255,17 @@ Int IbmEngine::getEconomyReloadFrames(const WeaponTemplate *weapon)
 }
 
 //-------------------------------------------------------------------------------------------------
-Real IbmEngine::getEconomyDamageScaleAgainst(const Object *attacker, const Object *victim)
+Real IbmEngine::getEconomyDamageScaleAgainst(const WeaponTemplate *weapon, const Object *attacker, const Object *victim)
 {
 	if (attacker == nullptr || victim == nullptr || !victim->isKindOf(KINDOF_INFANTRY))
 		return 1.0f;
-	return getEconomyScale(attacker->getTemplate(), EconomyStat_VsInfantry);
+
+	const Real scale = getEconomyScale(attacker->getTemplate(), EconomyStat_VsInfantry);
+	if (scale == 1.0f || weapon == nullptr)
+		return scale;
+
+	std::map<Int, Real>::const_iterator it = s_vsInfantryByDamage.find(weapon->getDamageType());
+	return it != s_vsInfantryByDamage.end() ? it->second : scale;
 }
 
 //-------------------------------------------------------------------------------------------------
