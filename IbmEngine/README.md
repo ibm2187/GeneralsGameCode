@@ -41,7 +41,7 @@ Every change to original engine files is small and marked `// IBM Engine hook` (
 | `GeneralsMD/Code/GameEngine/Source/Common/RTS/ActionManager.cpp` | `canEnterObject`: squads may enter containers |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Contain/TransportContain.cpp` | capacity and slot count: a squad takes one place in a transport, boarded by its first member |
 | `Core/GameEngine/Source/GameClient/GUI/ControlBar/ControlBarCommand.cpp` | the passenger panel shows one button per squad, not per soldier |
-| `GeneralsMD/Code/GameEngine/Source/GameClient/Drawable.cpp` | `drawContained`: one pip per squad in a transport, not per soldier |
+| `GeneralsMD/Code/GameEngine/Source/GameClient/Drawable.cpp` | `drawContained`: one pip per squad in a transport, not per soldier; `drawHealing`: a squad shows the heal icon while its members heal or come back |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Update/AIUpdate.cpp`, `Include/.../AIUpdate.h` | enter and exit: whole squads; attack and force attack on a trooper attack the whole squad (`privateAttackSquadOf`) |
 | `GeneralsMD/Code/GameEngine/Include/GameLogic/AIStateMachine.h`, `Source/GameLogic/AI/AIStates.cpp` | new state `AI_FORCE_ATTACK_SQUAD` (appended, so saved state ids don't change); attack-squad victims spread over a squad |
 | `GeneralsMD/Code/GameEngine/Source/Common/RTS/Team.cpp` | `TeamTemplateInfo`: AI teams build squads instead of basic infantry |

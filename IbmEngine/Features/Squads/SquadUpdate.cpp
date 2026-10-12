@@ -7,6 +7,7 @@
 #include "Common/Xfer.h"
 #include "GameClient/Drawable.h"
 #include "GameLogic/Module/AIUpdate.h"
+#include "GameLogic/Module/BodyModule.h"
 #include "GameLogic/Module/SpecialPowerUpdateModule.h"
 
 #include "Features/Squads/Squads.h"
@@ -105,6 +106,7 @@ IbmSquadUpdate::IbmSquadUpdate( Thing *thing, const ModuleData* moduleData ) : U
 {
 	m_parked = FALSE;
 	m_nextReinforceFrame = 0;
+	m_lastReinforceFrame = 0;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -193,7 +195,8 @@ UpdateSleepTime IbmSquadUpdate::update()
 	if (!m_parked && alive > 0 && now >= m_nextReinforceFrame)
 	{
 		m_nextReinforceFrame = now + getData()->m_reinforceDelay;
-		IbmEngine::reinforceSquad(leader, getData());
+		if (IbmEngine::reinforceSquad(leader, getData()))
+			m_lastReinforceFrame = now;
 	}
 
 	// An invisible leader must not give its hidden members away (health bar, icons, AI scans).
@@ -201,6 +204,34 @@ UpdateSleepTime IbmSquadUpdate::update()
 		leader->setStatus(MAKE_OBJECT_STATUS_MASK(OBJECT_STATUS_CAN_STEALTH), alive > 0 && allHidden && !m_parked);
 
 	return UPDATE_SLEEP_NONE;
+}
+
+//-------------------------------------------------------------------------------------------------
+// As long as the engine shows its heal icon over a healed unit. The Barracks heals every second.
+static const UnsignedInt SQUAD_HEALING_ICON_FRAMES = LOGICFRAMES_PER_SECOND * 3;
+
+Bool IbmSquadUpdate::isHealing() const
+{
+	const UnsignedInt now = TheGameLogic->getFrame();
+	if (m_lastReinforceFrame != 0 && now - m_lastReinforceFrame <= SQUAD_HEALING_ICON_FRAMES)
+		return TRUE;
+
+	Bool healing = FALSE;
+	IbmEngine::forEachSquadMember(getObject(), [&](Object *member)
+	{
+		const BodyModuleInterface *body = member->getBodyModule();
+		const UnsignedInt *lastHealed = body != nullptr ? body->getLastHealingTimestamp() : nullptr;
+		if (lastHealed != nullptr && *lastHealed != 0 && now - *lastHealed <= SQUAD_HEALING_ICON_FRAMES)
+			healing = TRUE;
+	});
+	return healing;
+}
+
+//-------------------------------------------------------------------------------------------------
+Bool IbmEngine::isSquadHealing(const Object *obj)
+{
+	const IbmSquadUpdate *squad = getSquad(obj);
+	return squad != nullptr && !squad->isParked() && squad->isHealing();
 }
 
 //-------------------------------------------------------------------------------------------------

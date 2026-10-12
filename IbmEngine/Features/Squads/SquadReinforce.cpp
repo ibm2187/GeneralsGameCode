@@ -76,15 +76,15 @@ const ThingTemplate *findLostMember(const Object *leader)
 } // namespace
 
 //-------------------------------------------------------------------------------------------------
-void IbmEngine::reinforceSquad(Object *leader, const IbmSquadUpdateModuleData *data)
+Bool IbmEngine::reinforceSquad(Object *leader, const IbmSquadUpdateModuleData *data)
 {
 	Player *player = leader->getControllingPlayer();
 	if (player == nullptr || data->m_reinforceAt.empty())
-		return;
+		return FALSE;
 
 	const ThingTemplate *soldierTemplate = findLostMember(leader);
 	if (soldierTemplate == nullptr)
-		return;
+		return FALSE;
 
 	BuildingSearch search;
 	search.data = data;
@@ -93,7 +93,7 @@ void IbmEngine::reinforceSquad(Object *leader, const IbmSquadUpdateModuleData *d
 	search.bestDistSqr = sqr(data->m_reinforceRadius) + 1.0f;
 	player->iterateObjects(findClosestBuilding, &search);
 	if (search.best == nullptr)
-		return;
+		return FALSE;
 
 	Object *soldier = TheThingFactory->newObject(soldierTemplate, leader->getTeam());
 	player->onUnitCreated(leader, soldier); // counts as a unit made, like the squad's first members
@@ -115,4 +115,5 @@ void IbmEngine::reinforceSquad(Object *leader, const IbmSquadUpdateModuleData *d
 
 	// After the exit, which would make the building his producer.
 	leader->getSpawnBehaviorInterface()->adoptSlave(soldier);
+	return TRUE;
 }

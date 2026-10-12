@@ -87,6 +87,10 @@ Bool showSquadInventoryButton(const Object *transport, const Object *rider, cons
 // INI block "IbmSquadTransport" (Squads pack): how many squads each transport carries.
 void parseSquadTransportDefinition(INI *ini);
 
+// Drawable::drawHealing: a squad shows the heal icon over its health bar while a member is healed
+// (the members' own icons are hidden) and just after a lost member came back at the Barracks.
+Bool isSquadHealing(const Object *obj);
+
 // TeamTemplateInfo: a team that asks for a basic infantry unit gets the squad that replaces it
 // (IbmSquadUpdate's AIReplaces), so the skirmish AI builds squads. The counts are divided by the
 // squad's size, rounded up, so the team has about as many soldiers as before.

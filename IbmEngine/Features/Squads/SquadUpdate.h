@@ -57,6 +57,9 @@ public:
 	/// TRUE while all members ride inside a container and the leader rides along with them.
 	Bool isParked() const { return m_parked; }
 
+	/// TRUE while a member is being healed, or just after a lost member came back.
+	Bool isHealing() const;
+
 private:
 	void park( Object *container );
 	void unpark( const Coord3D *pos );
@@ -64,4 +67,5 @@ private:
 	std::list<ObjectID> m_ownOrderMembers;	///< members following their own order
 	Bool m_parked;							///< all members are inside a container
 	UnsignedInt m_nextReinforceFrame;		///< when to look for a Barracks again
+	UnsignedInt m_lastReinforceFrame;		///< when a lost member last came back; only shown, so not saved
 };

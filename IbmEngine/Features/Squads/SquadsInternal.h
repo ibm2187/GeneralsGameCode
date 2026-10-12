@@ -38,7 +38,8 @@ const SpawnBehaviorModuleData *findSquadSpawnData(const ThingTemplate *leaderTem
 Bool hasFireWeaponButton(const Object *obj, WeaponSlotType slot);
 
 // Brings back the squad's first lost member if it is near one of its ReinforceAt buildings.
-void reinforceSquad(Object *leader, const IbmSquadUpdateModuleData *data);
+// Returns TRUE if one came back.
+Bool reinforceSquad(Object *leader, const IbmSquadUpdateModuleData *data);
 
 // Calls func for every living member of a squad, in spawn order.
 template <typename Func>

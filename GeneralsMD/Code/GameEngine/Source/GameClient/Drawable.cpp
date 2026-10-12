@@ -3218,6 +3218,10 @@ void Drawable::drawHealing(const IRegion2D* healthBarRegion)
 			showHealing = TRUE;
 	}
 
+	// IBM Engine hook: a squad shows healing while its members heal or come back at the Barracks.
+	if( !showHealing && IbmEngine::isSquadHealing( obj ) )
+		showHealing = TRUE;
+
 	// based on our own kind of we have certain icons to display at a size scale
 	Real scale;
 	DrawableIconType typeIndex;

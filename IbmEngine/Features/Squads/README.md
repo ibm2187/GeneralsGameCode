@@ -17,7 +17,7 @@ Every squad has a rifle core that fights infantry, plus a specialist. Cost is th
 - Squads replace slots 1 and 2 of each barracks (the basic infantry). The anti-aircraft squad and the commandos take empty slots.
 - Commandos need the hero's building: Strategy Center, Propaganda Center or Palace. Their members are stealthed while they hold still, and so is the squad's health bar. The commando's buttons are the hero's: Burton's knife and C4, Black Lotus's hacks, Kell's sniper attack, and the bombers' Detonate, which blows all the squad's bombers up on the spot.
 - Anti-air specialists fire new air-only missiles: 55 damage, range 225 (the regular infantry missiles do 40 at range 175).
-- **The Barracks is the hospital.** It heals friendly infantry within 150, and a squad within 200 of its faction's Barracks gets one lost member back every 2 seconds, for free, specialists first.
+- **The Barracks is the hospital.** It heals friendly infantry within 150, and a squad within 200 of its faction's Barracks gets one lost member back every 2 seconds, for free, specialists first. While a member is healed, and for 3 seconds after one comes back, the squad shows the heal icon over its health bar.
 - **Attacking a squad attacks the whole squad.** An attack or force attack on any trooper spreads the attackers over the squad's troopers, and they move on to the next trooper until the squad is gone. Skill shots (Kell's snipe, Burton's knife) still hit the man you click.
 - **Transports carry squads, not soldiers.** A transport with N slots has N / 4 places (at least one): a Humvee 1, a Troop Crawler or Battle Bus 2, a Chinook 3. A squad takes one place whatever its size; single soldiers and vehicles keep their own slots (a Troop Crawler still comes with 8 Red Guards). The passenger panel shows one button per squad (with the squad's picture) or single rider, plus one per free place, and so do the pips over the transport. The members go in one by one and the invisible leader rides along; when one member gets out (or its button is clicked), the rest follow.
 - **Garrisons and tunnels** count soldiers: all members must fit.
@@ -31,7 +31,7 @@ Members are `ObjectCopy` copies of the retail soldiers with `MobMemberSlavedUpda
 
 | C++ file | What it does |
 |---|---|
-| `SquadUpdate.cpp/.h` | `IbmSquadUpdate`: members on their own order, parking the leader in containers, leader stealth, reinforcement timer |
+| `SquadUpdate.cpp/.h` | `IbmSquadUpdate`: members on their own order, parking the leader in containers, leader stealth, reinforcement timer, the heal icon |
 | `SquadReinforce.cpp` | Brings back lost members near the Barracks (`ReinforceAt`) |
 | `SquadAttack.cpp` | An attack on a trooper becomes an attack on the squad (`AI_ATTACK_SQUAD`, `AI_FORCE_ATTACK_SQUAD`) |
 | `SquadCommands.cpp` | Skill orders go to the member with the skill; skill buttons are evaluated for that member |
@@ -61,7 +61,6 @@ With `SquadsDemo` and `Squads` on, every human player of a skirmish or LAN game 
 
 ## To do
 
-- **Healing feedback.** A squad healing and getting members back at its Barracks shows it, with an icon over the squad or similar.
 - **Members drift apart** (seen after members came back at the Barracks). `MustCatchUpRadius` was 90; now 40. Retest.
 
 ## Testing
