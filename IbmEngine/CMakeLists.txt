@@ -7,6 +7,8 @@ add_library(ibm_engine INTERFACE)
 target_sources(ibm_engine INTERFACE
     Features/Accuracy/Accuracy.cpp
     Features/Accuracy/Accuracy.h
+    Features/AirPower/AirPower.cpp
+    Features/AirPower/AirPower.h
     Features/Armor/Armor.cpp
     Features/Armor/Armor.h
     Features/Demo/Demo.cpp

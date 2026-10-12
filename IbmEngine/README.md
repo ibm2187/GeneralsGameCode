@@ -9,6 +9,7 @@ Each feature is a vertical slice under `Features/<Name>/`, holding everything fo
 | [FeatureFlags](Features/FeatureFlags/README.md) | Feature flags, INI packs loaded at game start, and the `ObjectCopy` INI block |
 | [Squads](Features/Squads/README.md) | Infantry squads and commando squads that heal and refill at the Barracks (flag `Squads`) |
 | [Accuracy](Features/Accuracy/README.md) | Direct fire can miss; veterancy, range, movement and cover change the odds (flag `Accuracy`) |
+| [AirPower](Features/AirPower/README.md) | No buildable jets: airfields build helicopters, air strikes come from general powers (flag `AirPower`) |
 | [Armor](Features/Armor/README.md) | Vehicles have front, side and rear armor; weapons have penetration; shots that don't penetrate are deflected (flag `Armor`) |
 | [Demo](Features/Demo/README.md) | A ready-made test setup at game start for the features that are on (flag `Demo`) |
 | [Economy](Features/Economy/README.md) | Vehicles and aircraft cost more, build slower, move slower, have more health and hit harder (flag `Economy`) |
@@ -33,7 +34,7 @@ Every change to original engine files is small and marked `// IBM Engine hook` (
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/System/GameLogic.cpp` | `IbmEngine::onStartNewGame()` just before `map.ini` loads |
 | `Core/GameEngine/Include/GameNetwork/GameInfo.h` | `m_featureFlags` with getter and setter |
 | `Core/GameEngine/Source/GameNetwork/GameInfo.cpp` | flags reset to local flags; written as `FF=` in the game options only when non-zero; parsed back |
-| `Core/GameEngine/Source/Common/INI/INI.cpp` | registers the `ObjectCopy`, `IbmAccuracy`, `IbmArmor`, `IbmEconomy` and `IbmSquadTransport` INI blocks |
+| `Core/GameEngine/Source/Common/INI/INI.cpp` | registers the `ObjectCopy`, `IbmAccuracy`, `IbmAirPower`, `IbmArmor`, `IbmEconomy` and `IbmSquadTransport` INI blocks |
 | `GeneralsMD/Code/GameEngine/Source/GameClient/GUI/GUICallbacks/Menus/SkirmishGameOptionsMenu.cpp` | a skirmish uses the current local flags, not the ones saved with the last skirmish's settings |
 | `Core/GameEngine/Include/GameClient/ControlBar.h` | `postProcessCommands()` made public, so packs can resolve the images of buttons they add |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Locomotor.cpp` | fix: `LocomotorStore::reset` used an erased iterator, crashing at game end when an override INI added a locomotor |
@@ -47,7 +48,8 @@ Every change to original engine files is small and marked `// IBM Engine hook` (
 | `GeneralsMD/Code/GameEngine/Source/GameClient/Drawable.cpp` | `drawContained`: one pip per squad in a transport, not per soldier; `drawHealing`: a squad shows the heal icon while its members heal or come back |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Update/AIUpdate.cpp`, `Include/.../AIUpdate.h` | enter and exit: whole squads; attack and force attack on a trooper attack the whole squad (`privateAttackSquadOf`) |
 | `GeneralsMD/Code/GameEngine/Include/GameLogic/AIStateMachine.h`, `Source/GameLogic/AI/AIStates.cpp` | new state `AI_FORCE_ATTACK_SQUAD` (appended, so saved state ids don't change); attack-squad victims spread over a squad |
-| `GeneralsMD/Code/GameEngine/Source/Common/RTS/Team.cpp` | `TeamTemplateInfo`: AI teams build squads instead of basic infantry |
+| `GeneralsMD/Code/GameEngine/Source/Common/RTS/Team.cpp` | `TeamTemplateInfo`: AI teams build squads instead of basic infantry, and helicopters instead of jets |
+| `Core/GameEngine/Source/GameClient/GUI/ControlBar/ControlBar.cpp` | `CommandSet::parseCommandButton`: `None` empties a button slot, so a pack can remove a button |
 | `Core/GameEngine/Source/GameLogic/System/GameLogicDispatch.cpp` | skill orders given to a squad go to the member with the skill |
 | `Core/GameEngine/Source/GameClient/GUI/ControlBar/ControlBarCommand.cpp` | a squad's skill buttons are evaluated for the member with the skill |
 | `GeneralsMD/Code/GameEngine/Source/Common/RTS/SpecialPower.cpp` | fix: `SpecialPowerStore::reset` gave a special power from a pack or map.ini a new ID every game, so replays of later games couldn't find it |

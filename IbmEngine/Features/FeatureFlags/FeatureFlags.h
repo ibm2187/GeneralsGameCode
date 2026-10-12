@@ -17,6 +17,7 @@ enum Feature
 	Feature_Accuracy,	///< direct fire can miss; veterancy, range, movement and cover change the odds
 	Feature_Economy,	///< fewer, tougher units: vehicles and aircraft cost more, build slower, move slower, last longer
 	Feature_Armor,		///< vehicles have front, side and rear armor; weapons have penetration
+	Feature_AirPower,	///< no buildable jets: airfields build helicopters, air strikes come from general powers
 
 	Feature_Count
 };

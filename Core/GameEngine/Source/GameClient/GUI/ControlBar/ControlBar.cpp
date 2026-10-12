@@ -812,6 +812,14 @@ void CommandSet::parseCommandButton( INI* ini, void *instance, void *store, cons
 
 	// get find the command button from this name
 	const CommandButton *commandButton = TheControlBar->findCommandButton( AsciiString( token ) );
+#if RTS_ZEROHOUR
+	// IBM Engine hook: "None" empties the slot, so an override (a feature pack) can remove a button.
+	if( commandButton == nullptr && stricmp( token, "None" ) == 0 )
+	{
+		((const CommandButton **)store)[ (Int)userData ] = nullptr;
+		return;
+	}
+#endif
 	if( commandButton == nullptr )
 	{
 

@@ -52,6 +52,7 @@
 #include "GameLogic/ScriptEngine.h"
 
 #include "Features/Squads/Squads.h" // IBM Engine hook
+#include "Features/AirPower/AirPower.h" // IBM Engine hook
 
 
 ///@todo - do delayed script evaluations for team scripts. jba.
@@ -691,9 +692,13 @@ TeamTemplateInfo::TeamTemplateInfo(Dict *d) :
 		m_numUnitsInfo++;
 	}
 
-	// IBM Engine hook: with squads on, AI teams build squads instead of basic infantry.
+	// IBM Engine hook: with squads on, AI teams build squads instead of basic infantry; with
+	// AirPower on, helicopters instead of jets.
 	for (Int i = 0; i < m_numUnitsInfo; ++i)
+	{
 		IbmEngine::replaceTeamUnitWithSquad(m_unitsInfo[i].unitThingName, m_unitsInfo[i].minUnits, m_unitsInfo[i].maxUnits);
+		IbmEngine::replaceTeamJet(m_unitsInfo[i].unitThingName);
+	}
 
 	AsciiString waypoint = d->getAsciiString(TheKey_teamHome, &exists);
 	m_homeLocation.x = m_homeLocation.y = 0;

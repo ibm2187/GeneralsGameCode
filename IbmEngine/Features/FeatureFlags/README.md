@@ -33,6 +33,7 @@ Saved games don't store the flags; loading a save uses the current local flags.
 | `Accuracy` | [Accuracy](../Accuracy/README.md) | yes |
 | `Economy` | [Economy](../Economy/README.md) | yes |
 | `Armor` | [Armor](../Armor/README.md) | yes |
+| `AirPower` | [AirPower](../AirPower/README.md) | yes |
 
 ## INI packs
 
