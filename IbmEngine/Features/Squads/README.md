@@ -19,7 +19,7 @@ Every squad has a rifle core that fights infantry, plus a specialist. Cost is th
 - Anti-air specialists fire new air-only missiles: 55 damage, range 225 (the regular infantry missiles do 40 at range 175).
 - **The Barracks is the hospital.** It heals friendly infantry within 150, and a squad within 200 of its faction's Barracks gets one lost member back every 2 seconds, for free, specialists first.
 - **Attacking a squad attacks the whole squad.** An attack or force attack on any trooper spreads the attackers over the squad's troopers, and they move on to the next trooper until the squad is gone. Skill shots (Kell's snipe, Burton's knife) still hit the man you click.
-- **Transports carry squads, not soldiers.** A transport with N slots carries N / 4 squads (at least one), and a squad takes one share of it whatever its size: a Humvee carries 1 squad, a Troop Crawler or Battle Bus 2, a Chinook 3. Single soldiers and vehicles still take their own slots. The members go in one by one and the invisible leader rides along; when one member gets out, the rest follow.
+- **Transports carry squads, not soldiers.** A transport with N slots has N / 4 places (at least one): a Humvee 1, a Troop Crawler or Battle Bus 2, a Chinook 3. A squad takes one place whatever its size; single soldiers and vehicles keep their own slots (a Troop Crawler still comes with 8 Red Guards). The passenger panel shows one button per squad (with the squad's picture) or single rider, plus one per free place, and so do the pips over the transport. The members go in one by one and the invisible leader rides along; when one member gets out (or its button is clicked), the rest follow.
 - **Garrisons and tunnels** count soldiers: all members must fit.
 - **The skirmish AI builds squads**: AI teams that ask for basic infantry get the squad instead, with team sizes divided by squad size.
 
@@ -35,7 +35,7 @@ Members are `ObjectCopy` copies of the retail soldiers with `MobMemberSlavedUpda
 | `SquadReinforce.cpp` | Brings back lost members near the Barracks (`ReinforceAt`) |
 | `SquadAttack.cpp` | An attack on a trooper becomes an attack on the squad (`AI_ATTACK_SQUAD`, `AI_FORCE_ATTACK_SQUAD`) |
 | `SquadCommands.cpp` | Skill orders go to the member with the skill; skill buttons are evaluated for that member |
-| `SquadTransport.cpp` | Entering and leaving transports and buildings; squads' share of a transport (`IbmSquadTransport`) |
+| `SquadTransport.cpp` | Entering and leaving transports and buildings; transport places (`IbmSquadTransport`), the passenger panel and pips |
 | `SquadAI.cpp` | AI teams build squads instead of basic infantry |
 | `SquadDemo.cpp` | The `SquadsDemo` test setup |
 | `Squads.h` | What the engine hooks call |
@@ -57,7 +57,6 @@ With `SquadsDemo` and `Squads` on, every human player of a skirmish or LAN game 
 
 - Only USA, China and GLA. The generals' sub-factions (`AirF_`, `Lazr_`, `SupW_`, `Tank_`, `Infa_`, `Nuke_`, `Demo_`, `Chem_`, `Slth_`) keep retail infantry.
 - A map with its own `map.str` replaces the pack's tooltips (names stay).
-- A squad with more soldiers than its share of a transport (a 6-man Red Guard squad in a 5-slot Humvee) rides, but the transport's passenger panel shows only as many soldiers as it has buttons. Any of them gets the whole squad out.
 - Lost members come back only at the faction's own Barracks, not the generals' versions of it.
 
 ## To do

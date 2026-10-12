@@ -90,6 +90,13 @@ void ControlBar::populateInvDataCallback( Object *obj, void *userData )
 {
 	PopulateInvButtonData *data = (PopulateInvButtonData *)userData;
 
+#if RTS_ZEROHOUR
+	// IBM Engine hook: a squad's members share one button, with the squad's picture.
+	const Image *squadImage = nullptr;
+	if (!IbmEngine::showSquadInventoryButton(data->transport, obj, squadImage))
+		return;
+#endif
+
 	//
 	// if we're beyond the max the GUI can support, design needs to change the parameters
 	// of the transport object to carry less things
@@ -115,6 +122,10 @@ void ControlBar::populateInvDataCallback( Object *obj, void *userData )
 	// fill out the control enabled, hilite, and pushed images
 	const Image *image;
 	image = obj->getTemplate()->getButtonImage();
+#if RTS_ZEROHOUR
+	if (squadImage != nullptr)
+		image = squadImage; // IBM Engine hook
+#endif
 	GadgetButtonSetEnabledImage( control, image );
 
 	//No longer used
@@ -170,6 +181,13 @@ void ControlBar::doTransportInventoryUI( Object *transport, const CommandSet *co
 	// The extra slots bit means that a tank that takes up three slots will make two transport
 	// buttons disappear off the end to show he takes up more room.
 	transportMax = transportMax - contain->getExtraSlotsInUse();
+
+#if RTS_ZEROHOUR
+	// IBM Engine hook: a transport that carries squads shows one button per squad, not per soldier.
+	Int squadButtons, squadRiders, squadInfantryRiders;
+	if (IbmEngine::getSquadTransportButtons(transport, squadButtons, squadRiders, squadInfantryRiders))
+		transportMax = squadButtons;
+#endif
 
 	Int firstInventoryIndex = -1;
 	Int lastInventoryIndex = -1;

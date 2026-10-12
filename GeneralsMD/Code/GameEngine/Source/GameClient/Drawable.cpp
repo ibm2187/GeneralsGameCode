@@ -81,6 +81,8 @@
 
 #include "WW3D2/ww3d.h"
 
+#include "Features/Squads/Squads.h" // IBM Engine hook
+
 #define VERY_TRANSPARENT_MATERIAL_PASS_OPACITY (0.001f)
 #define MATERIAL_PASS_OPACITY_FADE_SCALAR (0.8f)
 
@@ -2965,6 +2967,9 @@ void Drawable::drawContained( const IRegion2D *healthBarRegion )
 				++numInfantry;
 		}
 	}
+
+	// IBM Engine hook: a transport that carries squads shows one pip per squad, not per soldier.
+	IbmEngine::getSquadTransportButtons(obj, numTotal, numFull, numInfantry);
 
 #ifdef SCALE_ICONS_WITH_ZOOM_ML
 	Real scale = TheGlobalData->m_ammoPipScaleFactor / CLAMP_ICON_ZOOM_FACTOR( TheTacticalView->getZoom() );

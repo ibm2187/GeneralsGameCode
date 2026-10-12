@@ -3,9 +3,13 @@
 // one like any infantry, and once they are all inside, IbmSquadUpdate parks the invisible leader in
 // the container too. When one member leaves, the rest of the squad follows.
 //
-// Transports count squads, not soldiers: a transport with N slots carries N / SlotsPerSquad squads
-// (at least one; the IbmSquadTransport block can set a transport's own number), and each squad
-// inside takes one share of the slots whatever its size. Buildings and tunnels count soldiers.
+// Transports count squads, not soldiers: a transport with N slots has N / SlotsPerSquad places (at
+// least one; the IbmSquadTransport block can set a transport's own number), and a squad takes one
+// place whatever its size. The engine still counts slots: a place is a share of them, and the slots
+// no place can use (8 slots for 3 places leave 2) count as taken once a squad is inside. Single
+// soldiers and vehicles keep their own slots, so a Troop Crawler still comes with its 8 Red Guards.
+// The passenger panel and the pips over the transport show one button per squad or single rider,
+// plus one per free place. Buildings and tunnels count soldiers.
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
@@ -28,7 +32,7 @@ namespace
 // The IbmSquadTransport block. Defaults match the pack.
 struct SquadTransportSettings
 {
-	Int slotsPerSquad;							///< a transport carries its slots / this many squads
+	Int slotsPerSquad;							///< a transport has its slots / this many places
 	std::map<NameKeyType, Int> squadsCarried;	///< "Transport = Name 3" lines
 
 	SquadTransportSettings() : slotsPerSquad(4) { }
@@ -50,21 +54,38 @@ const FieldParse s_transportFieldParse[] =
 };
 
 //-------------------------------------------------------------------------------------------------
-// The slots one squad takes in this transport.
-Int getSquadShare(const Object *transport, const ContainModuleInterface *contain)
+// Transports count places; buildings, tunnels, hospitals, bikes and parachutes count soldiers.
+Bool countsSquads(const ContainModuleInterface *contain)
 {
-	const Int slots = contain->getContainMax();
-	Int squads = max(1, slots / max(1, s_transportSettings.slotsPerSquad));
-
-	std::map<NameKeyType, Int>::const_iterator it = s_transportSettings.squadsCarried.find(NAMEKEY(transport->getTemplate()->getName()));
-	if (it != s_transportSettings.squadsCarried.end())
-		squads = it->second;
-
-	return max(1, slots / squads);
+	return !contain->isGarrisonable() && !contain->isTunnelContain() && !contain->isHealContain()
+		&& !contain->isRiderChangeContain() && !contain->isSpecialZeroSlotContainer();
 }
 
 //-------------------------------------------------------------------------------------------------
-// Does the transport hold a member of this squad (other than exclude)?
+// How a transport's slots split into places.
+struct TransportPlaces
+{
+	Int slots;		///< the transport's slots
+	Int places;		///< squads it carries
+	Int share;		///< slots per place
+	Int unused;		///< slots no place can use
+
+	TransportPlaces(const Object *transport, const ContainModuleInterface *contain)
+	{
+		slots = max(1, contain->getContainMax());
+		places = max(1, slots / max(1, s_transportSettings.slotsPerSquad));
+
+		std::map<NameKeyType, Int>::const_iterator it = s_transportSettings.squadsCarried.find(NAMEKEY(transport->getTemplate()->getName()));
+		if (it != s_transportSettings.squadsCarried.end())
+			places = min(slots, it->second);
+
+		share = slots / places;
+		unused = slots - share * places;
+	}
+};
+
+//-------------------------------------------------------------------------------------------------
+// Does the transport hold a member of this squad (other than exclude)? Of any squad, for nullptr.
 Bool holdsSquadMember(const ContainModuleInterface *contain, const Object *leader, const Object *exclude)
 {
 	const ContainedItemsList *items = contain->getContainedItemsList();
@@ -73,19 +94,63 @@ Bool holdsSquadMember(const ContainModuleInterface *contain, const Object *leade
 
 	for (ContainedItemsList::const_iterator it = items->begin(); it != items->end(); ++it)
 	{
-		if (*it != exclude && IbmEngine::getSquadLeaderOf(*it) == leader)
+		if (*it == exclude)
+			continue;
+
+		const Object *itsLeader = IbmEngine::getSquadLeaderOf(*it);
+		if (itsLeader != nullptr && (leader == nullptr || itsLeader == leader))
 			return TRUE;
 	}
 	return FALSE;
 }
 
 //-------------------------------------------------------------------------------------------------
-// Transports count squads; buildings, tunnels, hospitals, bikes and parachutes count soldiers.
-Bool countsSquads(const ContainModuleInterface *contain)
+// Counts what a transport holds: every rider in its list, plus boarding if not nullptr.
+struct TransportLoad
 {
-	return !contain->isGarrisonable() && !contain->isTunnelContain() && !contain->isHealContain()
-		&& !contain->isRiderChangeContain() && !contain->isSpecialZeroSlotContainer();
-}
+	Int slotsUsed;		///< slots taken: a place per squad, the unused slots once a squad is in, singles' own
+	Int soldiers;		///< everyone in the list, plus boarding
+	Int riders;			///< squads and single riders: one button each
+	Int infantryRiders;	///< of those, squads and single soldiers
+
+	TransportLoad(const TransportPlaces &places, const ContainModuleInterface *contain, const Object *boarding)
+		: slotsUsed(0), soldiers(0), riders(0), infantryRiders(0)
+	{
+		std::vector<const Object *> squadsInside;
+		auto count = [&](const Object *rider)
+		{
+			++soldiers;
+			const Object *leader = IbmEngine::getSquadLeaderOf(rider);
+			if (leader != nullptr)
+			{
+				if (std::find(squadsInside.begin(), squadsInside.end(), leader) != squadsInside.end())
+					return;
+				squadsInside.push_back(leader);
+				slotsUsed += places.share;
+			}
+			else
+			{
+				slotsUsed += rider->getTransportSlotCount();
+			}
+
+			++riders;
+			if (rider->isKindOf(KINDOF_INFANTRY))
+				++infantryRiders;
+		};
+
+		const ContainedItemsList *items = contain->getContainedItemsList();
+		if (items != nullptr)
+		{
+			for (ContainedItemsList::const_iterator it = items->begin(); it != items->end(); ++it)
+				count(*it);
+		}
+		if (boarding != nullptr)
+			count(boarding);
+
+		if (!squadsInside.empty())
+			slotsUsed += places.unused;
+	}
+};
 
 } // namespace
 
@@ -100,51 +165,80 @@ void IbmEngine::parseSquadTransportDefinition(INI *ini)
 //-------------------------------------------------------------------------------------------------
 Int IbmEngine::getTransportRiderSlots(const Object *transport, const ContainModuleInterface *contain, const Object *rider, Int slots)
 {
-	if (!isFeatureActive(Feature_Squads))
+	if (!isFeatureActive(Feature_Squads) || !countsSquads(contain))
 		return slots;
 
 	const Object *leader = getSquadLeaderOf(rider);
 	if (leader == nullptr)
 		return slots;
 
-	return holdsSquadMember(contain, leader, rider) ? 0 : getSquadShare(transport, contain);
+	if (holdsSquadMember(contain, leader, rider))
+		return 0; // the squad has its place already
+
+	// The first squad aboard also takes the slots no place can use.
+	const TransportPlaces places(transport, contain);
+	return places.share + (holdsSquadMember(contain, nullptr, rider) ? 0 : places.unused);
 }
 
 //-------------------------------------------------------------------------------------------------
 Bool IbmEngine::recountTransportSlots(const Object *transport, const ContainModuleInterface *contain, const Object *boarding, Int &extraSlots)
 {
-	if (!isFeatureActive(Feature_Squads))
+	if (!isFeatureActive(Feature_Squads) || !countsSquads(contain))
 		return FALSE;
 
-	std::vector<const Object *> squadsInside;
-	Int riders = 0;
-	Int slotsUsed = 0;
-	auto count = [&](const Object *rider)
-	{
-		++riders;
-		const Object *leader = getSquadLeaderOf(rider);
-		if (leader == nullptr)
-		{
-			slotsUsed += rider->getTransportSlotCount();
-		}
-		else if (std::find(squadsInside.begin(), squadsInside.end(), leader) == squadsInside.end())
-		{
-			squadsInside.push_back(leader);
-			slotsUsed += getSquadShare(transport, contain);
-		}
-	};
+	const TransportPlaces places(transport, contain);
+	const TransportLoad load(places, contain, boarding);
 
+	// Below zero when a squad has more soldiers than its place has slots.
+	extraSlots = load.slotsUsed - load.soldiers;
+	return TRUE;
+}
+
+//-------------------------------------------------------------------------------------------------
+Bool IbmEngine::getSquadTransportButtons(const Object *transport, Int &buttons, Int &riders, Int &infantryRiders)
+{
+	const ContainModuleInterface *contain = transport != nullptr ? transport->getContain() : nullptr;
+	if (!isFeatureActive(Feature_Squads) || contain == nullptr || !countsSquads(contain) || contain->getContainMax() <= 0)
+		return FALSE;
+
+	const TransportPlaces places(transport, contain);
+	const TransportLoad load(places, contain, nullptr);
+
+	// A free place needs the slots of a squad (and the unused ones, before the first squad).
+	Int freeSlots = places.slots - load.slotsUsed;
+	if (!holdsSquadMember(contain, nullptr, nullptr))
+		freeSlots -= places.unused;
+
+	buttons = load.riders + max(0, freeSlots) / places.share;
+	riders = load.riders;
+	infantryRiders = load.infantryRiders;
+	return TRUE;
+}
+
+//-------------------------------------------------------------------------------------------------
+Bool IbmEngine::showSquadInventoryButton(const Object *transport, const Object *rider, const Image *&image)
+{
+	const ContainModuleInterface *contain = transport != nullptr ? transport->getContain() : nullptr;
+	if (!isFeatureActive(Feature_Squads) || contain == nullptr || !countsSquads(contain))
+		return TRUE;
+
+	const Object *leader = getSquadLeaderOf(rider);
+	if (leader == nullptr)
+		return TRUE;
+
+	// Only the squad's first member in the list gets a button.
 	const ContainedItemsList *items = contain->getContainedItemsList();
 	if (items != nullptr)
 	{
-		for (ContainedItemsList::const_iterator it = items->begin(); it != items->end(); ++it)
-			count(*it);
+		for (ContainedItemsList::const_iterator it = items->begin(); it != items->end() && *it != rider; ++it)
+		{
+			if (getSquadLeaderOf(*it) == leader)
+				return FALSE;
+		}
 	}
-	if (boarding != nullptr)
-		count(boarding);
 
-	// Below zero when a squad has more soldiers than its share: they ride on fewer slots.
-	extraSlots = slotsUsed - riders;
+	if (const Image *squadImage = leader->getTemplate()->getButtonImage())
+		image = squadImage;
 	return TRUE;
 }
 

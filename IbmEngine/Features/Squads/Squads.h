@@ -11,6 +11,7 @@ class AsciiString;
 class CommandButton;
 class ContainModuleInterface;
 class GameMessage;
+class Image;
 class INI;
 class Object;
 enum CanEnterType CPP_11(: Int);
@@ -64,15 +65,24 @@ Bool onSquadEnter(Object *obj, Object *container, CommandSourceType cmdSource);
 // AIUpdateInterface::privateExit: when one member leaves a container, the rest of its squad does too.
 void onSquadMemberExit(Object *member, Object *container, CommandSourceType cmdSource);
 
-// TransportContain::isValidContainerFor: the slots a rider needs in a transport. A squad takes one
-// share of the transport (its slots divided by the squads it carries) whatever its size: the first
-// member to board needs the whole share, the rest of the squad nothing. Anything else needs slots.
+// TransportContain::isValidContainerFor: the slots a rider needs in a transport. A transport has one
+// place per squad it carries; a squad takes one place whatever its size (its first member to board
+// needs the place's slots, the rest of the squad nothing). Single soldiers keep their own slots.
 Int getTransportRiderSlots(const Object *transport, const ContainModuleInterface *contain, const Object *rider, Int slots);
 
 // TransportContain::onContaining and onRemoving: recounts extraSlots, the slots in use beyond one per
-// rider, counting each squad inside as one share. boarding is a rider being added that is not in
-// the list yet, or nullptr. Returns FALSE, leaving extraSlots alone, when Squads is off.
+// rider, by places. boarding is a rider being added that is not in the list yet, or nullptr.
+// Returns FALSE, leaving extraSlots alone, when Squads is off or the container counts soldiers.
 Bool recountTransportSlots(const Object *transport, const ContainModuleInterface *contain, const Object *boarding, Int &extraSlots);
+
+// Drawable::drawContained (the pips) and ControlBar::doTransportInventoryUI: the passenger buttons of
+// a transport, one per squad or single rider inside plus one per free place; the riders inside, and
+// how many of them are infantry. FALSE when Squads is off or the container counts soldiers.
+Bool getSquadTransportButtons(const Object *transport, Int &buttons, Int &riders, Int &infantryRiders);
+
+// ControlBar::populateInvDataCallback: FALSE for a squad member whose squad already has a button in
+// the passenger panel. A squad's button shows the squad's picture (image).
+Bool showSquadInventoryButton(const Object *transport, const Object *rider, const Image *&image);
 
 // INI block "IbmSquadTransport" (Squads pack): how many squads each transport carries.
 void parseSquadTransportDefinition(INI *ini);
