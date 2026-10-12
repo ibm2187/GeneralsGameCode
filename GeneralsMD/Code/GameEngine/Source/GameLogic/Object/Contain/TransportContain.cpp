@@ -46,6 +46,8 @@
 #include "GameLogic/Object.h"
 #include "GameLogic/Weapon.h"
 
+#include "Features/Squads/Squads.h" // IBM Engine hook
+
 
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
@@ -197,6 +199,9 @@ Bool TransportContain::isValidContainerFor(const Object* rider, Bool checkCapaci
 	if (transportSlotCount == 0)
 		return false;
 
+	// IBM Engine hook: a squad takes one share of the transport, boarded by its first member.
+	transportSlotCount = IbmEngine::getTransportRiderSlots(getObject(), this, rider, transportSlotCount);
+
 	if (checkCapacity)
 	{
     Int containMax = getContainMax();
@@ -286,7 +291,10 @@ void TransportContain::onContaining( Object *rider, Bool wasSelected )
 
 	DEBUG_ASSERTCRASH(transportSlotCount > 0, ("Hmm, this object isnt transportable"));
 	m_extraSlotsInUse += transportSlotCount - 1;
-	DEBUG_ASSERTCRASH(m_extraSlotsInUse >= 0 && m_extraSlotsInUse + getContainCount() <= getContainMax(), ("Hmm, bad slot count"));
+	// IBM Engine hook: squads count as one share each, which may leave fewer slots than soldiers.
+	const Bool squadCount = IbmEngine::recountTransportSlots(getObject(), this, rider, m_extraSlotsInUse);
+	DEBUG_ASSERTCRASH((m_extraSlotsInUse >= 0 || squadCount) && m_extraSlotsInUse + (Int)getContainCount() <= getContainMax(), ("Hmm, bad slot count"));
+	(void)squadCount; // Only used by debug builds.
 
 	//
 	// when we go from holding nothing to holding something we have a model condition
@@ -371,7 +379,10 @@ void TransportContain::onRemoving( Object *rider )
 	Int transportSlotCount = rider->getTransportSlotCount();
 	DEBUG_ASSERTCRASH(transportSlotCount > 0, ("Hmm, this object isnt transportable"));
 	m_extraSlotsInUse -= transportSlotCount - 1;
-	DEBUG_ASSERTCRASH(m_extraSlotsInUse >= 0 && m_extraSlotsInUse + getContainCount() <= getContainMax(), ("Hmm, bad slot count"));
+	// IBM Engine hook: squads count as one share each, which may leave fewer slots than soldiers.
+	const Bool squadCount = IbmEngine::recountTransportSlots(getObject(), this, nullptr, m_extraSlotsInUse);
+	DEBUG_ASSERTCRASH((m_extraSlotsInUse >= 0 || squadCount) && m_extraSlotsInUse + (Int)getContainCount() <= getContainMax(), ("Hmm, bad slot count"));
+	(void)squadCount; // Only used by debug builds.
 
 	// when we are empty again, clear the model condition for loaded
 	if( getContainCount() == 0 )

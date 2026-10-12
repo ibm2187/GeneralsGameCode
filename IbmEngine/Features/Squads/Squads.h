@@ -9,7 +9,9 @@ class AIGroup;
 class Squad;
 class AsciiString;
 class CommandButton;
+class ContainModuleInterface;
 class GameMessage;
+class INI;
 class Object;
 enum CanEnterType CPP_11(: Int);
 enum CommandAvailability CPP_11(: Int);
@@ -61,6 +63,19 @@ Bool onSquadEnter(Object *obj, Object *container, CommandSourceType cmdSource);
 
 // AIUpdateInterface::privateExit: when one member leaves a container, the rest of its squad does too.
 void onSquadMemberExit(Object *member, Object *container, CommandSourceType cmdSource);
+
+// TransportContain::isValidContainerFor: the slots a rider needs in a transport. A squad takes one
+// share of the transport (its slots divided by the squads it carries) whatever its size: the first
+// member to board needs the whole share, the rest of the squad nothing. Anything else needs slots.
+Int getTransportRiderSlots(const Object *transport, const ContainModuleInterface *contain, const Object *rider, Int slots);
+
+// TransportContain::onContaining and onRemoving: recounts extraSlots, the slots in use beyond one per
+// rider, counting each squad inside as one share. boarding is a rider being added that is not in
+// the list yet, or nullptr. Returns FALSE, leaving extraSlots alone, when Squads is off.
+Bool recountTransportSlots(const Object *transport, const ContainModuleInterface *contain, const Object *boarding, Int &extraSlots);
+
+// INI block "IbmSquadTransport" (Squads pack): how many squads each transport carries.
+void parseSquadTransportDefinition(INI *ini);
 
 // TeamTemplateInfo: a team that asks for a basic infantry unit gets the squad that replaces it
 // (IbmSquadUpdate's AIReplaces), so the skirmish AI builds squads. The counts are divided by the
