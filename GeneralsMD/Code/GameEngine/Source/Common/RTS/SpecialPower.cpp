@@ -375,4 +375,13 @@ void SpecialPowerStore::reset()
 			++it;
 		}
 	}
+
+	// IBM Engine fix: hand out the IDs of removed powers again. Messages carry these IDs, so a power
+	// added by map.ini or a feature pack got a new ID in every game, and replays of any game but the
+	// first since launch could not find it. ThingFactory::reset does the same for object templates.
+	m_nextSpecialPowerID = 0;
+	for (SpecialPowerTemplatePtrVector::const_iterator it = m_specialPowerTemplates.begin(); it != m_specialPowerTemplates.end(); ++it)
+	{
+		m_nextSpecialPowerID = max(m_nextSpecialPowerID, (*it)->getID());
+	}
 }
