@@ -281,6 +281,7 @@
 #include "GameClient/Module/BeaconClientUpdate.h"
 
 #include "Features/Squads/SquadUpdate.h" // IBM Engine hook
+#include "Features/WatchZones/WatchZoneUpdate.h" // IBM Engine hook
 
 // PUBLIC DATA ////////////////////////////////////////////////////////////////////////////////////
 ModuleFactory *TheModuleFactory = nullptr;  ///< the module factory singleton
@@ -562,6 +563,8 @@ void ModuleFactory::init()
 
 	// IBM Engine hook: the Squads feature's module. INI packs use it only when the feature is on.
 	addModule( IbmSquadUpdate );
+	// IBM Engine hook: the WatchZones feature's module.
+	addModule( IbmWatchZoneUpdate );
 
 }
 

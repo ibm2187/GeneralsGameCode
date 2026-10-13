@@ -50,6 +50,8 @@
 #include "GameLogic/Weapon.h"
 #include "GameLogic/WeaponSet.h"
 
+#include "Features/WatchZones/WatchZones.h" // IBM Engine hook
+
 
 //-------------------------------------------------------------------------------------------------
 const FieldParse* DeliverPayloadData::getFieldParse()
@@ -158,6 +160,16 @@ Bool DeliverPayloadAIUpdate::isAllowedToRespondToAiCommands(const AICommandParms
 UpdateSleepTime DeliverPayloadAIUpdate::update()
 {
 	m_deliveryDecal.update();
+
+	// IBM Engine hook: a WatchZones jet follows the moving target it was sent at, until it delivers.
+	if( m_deliverPayloadStateMachine && m_deliverPayloadStateMachine->getCurrentStateID() == APPROACH
+		&& IbmEngine::followWatchTarget( getObject(), m_targetPos, m_moveToPos ) )
+	{
+		m_deliveryDecal.clear();
+		m_data.m_deliveryDecalTemplate.createRadiusDecal( m_targetPos, m_data.m_deliveryDecalRadius, getObject()->getControllingPlayer(), m_deliveryDecal );
+		if( getAIStateType() == AI_MOVE_TO )
+			aiMoveToPosition( &m_moveToPos, CMD_FROM_AI );
+	}
 
 	if(!(isAiInDeadState()) && m_deliverPayloadStateMachine)
 		m_deliverPayloadStateMachine->updateStateMachine();
@@ -715,7 +727,12 @@ StateReturnType DeliveringState::update() // Kick a dude out every so often
 			pos.x += ai->getDropOffset().x;
 			pos.y += ai->getDropOffset().y;
 			pos.z += ai->getDropOffset().z;
-			owner->fireCurrentWeapon( &pos );
+			// IBM Engine hook: a WatchZones jet fires at its target itself, so missiles home in on it.
+			Object *watchTarget = IbmEngine::getWatchTarget( owner );
+			if( watchTarget )
+				owner->fireCurrentWeapon( watchTarget );
+			else
+				owner->fireCurrentWeapon( &pos );
 			TheGameLogic->destroyObject( item );
 		}
 		else
@@ -856,7 +873,8 @@ StateReturnType DeliveringState::update() // Kick a dude out every so often
 									break;
 								}
 								VeterancyLevel v = owner->getVeterancyLevel();
-								pui->projectileFireAtObjectOrPosition( nullptr, ai->getTargetPos(), weaponTemplate, weaponTemplate->getProjectileExhaust(v) );
+								// IBM Engine hook: a WatchZones jet's missiles home in on its target.
+								pui->projectileFireAtObjectOrPosition( IbmEngine::getWatchTarget( owner ), ai->getTargetPos(), weaponTemplate, weaponTemplate->getProjectileExhaust(v) );
 								projectileFired = true;
 								//damageInfo.in.m_sourceID = pui->projectileGetLauncherID();
 								break;

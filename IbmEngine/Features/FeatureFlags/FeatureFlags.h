@@ -18,6 +18,7 @@ enum Feature
 	Feature_Economy,	///< fewer, tougher units: vehicles and aircraft cost more, build slower, move slower, last longer
 	Feature_Armor,		///< vehicles have front, side and rear armor; weapons have penetration
 	Feature_AirPower,	///< no buildable jets: airfields build helicopters, air strikes come from general powers
+	Feature_WatchZones,	///< airfield and tunnel powers that watch a circle: jets or hidden soldiers attack enemies that enter
 
 	Feature_Count
 };

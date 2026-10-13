@@ -129,6 +129,10 @@ const char* const SpecialPowerMaskType::s_bitNameList[] =
 
 	"SPECIAL_BATTLESHIP_BOMBARDMENT",
 
+	// IBM Engine hook: the WatchZones feature's building powers.
+	"SPECIAL_IBM_WATCH_AIR",
+	"SPECIAL_IBM_WATCH_GROUND",
+
 	nullptr
 };
 static_assert(ARRAY_SIZE(SpecialPowerMaskType::s_bitNameList) == SpecialPowerMaskType::NumBits + 1, "Incorrect array size");

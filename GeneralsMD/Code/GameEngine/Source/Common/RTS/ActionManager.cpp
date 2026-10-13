@@ -1576,6 +1576,11 @@ Bool ActionManager::canDoSpecialPowerAtLocation( const Object *obj, const Coord3
 
         //These specials can be used anywhere!
         return isPointOnMap( loc );
+
+			// IBM Engine hook: WatchZones' powers may watch any explored spot; StrikesNeedSight doesn't apply.
+			case SPECIAL_IBM_WATCH_AIR:
+			case SPECIAL_IBM_WATCH_GROUND:
+				return ThePartitionManager->getShroudStatusForPlayer( obj->getControllingPlayer()->getPlayerIndex(), loc ) != CELLSHROUD_SHROUDED;
       case SPECIAL_LAUNCH_BAIKONUR_ROCKET:
 			  return TRUE;
 

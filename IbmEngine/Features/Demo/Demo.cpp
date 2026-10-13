@@ -10,6 +10,8 @@
 //     helicopter; the first enemy player gets a tank group to fight.
 //   - AirPower: the top general rank, with its promotion points to spend and the rank-5 super weapon
 //     strike, and the new promotions (Precision Strike, Napalm Strike, Mine Rockets) already granted.
+//   - WatchZones: a USA and a China Airfield and a GLA Tunnel Network, on the other side of the line
+//     to the middle; the first enemy player gets helicopters and tanks there to watch for.
 // Accuracy and Armor need nothing of their own: the enemy groups are targets.
 //
 // It all happens at game start inside the game logic, so replays of demo games play back. The
@@ -94,6 +96,18 @@ const char *const s_economyEnemyUnits[] =
 {
 	"AmericaTankCrusader", "AmericaTankCrusader", "ChinaTankBattleMaster", "ChinaTankBattleMaster",
 	"ChinaTankOverlord", "GLATankScorpion", "GLATankScorpion", "GLATankMarauder", "ChinaVehicleHelix",
+};
+
+// WatchZones
+const char *const s_watchZoneBuildings[] =
+{
+	"AmericaPowerPlant", "ChinaPowerPlant", "AmericaAirfield", "ChinaAirfield", "GLATunnelNetwork",
+};
+
+const char *const s_watchZoneEnemyUnits[] =
+{
+	"AmericaVehicleComanche", "AmericaVehicleComanche", "ChinaVehicleHelix",
+	"ChinaTankBattleMaster", "ChinaTankBattleMaster", "AmericaTankCrusader", "GLATankScorpion",
 };
 
 // AirPower: the new promotions, granted outright (each side's Command Center only has its own).
@@ -266,9 +280,10 @@ void IbmEngine::setUpDemo()
 	const Bool squads = isFeatureActive(Feature_Squads);
 	const Bool economy = isFeatureActive(Feature_Economy);
 	const Bool airPower = isFeatureActive(Feature_AirPower);
-	if (!squads && !economy && !airPower)
+	const Bool watchZones = isFeatureActive(Feature_WatchZones);
+	if (!squads && !economy && !airPower && !watchZones)
 	{
-		DEBUG_LOG(("Demo: no feature with a demo is on (Squads, Economy, AirPower); nothing placed"));
+		DEBUG_LOG(("Demo: no feature with a demo is on (Squads, Economy, AirPower, WatchZones); nothing placed"));
 		return;
 	}
 
@@ -356,6 +371,29 @@ void IbmEngine::setUpDemo()
 		{
 			player->setRankLevel(5); // capped at the game's rank limit
 			grantSciences(player, s_airPowerSciences, ARRAY_SIZE(s_airPowerSciences));
+		}
+
+		if (watchZones)
+		{
+			// Across the line to the middle from the Economy groups.
+			Coord2D side;
+			side.x = dir.y;
+			side.y = -dir.x;
+
+			Coord3D friendly = base;
+			friendly.x += dir.x * FRIENDLY_DISTANCE + side.x * ECONOMY_SIDE_DISTANCE;
+			friendly.y += dir.y * FRIENDLY_DISTANCE + side.y * ECONOMY_SIDE_DISTANCE;
+			clampInto(friendly, inner);
+			placeGroup(player, friendly, s_watchZoneBuildings, ARRAY_SIZE(s_watchZoneBuildings), nullptr, 0);
+
+			if (enemy != nullptr)
+			{
+				Coord3D hostile = base;
+				hostile.x += dir.x * ENEMY_DISTANCE + side.x * ECONOMY_SIDE_DISTANCE;
+				hostile.y += dir.y * ENEMY_DISTANCE + side.y * ECONOMY_SIDE_DISTANCE;
+				clampInto(hostile, inner);
+				placeGroup(enemy, hostile, nullptr, 0, s_watchZoneEnemyUnits, ARRAY_SIZE(s_watchZoneEnemyUnits));
+			}
 		}
 
 		DEBUG_LOG(("Demo: set up for player %d", i));

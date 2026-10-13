@@ -14,6 +14,7 @@
 #include "GameNetwork/GameInfo.h"
 
 #include "Features/FeatureFlags/FeatureFlagsInternal.h"
+#include "Features/WatchZones/WatchZones.h"
 
 namespace IbmEngine
 {
@@ -51,6 +52,7 @@ void onStartNewGame(Int gameMode)
 		features = getLocalFeatures();
 
 	setActiveFeatures(features);
+	resetWatchZones();
 	DEBUG_LOG(("IbmEngine: active feature flags = %X (game mode %d)", features, gameMode));
 
 	Bool loadedPack = FALSE;

@@ -13,6 +13,7 @@ Each feature is a vertical slice under `Features/<Name>/`, holding everything fo
 | [Armor](Features/Armor/README.md) | Vehicles have front, side and rear armor; weapons have penetration; shots that don't penetrate are deflected (flag `Armor`) |
 | [Demo](Features/Demo/README.md) | A ready-made test setup at game start for the features that are on (flag `Demo`) |
 | [Economy](Features/Economy/README.md) | Vehicles and aircraft cost more, build slower, move slower, have more health and hit harder (flag `Economy`) |
+| [WatchZones](Features/WatchZones/README.md) | Airfield and Tunnel Network powers that watch a circle: jets strike aircraft or vehicles that enter, or hidden soldiers wait in ambush (flag `WatchZones`) |
 
 ## Install
 
@@ -62,5 +63,9 @@ Every change to original engine files is small and marked `// IBM Engine hook` (
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Weapon.cpp` | `computeBonus`: the Economy damage and rate-of-fire multipliers; `getDelayBetweenShots`, `getClipReloadTime`: Economy reloads in seconds; `dealDamageInternal`: Economy's damage against infantry and the Armor penetration roll |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Update/AIUpdate.cpp` | `chooseLocomotorSetExplicit`: the Economy speed multiplier caps each new locomotor |
 | `Core/GameEngineDevice/Source/MilesAudioDevice/MilesAudioManager.cpp` | fix: the audio file cache held its lock while stopping a sound whose Miles callback needed it, freezing the game ([upstream #256](https://github.com/TheSuperHackers/GeneralsGameCode/issues/256)) |
+| `GeneralsMD/Code/GameEngine/Include/Common/SpecialPowerType.h`, `Source/Common/RTS/SpecialPower.cpp` | WatchZones' power types `SPECIAL_IBM_WATCH_AIR` and `SPECIAL_IBM_WATCH_GROUND` (appended) |
+| `GeneralsMD/Code/GameEngine/Source/Common/RTS/ActionManager.cpp` | `canDoSpecialPowerAtLocation`: WatchZones' powers may target any explored ground |
+| `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Update/AIUpdate/DeliverPayloadAIUpdate.cpp` | a watch zone's jet follows its enemy while approaching, and fires at the enemy itself |
+| `GeneralsMD/Code/GameEngine/Source/Common/Thing/ModuleFactory.cpp` | registers the `IbmWatchZoneUpdate` module |
 
 Hooks in `Core/` are wrapped in `#if RTS_ZEROHOUR`, because Core is also compiled into the original Generals, which doesn't link this library.

@@ -127,6 +127,10 @@ enum SpecialPowerType CPP_11(: Int)
 
 	SPECIAL_BATTLESHIP_BOMBARDMENT,
 
+	// IBM Engine hook: the WatchZones feature's building powers (appended, so saved values don't change).
+	SPECIAL_IBM_WATCH_AIR,
+	SPECIAL_IBM_WATCH_GROUND,
+
 	SPECIALPOWER_COUNT,
 	// don't forget to add new strings to SpecialPowerMaskType::s_bitNameList[]
 };

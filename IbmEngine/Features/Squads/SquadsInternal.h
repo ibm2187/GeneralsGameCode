@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Common/GameMemory.h"
+#include "Features/FeatureFlags/MemoryPoolGlue.h"
 
 class IbmSquadUpdate;
 class IbmSquadUpdateModuleData;
@@ -10,14 +10,6 @@ class Object;
 class SpawnBehaviorModuleData;
 class ThingTemplate;
 enum WeaponSlotType CPP_11(: Int);
-
-// Memory pool glue with the pool size given here, so new modules need no entry in the engine's
-// pool table (GameMemoryInitPools). The null memory build (DISABLE_GAMEMEMORY) has no pools.
-#ifdef DISABLE_GAMEMEMORY
-#define IBM_MEMORY_POOL_GLUE(ARGCLASS, ARGPOOLNAME, ARGINITIAL, ARGOVERFLOW) MEMORY_POOL_GLUE_WITHOUT_GCMP(ARGCLASS)
-#else
-#define IBM_MEMORY_POOL_GLUE(ARGCLASS, ARGPOOLNAME, ARGINITIAL, ARGOVERFLOW) MEMORY_POOL_GLUE_WITH_EXPLICIT_CREATE(ARGCLASS, ARGPOOLNAME, ARGINITIAL, ARGOVERFLOW)
-#endif
 
 namespace IbmEngine
 {

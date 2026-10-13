@@ -1,0 +1,47 @@
+CONTROLBAR:IbmWatchRaptorPatrol
+"Raptor &Patrol"
+END
+
+CONTROLBAR:IbmTooltipWatchRaptorPatrol
+"Raptors watch the area for 45 seconds. Each enemy aircraft that enters is attacked by a Raptor (up to 4 passes)."
+END
+
+CONTROLBAR:IbmWatchA10Watch
+"A-10 &Watch"
+END
+
+CONTROLBAR:IbmTooltipWatchA10Watch
+"A-10s watch the area for 45 seconds. Enemy vehicles that enter are hit by an A-10's missiles and cannon (up to 2 passes)."
+END
+
+CONTROLBAR:IbmWatchMiGPatrol
+"MiG &Patrol"
+END
+
+CONTROLBAR:IbmTooltipWatchMiGPatrol
+"MiGs watch the area for 45 seconds. Each enemy aircraft that enters is attacked by a MiG (up to 4 passes)."
+END
+
+CONTROLBAR:IbmWatchMiGHunter
+"MiG &Hunters"
+END
+
+CONTROLBAR:IbmTooltipWatchMiGHunter
+"MiGs watch the area for 45 seconds. Enemy vehicles that enter are hit by a MiG's armour-piercing missiles (up to 3 passes)."
+END
+
+CONTROLBAR:IbmWatchStingerAmbush
+"Stinger &Ambush"
+END
+
+CONTROLBAR:IbmTooltipWatchStingerAmbush
+"Three hidden Stinger soldiers wait at the spot for 45 seconds and fire at enemy aircraft. Firing reveals them."
+END
+
+CONTROLBAR:IbmWatchRPGAmbush
+"&RPG Ambush"
+END
+
+CONTROLBAR:IbmTooltipWatchRPGAmbush
+"Four hidden RPG troopers wait at the spot for 45 seconds and fire at enemies in range. Firing reveals them."
+END

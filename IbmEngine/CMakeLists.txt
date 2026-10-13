@@ -22,6 +22,7 @@ target_sources(ibm_engine INTERFACE
     Features/FeatureFlags/FeatureFlagsInternal.h
     Features/FeatureFlags/FeaturePacks.cpp
     Features/FeatureFlags/FeatureSettings.cpp
+    Features/FeatureFlags/MemoryPoolGlue.h
     Features/FeatureFlags/ObjectCopy.cpp
     Features/Squads/SquadAI.cpp
     Features/Squads/SquadAttack.cpp
@@ -32,6 +33,9 @@ target_sources(ibm_engine INTERFACE
     Features/Squads/SquadTransport.cpp
     Features/Squads/SquadUpdate.cpp
     Features/Squads/SquadUpdate.h
+    Features/WatchZones/WatchZones.h
+    Features/WatchZones/WatchZoneUpdate.cpp
+    Features/WatchZones/WatchZoneUpdate.h
 )
 
 target_include_directories(ibm_engine INTERFACE
