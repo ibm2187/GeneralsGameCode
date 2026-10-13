@@ -60,6 +60,8 @@
 #include "GameLogic/Module/SupplyCenterDockUpdate.h"
 #include "GameLogic/Module/SupplyWarehouseDockUpdate.h"
 #include "GameLogic/Module/SpecialPowerModule.h"
+
+#include "Features/AirPower/AirPower.h" // IBM Engine hook
 #include "GameLogic/Module/SpecialAbilityUpdate.h"
 #include "GameLogic/Weapon.h"
 
@@ -1560,6 +1562,10 @@ Bool ActionManager::canDoSpecialPowerAtLocation( const Object *obj, const Coord3
 			case LAZR_SPECIAL_PARTICLE_UPLINK_CANNON:
 			case SPECIAL_CLEANUP_AREA:
 			case SPECIAL_BATTLESHIP_BOMBARDMENT:
+				// IBM Engine hook: with AirPower's StrikesNeedSight, a human player's strike needs a unit that sees the spot.
+				if( IbmEngine::strikeNeedsSight( obj->getControllingPlayer() ) )
+					return ThePartitionManager->getShroudStatusForPlayer( obj->getControllingPlayer()->getPlayerIndex(), loc ) == CELLSHROUD_CLEAR;
+
 				//Don't allow "damaging" special powers in shrouded areas, but Fogged are okay.
 				return ThePartitionManager->getShroudStatusForPlayer( obj->getControllingPlayer()->getPlayerIndex(), loc ) != CELLSHROUD_SHROUDED;
 

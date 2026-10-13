@@ -9,7 +9,7 @@ Each feature is a vertical slice under `Features/<Name>/`, holding everything fo
 | [FeatureFlags](Features/FeatureFlags/README.md) | Feature flags, INI packs loaded at game start, and the `ObjectCopy` INI block |
 | [Squads](Features/Squads/README.md) | Infantry squads and commando squads that heal and refill at the Barracks (flag `Squads`) |
 | [Accuracy](Features/Accuracy/README.md) | Direct fire can miss; veterancy, range, movement and cover change the odds (flag `Accuracy`) |
-| [AirPower](Features/AirPower/README.md) | No buildable jets: airfields build helicopters, air strikes come from general powers (flag `AirPower`) |
+| [AirPower](Features/AirPower/README.md) | No jets or super weapons to build: airfields build helicopters, strikes are general powers (new ones, and a rank-5 super weapon strike), and strikes need a spotter (flag `AirPower`) |
 | [Armor](Features/Armor/README.md) | Vehicles have front, side and rear armor; weapons have penetration; shots that don't penetrate are deflected (flag `Armor`) |
 | [Demo](Features/Demo/README.md) | A ready-made test setup at game start for the features that are on (flag `Demo`) |
 | [Economy](Features/Economy/README.md) | Vehicles and aircraft cost more, build slower, move slower, have more health and hit harder (flag `Economy`) |
@@ -50,6 +50,7 @@ Every change to original engine files is small and marked `// IBM Engine hook` (
 | `GeneralsMD/Code/GameEngine/Include/GameLogic/AIStateMachine.h`, `Source/GameLogic/AI/AIStates.cpp` | new state `AI_FORCE_ATTACK_SQUAD` (appended, so saved state ids don't change); attack-squad victims spread over a squad |
 | `GeneralsMD/Code/GameEngine/Source/Common/RTS/Team.cpp` | `TeamTemplateInfo`: AI teams build squads instead of basic infantry, and helicopters instead of jets |
 | `Core/GameEngine/Source/GameClient/GUI/ControlBar/ControlBar.cpp` | `CommandSet::parseCommandButton`: `None` empties a button slot, so a pack can remove a button |
+| `GeneralsMD/Code/GameEngine/Source/Common/RTS/ActionManager.cpp` | `canDoSpecialPowerAtLocation`: AirPower's strikes need the spot in sight |
 | `Core/GameEngine/Source/GameLogic/System/GameLogicDispatch.cpp` | skill orders given to a squad go to the member with the skill |
 | `Core/GameEngine/Source/GameClient/GUI/ControlBar/ControlBarCommand.cpp` | a squad's skill buttons are evaluated for the member with the skill |
 | `GeneralsMD/Code/GameEngine/Source/Common/RTS/SpecialPower.cpp` | fix: `SpecialPowerStore::reset` gave a special power from a pack or map.ini a new ID every game, so replays of later games couldn't find it |

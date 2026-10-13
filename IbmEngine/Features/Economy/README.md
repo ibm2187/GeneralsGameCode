@@ -20,6 +20,7 @@ Fewer, tougher units: every vehicle and aircraft costs more, takes longer to bui
 - Each tank has its own speed: light units keep more of it (Humvee, Technical, Rocket Buggy ×0.9), main battle tanks get the baseline (Crusader, Battlemaster, Marauder ×0.8), and heavy ones lose the most (Paladin, Tomahawk, Inferno, Scud Launcher ×0.75; Overlord, Emperor ×0.7).
 - Scouts, transports and support vehicles (Humvee, Ambulance, Technical, Radar Van, Battle Bus, Combat Bikes, Troop Crawler, Listening Outpost) cost and build only ×1.5.
 - Dozers, supply trucks, Chinooks and drones keep their retail stats (`Exempt`). So do units no player can build (civilian cars, campaign units).
+- General ranks need half the experience points (rank 2 at 400, 3 at 750, 4 at 1250, 5 at 2500), since fewer, longer-lived units mean fewer kills (`20_Rank.ini`).
 - Supply income and buildings are unchanged, so units become scarcer compared with the base.
 - Damage and rate of fire multiply the unit's total weapon bonus, so they stack on top of veterancy and upgrades. Rate of fire stretches both the delay between shots and the clip reload.
 - Speed caps the unit's normal top speed. Its speed when badly damaged stays the retail value, unless that is faster.
@@ -48,6 +49,7 @@ End
 |---|---|
 | `Economy.cpp`, `Economy.h` | The multipliers and the `IbmEconomy` INI block |
 | `Data/INI/Features/Economy/10_Economy.ini` | Every number above |
+| `Data/INI/Features/Economy/20_Rank.ini` | Experience points needed for each general rank |
 
 Hooks: `ThingTemplate::calcCostToBuild` and `calcTimeToBuild` (cost and build time, which the build buttons, AI, refunds and selling all use), `ActiveBody`'s constructor (health), `Weapon::computeBonus` (damage and rate of fire), `WeaponTemplate::getDelayBetweenShots` and `getClipReloadTime` (reloads in seconds), `WeaponTemplate::dealDamageInternal` (damage against infantry), `AIUpdateInterface::chooseLocomotorSetExplicit` (speed); INI.cpp registers the block.
 

@@ -1,0 +1,71 @@
+SCIENCE:IbmPrecisionStrike
+"Precision Strike"
+END
+
+CONTROLBAR:IbmPrecisionStrike
+"&Precision Strike"
+END
+
+CONTROLBAR:IbmPrecisionStrikeShortcut
+"Precision Strike"
+END
+
+CONTROLBAR:IbmTooltipPrecisionStrike
+"A B-52 drops one heavy bomb on the target. Devastating against tanks and buildings in a small area."
+END
+
+SCIENCE:IbmNapalmStrike
+"Napalm Strike"
+END
+
+CONTROLBAR:IbmNapalmStrike
+"&Napalm Strike"
+END
+
+CONTROLBAR:IbmNapalmStrikeShortcut
+"Napalm Strike"
+END
+
+CONTROLBAR:IbmTooltipNapalmStrike
+"Five MiGs napalm the target, burning infantry and setting the area on fire."
+END
+
+SCIENCE:IbmMineRockets
+"Mine Rockets"
+END
+
+CONTROLBAR:IbmMineRockets
+"&Mine Rockets"
+END
+
+CONTROLBAR:IbmMineRocketsShortcut
+"Mine Rockets"
+END
+
+CONTROLBAR:IbmTooltipMineRockets
+"Four rockets from the Command Center scatter mines over the target area. Blocks roads and chokepoints against vehicles."
+END
+
+SCIENCE:IbmCruiseMissile
+"Cruise Missile"
+END
+
+CONTROLBAR:IbmTooltipCruiseMissile
+"Rank 5: fire a cruise missile from the Command Center."
+END
+
+SCIENCE:IbmNeutronMissile
+"Nuclear Missile"
+END
+
+CONTROLBAR:IbmTooltipNeutronMissile
+"Rank 5: fire a nuclear missile from the Command Center."
+END
+
+SCIENCE:IbmScudStorm
+"Scud Storm"
+END
+
+CONTROLBAR:IbmTooltipScudStorm
+"Rank 5: fire a Scud Storm from the Command Center."
+END
