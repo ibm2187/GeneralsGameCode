@@ -1,6 +1,7 @@
 // IBM Engine: "-demo [map]" on the command line starts a skirmish straight from startup, skipping
 // the menus: the player (with their skirmish preferences' name, side and colour) against one easy AI
-// on a random side, with the Demo flag on. The map defaults to the Demo slice's blank IbmDemo map.
+// on a random side, with the Demo flag on. The map defaults to the Demo slice's blank IbmDemo map,
+// which install.ps1 puts in the user data folder's Maps folder.
 // See README.md.
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
@@ -19,7 +20,7 @@
 namespace
 {
 
-const char *const DEFAULT_DEMO_MAP = "Maps\\IbmDemo\\IbmDemo.map";
+const char *const DEFAULT_DEMO_MAP = "IbmDemo\\IbmDemo.map";	///< in the user data folder's Maps folder
 
 // The map after "-demo", "" for the default, or nullptr when "-demo" isn't on the command line.
 const char *findDemoArgument()
@@ -44,8 +45,21 @@ Bool IbmEngine::startDemoGame()
 	if (argument == nullptr)
 		return FALSE;
 
-	const AsciiString map = *argument != '\0' ? AsciiString(argument) : AsciiString(DEFAULT_DEMO_MAP);
-	const MapMetaData *md = TheMapCache != nullptr ? TheMapCache->findMap(map) : nullptr;
+	if (TheMapCache == nullptr)
+		return FALSE;
+
+	// The game finds new maps only in the user data folder's Maps folder, and official ones by their
+	// "Maps\..." path. A map given as neither is looked for in the user maps.
+	AsciiString map = *argument != '\0' ? AsciiString(argument) : AsciiString(DEFAULT_DEMO_MAP);
+	const MapMetaData *md = TheMapCache->findMap(map);
+	if (md == nullptr)
+	{
+		AsciiString userMap;
+		userMap.format("%s\\%s", TheMapCache->getUserMapDir().str(), map.str());
+		md = TheMapCache->findMap(userMap);
+		if (md != nullptr)
+			map = userMap;
+	}
 	if (md == nullptr)
 	{
 		DEBUG_LOG(("IbmEngine -demo: map '%s' not found; showing the menus instead", map.str()));

@@ -5,7 +5,7 @@
 #   .\IbmEngine\scripts\install.ps1 -Enable Squads       # also switch features on in Features.ini
 #
 # Feature packs are copied from IbmEngine\Features\<Name>\Data to <game>\Data, and maps a slice
-# ships (IbmEngine\Features\<Name>\Maps) to <game>\Maps.
+# ships (IbmEngine\Features\<Name>\Maps) to Documents\Command and Conquer Generals Zero Hour Data\Maps.
 
 param(
     [string]$Preset = "win32-profile",
@@ -43,12 +43,14 @@ Get-ChildItem (Join-Path $repo "IbmEngine\Features") -Directory | ForEach-Object
     Write-Host "Installed feature data of $($_.Name)"
 }
 
-# Maps a slice ships (Features\<Name>\Maps\<Map>\) go to the game's Maps folder.
+# Maps a slice ships (Features\<Name>\Maps\<Map>\) go to the user data folder's Maps folder: the game
+# only looks for new maps there (the game folder's maps are a fixed list in its archives).
+$userMaps = Join-Path ([Environment]::GetFolderPath("MyDocuments")) "Command and Conquer Generals Zero Hour Data\Maps"
 Get-ChildItem (Join-Path $repo "IbmEngine\Features") -Directory | ForEach-Object {
     $maps = Join-Path $_.FullName "Maps"
     if (-not (Test-Path $maps)) { return }
-    New-Item -ItemType Directory -Force (Join-Path $GameDir "Maps") | Out-Null
-    Copy-Item "$maps\*" (Join-Path $GameDir "Maps") -Recurse -Force
+    New-Item -ItemType Directory -Force $userMaps | Out-Null
+    Copy-Item "$maps\*" $userMaps -Recurse -Force
     Write-Host "Installed maps of $($_.Name)"
 }
 

@@ -6,7 +6,7 @@ A ready-made test setup at game start, for whichever features are on. Feature fl
 
 `.\IbmEngine\scripts\demo.ps1` (or `generalszh.exe -quickstart -demo`) skips the menus and starts a skirmish straight away: you (your skirmish preferences' name, side and colour) against one easy AI on a random side, on the blank **IbmDemo** map, with the Demo flag on. `-demo "<map path>"` uses another map.
 
-**IbmDemo** (`Maps/IbmDemo/IbmDemo.map`, installed to the game's `Maps` folder) is flat grass, 3000 × 3000, with no props and two start positions 1800 apart. `tools/make_demo_map.py <MapsZH.big> <output>` rebuilds it from the retail Tournament Desert map (whose skirmish sides, teams and lighting it keeps).
+**IbmDemo** (`Maps/IbmDemo/IbmDemo.map`, installed to `Documents\Command and Conquer Generals Zero Hour Data\Maps`, the only place the game looks for new maps; it is also in the skirmish map list) is flat grass, 3000 × 3000, with no props and two start positions 1800 apart. `tools/make_demo_map.py <MapsZH.big> <output>` rebuilds it from the retail Tournament Desert map (whose skirmish sides, teams and lighting it keeps).
 
 ## What it places
 
