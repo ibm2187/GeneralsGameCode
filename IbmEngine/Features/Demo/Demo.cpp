@@ -8,7 +8,9 @@
 //   - Economy: every faction's War Factory, Airfield and tech buildings (with power plants and the
 //     sciences the tanks need), so every tank can be built and timed, plus one of each tank and
 //     helicopter; the first enemy player gets a tank group to fight.
-// Accuracy needs nothing of its own: the enemy groups are targets.
+//   - AirPower: the top general rank, with its promotion points to spend and the rank-5 super weapon
+//     strike, so every new power can be bought and fired.
+// Accuracy and Armor need nothing of their own: the enemy groups are targets.
 //
 // It all happens at game start inside the game logic, so replays of demo games play back. The
 // squads part comes first and is unchanged from the old SquadsDemo flag, so its replays still match.
@@ -257,9 +259,10 @@ void IbmEngine::setUpDemo()
 
 	const Bool squads = isFeatureActive(Feature_Squads);
 	const Bool economy = isFeatureActive(Feature_Economy);
-	if (!squads && !economy)
+	const Bool airPower = isFeatureActive(Feature_AirPower);
+	if (!squads && !economy && !airPower)
 	{
-		DEBUG_LOG(("Demo: no feature with a demo is on (Squads, Economy); nothing placed"));
+		DEBUG_LOG(("Demo: no feature with a demo is on (Squads, Economy, AirPower); nothing placed"));
 		return;
 	}
 
@@ -342,6 +345,9 @@ void IbmEngine::setUpDemo()
 				placeGroup(enemy, hostile, nullptr, 0, s_economyEnemyUnits, ARRAY_SIZE(s_economyEnemyUnits));
 			}
 		}
+
+		if (airPower)
+			player->setRankLevel(5); // capped at the game's rank limit
 
 		DEBUG_LOG(("Demo: set up for player %d", i));
 	}
