@@ -54,6 +54,8 @@
 #include "GameClient/InGameUI.h"
 #include "GameClient/ControlBar.h"
 
+static Bool ownsRequiredScience( const Object *obj, const SpecialPowerTemplate *power ); // IBM Engine hook
+
 
 
 //-------------------------------------------------------------------------------------------------
@@ -141,7 +143,8 @@ SpecialPowerModule::SpecialPowerModule( Thing *thing, const ModuleData *moduleDa
 			getSpecialPowerTemplate()->isSharedNSync() == TRUE &&
 			getSpecialPowerTemplate()->hasPublicTimer() == TRUE &&
 			getObject()->getControllingPlayer() &&
-			getObject()->isKindOf( KINDOF_STRUCTURE ) )
+			getObject()->isKindOf( KINDOF_STRUCTURE ) &&
+			ownsRequiredScience( getObject(), getSpecialPowerTemplate() ) ) // IBM Engine hook
 	{
 		TheInGameUI->addSuperweapon( getObject()->getControllingPlayer()->getPlayerIndex(),
 																 getPowerName(),
@@ -170,6 +173,17 @@ SpecialPowerModule::~SpecialPowerModule()
 																		getObject()->getID(),
 																		getSpecialPowerModuleData()->m_specialPowerTemplate );
 
+}
+
+//-------------------------------------------------------------------------------------------------
+// IBM Engine hook: a power that needs a science shows its public timer only once its owner has the
+// science (granting it calls onSpecialPowerCreation again). Without this, a Command Center showed
+// the countdown of a strike its owner couldn't fire yet.
+static Bool ownsRequiredScience( const Object *obj, const SpecialPowerTemplate *power )
+{
+	const ScienceType science = power->getRequiredScience();
+	const Player *player = obj->getControllingPlayer();
+	return science == SCIENCE_INVALID || player == nullptr || player->hasScience( science );
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -234,7 +248,8 @@ void SpecialPowerModule::onSpecialPowerCreation()
 	// add this weapon to the UI if it has a public timer for all to see
 	if( getSpecialPowerModuleData()->m_specialPowerTemplate->hasPublicTimer() == TRUE &&
 			getObject()->getControllingPlayer() &&
-			getObject()->isKindOf( KINDOF_STRUCTURE ) )
+			getObject()->isKindOf( KINDOF_STRUCTURE ) &&
+			ownsRequiredScience( getObject(), getSpecialPowerTemplate() ) ) // IBM Engine hook
 	{
 		TheInGameUI->addSuperweapon( getObject()->getControllingPlayer()->getPlayerIndex(),
 																 getPowerName(),
@@ -894,7 +909,8 @@ void SpecialPowerModule::loadPostProcess()
 			getSpecialPowerTemplate()->isSharedNSync() == TRUE &&
 			getSpecialPowerTemplate()->hasPublicTimer() == TRUE &&
 			getObject()->getControllingPlayer() &&
-			getObject()->isKindOf( KINDOF_STRUCTURE ) )
+			getObject()->isKindOf( KINDOF_STRUCTURE ) &&
+			ownsRequiredScience( getObject(), getSpecialPowerTemplate() ) ) // IBM Engine hook
 	{
 		TheInGameUI->addSuperweapon( getObject()->getControllingPlayer()->getPlayerIndex(),
 																 getPowerName(),

@@ -9,7 +9,7 @@
 //     sciences the tanks need), so every tank can be built and timed, plus one of each tank and
 //     helicopter; the first enemy player gets a tank group to fight.
 //   - AirPower: the top general rank, with its promotion points to spend and the rank-5 super weapon
-//     strike, so every new power can be bought and fired.
+//     strike, and the new promotions (Precision Strike, Napalm Strike, Mine Rockets) already granted.
 // Accuracy and Armor need nothing of their own: the enemy groups are targets.
 //
 // It all happens at game start inside the game logic, so replays of demo games play back. The
@@ -94,6 +94,12 @@ const char *const s_economyEnemyUnits[] =
 {
 	"AmericaTankCrusader", "AmericaTankCrusader", "ChinaTankBattleMaster", "ChinaTankBattleMaster",
 	"ChinaTankOverlord", "GLATankScorpion", "GLATankScorpion", "GLATankMarauder", "ChinaVehicleHelix",
+};
+
+// AirPower: the new promotions, granted outright (each side's Command Center only has its own).
+const char *const s_airPowerSciences[] =
+{
+	"SCIENCE_IbmPrecisionStrike", "SCIENCE_NapalmStrike", "SCIENCE_IbmMineRockets",
 };
 
 const Int DEMO_MONEY = 100000;
@@ -347,7 +353,10 @@ void IbmEngine::setUpDemo()
 		}
 
 		if (airPower)
+		{
 			player->setRankLevel(5); // capped at the game's rank limit
+			grantSciences(player, s_airPowerSciences, ARRAY_SIZE(s_airPowerSciences));
+		}
 
 		DEBUG_LOG(("Demo: set up for player %d", i));
 	}

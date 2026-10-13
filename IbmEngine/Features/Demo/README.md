@@ -17,7 +17,7 @@ Every human player of a skirmish or LAN game gets $100,000, and these groups tow
 | `Squads` | All three Barracks, one of each squad, a Humvee, Troop Crawler, Technical and Chinook | A Rebel, Red Guard and Ranger squad, a Battlemaster, a Technical, a Comanche and a Supply Center |
 | `Economy` (beside the Squads group) | Every faction's War Factory, Airfield and tech buildings (Strategy Center, Propaganda Center, Palace), four power plants, the Paladin, Nuke Cannon, Scud Launcher and Marauder sciences, one of each tank and helicopter, plus a Dozer and a Supply Truck (retail stats, to compare) | Two Crusaders, two Battlemasters, an Overlord, two Scorpions, a Marauder and a Helix |
 
-- `AirPower`: you start at general rank 5 with its promotion points to spend, so Precision Strike, Napalm Strike or Mine Rockets can be bought, and the rank-5 super weapon strike is ready on the Command Center.
+- `AirPower`: you start at general rank 5 with its promotion points to spend, and your side's new power (Precision Strike, Napalm Strike or Mine Rockets) and rank-5 super weapon strike are already on the Command Center; the points buy the retail powers.
 - `Accuracy` and `Armor` need nothing of their own: shoot at the enemy groups.
 - Every tank can be built, so its cost and build time can be checked on the buttons.
 - With none of Squads, Economy and AirPower on, Demo does nothing.

@@ -43,6 +43,7 @@ Every change to original engine files is small and marked `// IBM Engine hook` (
 | `GeneralsMD/Code/GameEngine/Source/Common/Thing/ModuleFactory.cpp` | registers the `IbmSquadUpdate` module |
 | `GeneralsMD/Code/GameEngine/Include/GameLogic/Module/SpawnBehavior.h`, `.../Behavior/SpawnBehavior.cpp` | `getSlaveIDs()` and `adoptSlave()`: squads read their members and take back the ones the Barracks returns |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Update/MobMemberSlavedUpdate.cpp` | a squad member using a skill or riding in a container isn't pulled back to its leader |
+| `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/SpecialPower/SpecialPowerModule.cpp` | fix: a power that needs a science shows its public countdown only once its owner has the science |
 | `GeneralsMD/Code/GameEngine/Source/Common/RTS/ActionManager.cpp` | `canEnterObject`: squads may enter containers |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Contain/TransportContain.cpp` | capacity and slot count: a squad takes one place in a transport, boarded by its first member |
 | `Core/GameEngine/Source/GameClient/GUI/ControlBar/ControlBarCommand.cpp` | the passenger panel shows one button per squad, not per soldier |
