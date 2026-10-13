@@ -3938,6 +3938,8 @@ void GameLogic::update()
 
 
 
+	IbmEngine::updateDemoTest(); // IBM Engine hook: the -demoStrike test (debug builds)
+
 	// increment world time
 	if (!m_startNewGame)
 	{

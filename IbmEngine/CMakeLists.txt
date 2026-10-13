@@ -14,6 +14,7 @@ target_sources(ibm_engine INTERFACE
     Features/Demo/Demo.cpp
     Features/Demo/Demo.h
     Features/Demo/DemoLaunch.cpp
+    Features/Demo/DemoTest.cpp
     Features/Economy/Economy.cpp
     Features/Economy/Economy.h
     Features/FeatureFlags/FeatureFlags.cpp

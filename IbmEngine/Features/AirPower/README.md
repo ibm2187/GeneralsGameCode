@@ -16,7 +16,7 @@ Players build no jets and no super weapons. Airfields build helicopters only, ai
 |---|---|---|---|
 | USA | rank 1 (replaces the Stealth Fighter) | Precision Strike | A B-52 drops one heavy bomb: 1000 damage within 25, 250 within 60. 4-minute reload |
 | China | rank 3 | Napalm Strike | Five MiGs napalm the spot. Retail had this power on the Command Center but never sold it. 4-minute reload |
-| GLA | rank 3 | Mine Rockets | Four rockets fly in from beyond the map edge, each laying a ring of cluster mines (radius 45) within 80 of the spot. 4-minute reload |
+| GLA | rank 3 | Mine Rockets | Four rockets fly in from beyond the map edge, each laying a field of cluster mines (radius 70) within 80 of the spot. 4-minute reload |
 
 They are on the base sides' promotion screens, Command Centers and power bars; the generals' versions don't offer them yet.
 
@@ -48,6 +48,10 @@ With `StrikesNeedSight = Yes`, a human player's damaging powers (strikes, bombs,
 | `Data/INI/Features/AirPower/AirPower.str` | Names and tooltips |
 
 Hooks: `TeamTemplateInfo` (Team.cpp) swaps the AI's jets; `CommandSet::parseCommandButton` (ControlBar.cpp) accepts `None` to empty a slot; `ActionManager::canDoSpecialPowerAtLocation` applies the sight rule; INI.cpp registers the `IbmAirPower` block.
+
+## To audit (balance)
+
+- Napalm Strike is weak against tanks (retail's napalm). Maybe intended: it is an anti-infantry strike.
 
 ## Known limits
 

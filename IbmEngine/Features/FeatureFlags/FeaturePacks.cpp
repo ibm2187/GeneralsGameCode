@@ -10,6 +10,7 @@
 #include "GameClient/ControlBar.h"
 #include "GameClient/GameText.h"
 #include "GameLogic/GameLogic.h"
+#include "GameLogic/Weapon.h"
 #include "GameNetwork/GameInfo.h"
 
 #include "Features/FeatureFlags/FeatureFlagsInternal.h"
@@ -66,6 +67,11 @@ void onStartNewGame(Int gameMode)
 	// adds need the same step, or they show no image.
 	if (loadedPack && TheControlBar != nullptr)
 		TheControlBar->postProcessCommands();
+
+	// Weapons find their projectile object (and their effects per veterancy) by name in the same
+	// once-only step. Without it, a pack weapon with a ProjectileObject fires as if it had none.
+	if (loadedPack && TheWeaponStore != nullptr)
+		TheWeaponStore->postProcessLoad();
 }
 
 } // namespace IbmEngine

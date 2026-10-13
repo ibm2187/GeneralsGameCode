@@ -4,9 +4,13 @@ A ready-made test setup at game start, for whichever features are on. Feature fl
 
 ## Starting it
 
-`.\IbmEngine\scripts\demo.ps1` (or `generalszh.exe -quickstart -demo`) skips the menus and starts a skirmish straight away: you (your skirmish preferences' name, side and colour) against one easy AI on a random side, on the blank **IbmDemo** map, with the Demo flag on. `-demo "<map path>"` uses another map.
+`.\IbmEngine\scripts\demo.ps1` (or `generalszh.exe -quickstart -demo`) skips the menus and starts a skirmish straight away: you (your skirmish preferences' name, side and colour) against one easy AI on a random side, on the blank **IbmDemo** map, with the Demo flag on. `-demo "<map path>"` uses another map, and `-demoSide FactionGLA` (any PlayerTemplate name) picks your side.
 
 **IbmDemo** (`Maps/IbmDemo/IbmDemo.map`, installed to `Documents\Command and Conquer Generals Zero Hour Data\Maps`, the only place the game looks for new maps; it is also in the skirmish map list) is flat grass, 3000 × 3000, with no props and two start positions 1800 apart. `tools/make_demo_map.py <MapsZH.big> <output>` rebuilds it from the retail Tournament Desert map (whose skirmish sides, teams and lighting it keeps).
+
+## Testing a strike (debug builds)
+
+`generalszh_dbg.exe -win -quickstart -demo -demoSide FactionGLA -demoStrike SuperweaponScudStorm` fires that special power from your Command Center at the enemy's Command Center three seconds in, then `DebugLogFileD.txt` (lines with `IbmEngine demoStrike`) lists every object it creates and follows every projectile, missile and launcher, and the game quits after 40 seconds. Run it windowed: headless games don't run powers.
 
 ## What it places
 
@@ -28,8 +32,9 @@ Every human player of a skirmish or LAN game gets $100,000, and these groups tow
 | File | What it does |
 |---|---|
 | `Demo.cpp`, `Demo.h` | The setup |
-| `DemoLaunch.cpp` | `-demo`: a skirmish straight from startup |
+| `DemoLaunch.cpp` | `-demo`: a skirmish straight from startup; `-demoSide` |
+| `DemoTest.cpp` | `-demoStrike`: the strike test (debug builds) |
 | `Maps/IbmDemo/IbmDemo.map` | The blank demo map |
 | `tools/make_demo_map.py` | Builds the demo map |
 
-Hooks: `GameLogic::startNewGame` calls `IbmEngine::setUpDemo()` after the starting bases are placed; `GameEngine::init` calls `IbmEngine::startDemoGame()` once the map list is built.
+Hooks: `GameLogic::startNewGame` calls `IbmEngine::setUpDemo()` after the starting bases are placed; `GameEngine::init` calls `IbmEngine::startDemoGame()` once the map list is built; `GameLogic::update` calls `IbmEngine::updateDemoTest()` once a frame.

@@ -1,6 +1,6 @@
 // IBM Engine: "-demo [map]" on the command line starts a skirmish straight from startup, skipping
 // the menus: the player (with their skirmish preferences' name, side and colour) against one easy AI
-// on a random side, with the Demo flag on. The map defaults to the Demo slice's blank IbmDemo map,
+// on a random side, with the Demo flag on. "-demoSide <PlayerTemplate>" (FactionGLA) picks the player's side. The map defaults to the Demo slice's blank IbmDemo map,
 // which install.ps1 puts in the user data folder's Maps folder.
 // See README.md.
 
@@ -8,6 +8,7 @@
 
 #include "Common/GlobalData.h"
 #include "Common/MessageStream.h"
+#include "Common/PlayerTemplate.h"
 #include "Common/RandomValue.h"
 #include "Common/SkirmishPreferences.h"
 #include "GameClient/MapUtil.h"
@@ -34,6 +35,21 @@ const char *findDemoArgument()
 		return "";
 	}
 	return nullptr;
+}
+
+// "-demoSide FactionGLA": the player's side, instead of their skirmish preference.
+Int findDemoSide(Int preferred)
+{
+	for (Int arg = 1; arg + 1 < __argc; ++arg)
+	{
+		if (stricmp(__argv[arg], "-demoSide") != 0)
+			continue;
+		const Int side = ThePlayerTemplateStore->getTemplateNumByName(__argv[arg + 1]);
+		if (side >= 0)
+			return side;
+		DEBUG_LOG(("IbmEngine -demo: no side '%s'", __argv[arg + 1]));
+	}
+	return preferred;
 }
 
 } // namespace
@@ -84,7 +100,7 @@ Bool IbmEngine::startDemoGame()
 	human.setName(prefs.getUserName());
 	human.setState(SLOT_PLAYER, prefs.getUserName());
 	human.setColor(prefs.getPreferredColor());
-	human.setPlayerTemplate(prefs.getPreferredFaction());
+	human.setPlayerTemplate(findDemoSide(prefs.getPreferredFaction()));
 	human.setStartPos(0);
 	TheSkirmishGameInfo->setSlot(0, human);
 

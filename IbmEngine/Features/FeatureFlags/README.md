@@ -42,7 +42,8 @@ When a flag that has a pack is active, `Data\INI\Features\<Name>\*.ini` loads at
 - Files load in name order, so packs number their files (`10_Locomotor.ini`, `20_Weapon.ini`, ...). Define things before they're referenced.
 - In override mode, modules must be added with `AddModule`, `RemoveModule` or `ReplaceModule`, even on new objects.
 - A `<Name>.str` in the pack folder supplies text, through the same mechanism as `map.str`. It loads before the INI files, because object names (`DisplayName`) are looked up while the INI is parsed. A map with its own `map.str` replaces it, which loses tooltips but keeps names.
-- After the packs load, `ControlBar::postProcessCommands()` resolves the images of buttons they added; without it, new buttons show no image.
+- After the packs load, `ControlBar::postProcessCommands()` resolves the images of buttons they added; without it, new buttons show no image. `WeaponStore::postProcessLoad()` runs again too: weapons find their `ProjectileObject` by name in that step, and without it a pack weapon with a projectile fires as if it had none.
+- Everything else (special powers, sciences, objects, weapons, OCLs) is looked up by name *as the INI is read*, so a pack must define a thing before the lines that name it.
 - New weapons a pack adds stay in memory after the game ends (the engine never removes new weapons); in the next game they're redefined as overrides. Objects, buttons, button sets and locomotors are removed.
 
 ## ObjectCopy

@@ -14,4 +14,8 @@ void setUpDemo();
 // returns TRUE. DemoLaunch.cpp.
 Bool startDemoGame();
 
+// GameLogic::update, once a frame: the "-demoStrike <SpecialPower>" test (debug builds only; nothing
+// otherwise). DemoTest.cpp.
+void updateDemoTest();
+
 } // namespace IbmEngine
