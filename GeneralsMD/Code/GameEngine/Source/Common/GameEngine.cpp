@@ -109,6 +109,7 @@
 #include "Common/version.h"
 
 #include "Features/FeatureFlags/FeatureFlags.h" // IBM Engine hook
+#include "Features/Demo/Demo.h" // IBM Engine hook
 
 
 //-------------------------------------------------------------------------------------------------
@@ -736,6 +737,9 @@ void GameEngine::init()
 				InitRandom(0);
 			}
 		}
+
+		// IBM Engine hook: "-demo [map]" starts a skirmish straight away, skipping the menus.
+		IbmEngine::startDemoGame();
 
 		//
 		if (TheMapCache && TheGlobalData->m_shellMapOn)

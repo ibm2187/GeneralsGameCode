@@ -2,6 +2,14 @@
 
 A ready-made test setup at game start, for whichever features are on. Feature flag: `Demo` (it was `SquadsDemo`, and kept its place in the flag mask, so old demo replays still play back).
 
+## Starting it
+
+`.\IbmEngine\scripts\demo.ps1` (or `generalszh.exe -quickstart -demo`) skips the menus and starts a skirmish straight away: you (your skirmish preferences' name, side and colour) against one easy AI on a random side, on the blank **IbmDemo** map, with the Demo flag on. `-demo "<map path>"` uses another map.
+
+**IbmDemo** (`Maps/IbmDemo/IbmDemo.map`, installed to the game's `Maps` folder) is flat grass, 3000 × 3000, with no props and two start positions 1800 apart. `tools/make_demo_map.py <MapsZH.big> <output>` rebuilds it from the retail Tournament Desert map (whose skirmish sides, teams and lighting it keeps).
+
+## What it places
+
 Every human player of a skirmish or LAN game gets $100,000, and these groups toward the map's middle from their Command Center:
 
 | Feature on | Your group | The first enemy player's group, further on |
@@ -20,5 +28,8 @@ Every human player of a skirmish or LAN game gets $100,000, and these groups tow
 | File | What it does |
 |---|---|
 | `Demo.cpp`, `Demo.h` | The setup |
+| `DemoLaunch.cpp` | `-demo`: a skirmish straight from startup |
+| `Maps/IbmDemo/IbmDemo.map` | The blank demo map |
+| `tools/make_demo_map.py` | Builds the demo map |
 
-Hook: `GameLogic::startNewGame` calls `IbmEngine::setUpDemo()` after the starting bases are placed.
+Hooks: `GameLogic::startNewGame` calls `IbmEngine::setUpDemo()` after the starting bases are placed; `GameEngine::init` calls `IbmEngine::startDemoGame()` once the map list is built.

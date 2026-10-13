@@ -69,3 +69,15 @@ END
 CONTROLBAR:IbmTooltipScudStorm
 "Rank 5: fire a Scud Storm from the Command Center."
 END
+
+GUI:SupW_CruiseMissile
+"Cruise Missile"
+END
+
+GUI:IbmSuperweaponPrecisionStrike
+"Precision Strike"
+END
+
+GUI:IbmSuperweaponMineRockets
+"Mine Rockets"
+END

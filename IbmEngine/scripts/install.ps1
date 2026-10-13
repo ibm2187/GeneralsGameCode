@@ -4,7 +4,8 @@
 #   .\IbmEngine\scripts\install.ps1 -Preset win32-debug  # debug build   -> generalszh_dbg.exe
 #   .\IbmEngine\scripts\install.ps1 -Enable Squads       # also switch features on in Features.ini
 #
-# Feature packs are copied from IbmEngine\Features\<Name>\Data to <game>\Data.
+# Feature packs are copied from IbmEngine\Features\<Name>\Data to <game>\Data, and maps a slice
+# ships (IbmEngine\Features\<Name>\Maps) to <game>\Maps.
 
 param(
     [string]$Preset = "win32-profile",
@@ -40,6 +41,15 @@ Get-ChildItem (Join-Path $repo "IbmEngine\Features") -Directory | ForEach-Object
     }
     Copy-Item "$data\*" (Join-Path $GameDir "Data") -Recurse -Force
     Write-Host "Installed feature data of $($_.Name)"
+}
+
+# Maps a slice ships (Features\<Name>\Maps\<Map>\) go to the game's Maps folder.
+Get-ChildItem (Join-Path $repo "IbmEngine\Features") -Directory | ForEach-Object {
+    $maps = Join-Path $_.FullName "Maps"
+    if (-not (Test-Path $maps)) { return }
+    New-Item -ItemType Directory -Force (Join-Path $GameDir "Maps") | Out-Null
+    Copy-Item "$maps\*" (Join-Path $GameDir "Maps") -Recurse -Force
+    Write-Host "Installed maps of $($_.Name)"
 }
 
 if ($Enable.Count -gt 0) {

@@ -20,6 +20,7 @@ Each feature is a vertical slice under `Features/<Name>/`, holding everything fo
 .\IbmEngine\scripts\install.ps1                      # profile build -> generalszh.exe, plus every feature pack
 .\IbmEngine\scripts\install.ps1 -Preset win32-debug  # debug build   -> generalszh_dbg.exe
 .\IbmEngine\scripts\install.ps1 -Enable Squads       # also switch a feature on in Features.ini
+.\IbmEngine\scripts\demo.ps1                         # start straight into the Demo skirmish on the blank map
 ```
 
 ## Hooks in original code
@@ -30,7 +31,7 @@ Every change to original engine files is small and marked `// IBM Engine hook` (
 |---|---|
 | `CMakeLists.txt` | `add_subdirectory(IbmEngine)` |
 | `GeneralsMD/Code/GameEngine/CMakeLists.txt` | links `ibm_engine` into `z_gameengine` |
-| `GeneralsMD/Code/GameEngine/Source/Common/GameEngine.cpp` | `IbmEngine::initFeatureFlags()` after the command line is parsed |
+| `GeneralsMD/Code/GameEngine/Source/Common/GameEngine.cpp` | `IbmEngine::initFeatureFlags()` after the command line is parsed; `IbmEngine::startDemoGame()` for `-demo` |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/System/GameLogic.cpp` | `IbmEngine::onStartNewGame()` just before `map.ini` loads |
 | `Core/GameEngine/Include/GameNetwork/GameInfo.h` | `m_featureFlags` with getter and setter |
 | `Core/GameEngine/Source/GameNetwork/GameInfo.cpp` | flags reset to local flags; written as `FF=` in the game options only when non-zero; parsed back |

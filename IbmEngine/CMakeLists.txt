@@ -13,6 +13,7 @@ target_sources(ibm_engine INTERFACE
     Features/Armor/Armor.h
     Features/Demo/Demo.cpp
     Features/Demo/Demo.h
+    Features/Demo/DemoLaunch.cpp
     Features/Economy/Economy.cpp
     Features/Economy/Economy.h
     Features/FeatureFlags/FeatureFlags.cpp
