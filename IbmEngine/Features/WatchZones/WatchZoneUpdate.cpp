@@ -5,6 +5,7 @@
 
 #include <map>
 
+#include "Common/ThingTemplate.h"
 #include "Common/Xfer.h"
 #include "GameLogic/GameLogic.h"
 #include "GameLogic/Object.h"
@@ -109,6 +110,8 @@ IbmWatchZoneUpdateModuleData::IbmWatchZoneUpdateModuleData()
 	m_duration = LOGICFRAMES_PER_SECOND * 30;
 	m_targets = TARGETS_ANY;
 	m_strikes = 1;
+	m_jetsPerStrike = 1;
+	m_jetSpacing = 40.0f;
 	m_strikeDelay = LOGICFRAMES_PER_SECOND * 5;
 	m_strikeOCL = nullptr;
 	m_approachDistance = 0.0f;
@@ -130,6 +133,8 @@ IbmWatchZoneUpdateModuleData::IbmWatchZoneUpdateModuleData()
 		{ "ForbiddenKindOf",	KindOfMaskType::parseFromINI,		nullptr, offsetof( IbmWatchZoneUpdateModuleData, m_forbiddenKindOf ) },
 		{ "Targets",			INI::parseIndexList,				targetNames, offsetof( IbmWatchZoneUpdateModuleData, m_targets ) },
 		{ "Strikes",			INI::parseInt,						nullptr, offsetof( IbmWatchZoneUpdateModuleData, m_strikes ) },
+		{ "JetsPerStrike",		INI::parseInt,						nullptr, offsetof( IbmWatchZoneUpdateModuleData, m_jetsPerStrike ) },
+		{ "JetSpacing",			INI::parseReal,						nullptr, offsetof( IbmWatchZoneUpdateModuleData, m_jetSpacing ) },
 		{ "StrikeDelay",		INI::parseDurationUnsignedInt,		nullptr, offsetof( IbmWatchZoneUpdateModuleData, m_strikeDelay ) },
 		{ "StrikeOCL",			INI::parseObjectCreationList,		nullptr, offsetof( IbmWatchZoneUpdateModuleData, m_strikeOCL ) },
 		{ "ApproachDistance",	INI::parseReal,						nullptr, offsetof( IbmWatchZoneUpdateModuleData, m_approachDistance ) },
@@ -173,6 +178,8 @@ UpdateSleepTime IbmWatchZoneUpdate::update()
 		// Jets come from the map edge nearest the building that made the zone.
 		const Object *producer = TheGameLogic->findObjectByID(zone->getProducerID());
 		m_home = TheTerrainLogic->findClosestEdgePoint(producer != nullptr ? producer->getPosition() : zone->getPosition());
+		DEBUG_LOG(("IbmEngine watchZone: %s #%u starts at (%.0f, %.0f), producer %s, home (%.0f, %.0f)", zone->getTemplate()->getName().str(),
+			zone->getID(), zone->getPosition()->x, zone->getPosition()->y, producer ? producer->getTemplate()->getName().str() : "none", m_home.x, m_home.y));
 	}
 
 	if (m_decal.isEmpty() && data->m_zoneDecal.valid())
@@ -200,10 +207,21 @@ UpdateSleepTime IbmWatchZoneUpdate::update()
 
 	if (now >= m_nextStrikeFrame)
 	{
-		Object *target = findTarget();
-		if (target != nullptr)
+		// The jets of a pass fly side by side: 0, then one either side, and so on.
+		Int sent = 0;
+		for (Int i = 0; i < data->m_jetsPerStrike; ++i)
 		{
-			callStrike(target);
+			Object *target = findTarget();
+			if (target == nullptr)
+				break;
+			const Real side = ((i + 1) / 2) * data->m_jetSpacing * ((i % 2) ? 1.0f : -1.0f);
+			if (callStrike(target, side))
+				++sent;
+		}
+
+		if (sent > 0)
+		{
+			--m_strikesLeft;
 			m_nextStrikeFrame = now + data->m_strikeDelay;
 		}
 		else
@@ -259,6 +277,8 @@ Object *IbmWatchZoneUpdate::findTarget() const
 	Object *taken = nullptr;
 	for (Object *obj = iter->first(); obj != nullptr; obj = iter->next())
 	{
+		if (TheGameLogic->getFrame() % LOGICFRAMES_PER_SECOND == 0)
+			DEBUG_LOG(("IbmEngine watchZone: #%u sees %s, target %d", zone->getID(), obj->getTemplate()->getName().str(), isTarget(obj)));
 		if (!isTarget(obj))
 			continue;
 		if (!isJetAfter(obj->getID()))
@@ -270,13 +290,11 @@ Object *IbmWatchZoneUpdate::findTarget() const
 }
 
 //-------------------------------------------------------------------------------------------------
-void IbmWatchZoneUpdate::callStrike( Object *target )
+Bool IbmWatchZoneUpdate::callStrike( Object *target, Real sideOffset )
 {
 	const IbmWatchZoneUpdateModuleData *data = getData();
-	--m_strikesLeft;
-
 	if (data->m_strikeOCL == nullptr)
-		return;
+		return FALSE;
 
 	Coord3D targetPos = *target->getPosition();
 	Coord3D start = m_home;
@@ -291,10 +309,25 @@ void IbmWatchZoneUpdate::callStrike( Object *target )
 			start.y = targetPos.y + dy * data->m_approachDistance / length;
 		}
 	}
+	if (sideOffset != 0.0f)
+	{
+		// Sideways to the line of flight.
+		Real dx = targetPos.x - start.x;
+		Real dy = targetPos.y - start.y;
+		Real length = sqrt(dx * dx + dy * dy);
+		if (length > 0.0f)
+		{
+			start.x += -dy / length * sideOffset;
+			start.y += dx / length * sideOffset;
+		}
+	}
 
 	Object *jet = ObjectCreationList::create(data->m_strikeOCL, getObject(), &start, &targetPos, 0.0f);
+	DEBUG_LOG(("IbmEngine watchZone: #%u calls a jet at %s (%.0f, %.0f) from (%.0f, %.0f): jet #%u", getObject()->getID(),
+		target->getTemplate()->getName().str(), targetPos.x, targetPos.y, start.x, start.y,
+		jet ? jet->getID() : 0));
 	if (jet == nullptr)
-		return;
+		return FALSE;
 
 	WatchTrack track;
 	track.target = target->getID();
@@ -302,6 +335,7 @@ void IbmWatchZoneUpdate::callStrike( Object *target )
 	track.followRange = data->m_followRange;
 	s_tracks[jet->getID()] = track;
 	m_jets.push_back(jet->getID());
+	return TRUE;
 }
 
 //-------------------------------------------------------------------------------------------------

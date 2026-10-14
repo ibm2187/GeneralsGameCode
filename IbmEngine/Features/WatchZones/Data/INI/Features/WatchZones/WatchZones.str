@@ -3,7 +3,7 @@ CONTROLBAR:IbmWatchRaptorPatrol
 END
 
 CONTROLBAR:IbmTooltipWatchRaptorPatrol
-"Raptors watch the area for 45 seconds. Each enemy aircraft that enters is attacked by a Raptor (up to 4 passes)."
+"Raptors watch the area for 45 seconds. Each enemy aircraft that enters is attacked by a Raptor (up to 3 passes)."
 END
 
 CONTROLBAR:IbmWatchA10Watch
@@ -19,7 +19,7 @@ CONTROLBAR:IbmWatchMiGPatrol
 END
 
 CONTROLBAR:IbmTooltipWatchMiGPatrol
-"MiGs watch the area for 45 seconds. Each enemy aircraft that enters is attacked by a MiG (up to 4 passes)."
+"MiGs watch the area for 45 seconds. Enemy aircraft that enter are attacked by a pair of MiGs, each after its own target (up to 3 passes)."
 END
 
 CONTROLBAR:IbmWatchMiGHunter
@@ -27,21 +27,21 @@ CONTROLBAR:IbmWatchMiGHunter
 END
 
 CONTROLBAR:IbmTooltipWatchMiGHunter
-"MiGs watch the area for 45 seconds. Enemy vehicles that enter are hit by a MiG's armour-piercing missiles (up to 3 passes)."
+"MiGs watch the area for 45 seconds. Enemy vehicles that enter are hit by a pair of MiGs with armour-piercing missiles that leave Black Napalm burning (up to 3 passes)."
 END
 
-CONTROLBAR:IbmWatchStingerAmbush
-"Stinger &Ambush"
+CONTROLBAR:IbmWatchStingerNest
+"Stinger &Nest"
 END
 
-CONTROLBAR:IbmTooltipWatchStingerAmbush
-"Three hidden Stinger soldiers wait at the spot for 45 seconds and fire at enemy aircraft. Firing reveals them."
+CONTROLBAR:IbmTooltipWatchStingerNest
+"A camouflaged Stinger Site appears at the spot for 60 seconds. Its three soldiers fire at enemy aircraft and come back while the site stands. Firing reveals the soldiers, not the site."
 END
 
-CONTROLBAR:IbmWatchRPGAmbush
-"&RPG Ambush"
+CONTROLBAR:IbmWatchTrapField
+"&Trap Field"
 END
 
-CONTROLBAR:IbmTooltipWatchRPGAmbush
-"Four hidden RPG troopers wait at the spot for 45 seconds and fire at enemies in range. Firing reveals them."
+CONTROLBAR:IbmTooltipWatchTrapField
+"Ten hidden demo traps are scattered over the area for 60 seconds. Each blows up when an enemy vehicle comes close. Detectors can find them."
 END

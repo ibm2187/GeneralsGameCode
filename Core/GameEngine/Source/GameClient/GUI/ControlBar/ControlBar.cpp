@@ -2043,7 +2043,9 @@ CommandButton *ControlBar::newCommandButtonOverride( CommandButton *buttonToOver
 
 		//@todo SUPPORT OVERRIDES -- JM
 	} else {
-		commandSet = TheControlBar->newCommandSetOverride(commandSet);
+		// IBM Engine hook: build on the latest override, so a second pack's changes add to the first's
+		// (copying the base copied its link to the first override, which then stayed the final one).
+		commandSet = TheControlBar->newCommandSetOverride((CommandSet *)commandSet->friend_getFinalOverride());
 	}
 
 	// sanity

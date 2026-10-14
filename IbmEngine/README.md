@@ -67,5 +67,7 @@ Every change to original engine files is small and marked `// IBM Engine hook` (
 | `GeneralsMD/Code/GameEngine/Source/Common/RTS/ActionManager.cpp` | `canDoSpecialPowerAtLocation`: WatchZones' powers may target any explored ground |
 | `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/Update/AIUpdate/DeliverPayloadAIUpdate.cpp` | a watch zone's jet follows its enemy while approaching, and fires at the enemy itself |
 | `GeneralsMD/Code/GameEngine/Source/Common/Thing/ModuleFactory.cpp` | registers the `IbmWatchZoneUpdate` module |
+| `Core/GameEngine/Source/GameClient/GUI/ControlBar/ControlBar.cpp` | fix: `parseCommandSetDefinition` builds a command set override on the latest override, so two packs changing one set both count (the second was lost behind the first) |
+| `GeneralsMD/Code/GameEngine/Source/GameLogic/Object/ObjectCreationList.cpp` | `CreateObject` takes `ScatterRadius`: each object at a random spot within that radius (synced random) |
 
 Hooks in `Core/` are wrapped in `#if RTS_ZEROHOUR`, because Core is also compiled into the original Generals, which doesn't link this library.

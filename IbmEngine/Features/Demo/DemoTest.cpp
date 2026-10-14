@@ -11,12 +11,14 @@
 #include "Common/SpecialPower.h"
 #include "Common/ThingFactory.h"
 #include "Common/ThingTemplate.h"
+#include "GameClient/ControlBar.h"
 #include "GameLogic/ObjectCreationList.h"
 #include "GameLogic/GameLogic.h"
 #include "GameLogic/Object.h"
 #include "GameLogic/Weapon.h"
 #include "GameLogic/Module/SpecialPowerModule.h"
 #include "GameLogic/Module/ContainModule.h"
+#include "GameLogic/Module/AIUpdate.h"
 #include "GameLogic/Module/DeliverPayloadAIUpdate.h"
 
 #include "Features/Demo/Demo.h"
@@ -29,13 +31,16 @@ namespace
 const UnsignedInt FIRE_FRAME = 90;
 const UnsignedInt WATCH_FRAMES = 30 * 40;
 
-const char *findStrikeArgument()
+const char *findArgument(const char *name)
 {
 	for (Int arg = 1; arg + 1 < __argc; ++arg)
-		if (stricmp(__argv[arg], "-demoStrike") == 0)
+		if (stricmp(__argv[arg], name) == 0)
 			return __argv[arg + 1];
 	return nullptr;
 }
+
+// "-demoStrikeAt <Object>": aim at the first enemy object of this kind instead of the Command Center.
+const char *s_aimAt = nullptr;
 
 struct PowerSearch
 {
@@ -58,7 +63,9 @@ struct CommandCenterSearch
 void findCommandCenter(Object *obj, void *userData)
 {
 	CommandCenterSearch *search = static_cast<CommandCenterSearch *>(userData);
-	if (search->found == nullptr && obj->isKindOf(KINDOF_COMMANDCENTER) && !obj->isEffectivelyDead())
+	if (search->found != nullptr || obj->isEffectivelyDead())
+		return;
+	if (s_aimAt != nullptr ? obj->getTemplate()->getName().compareNoCase(s_aimAt) == 0 : obj->isKindOf(KINDOF_COMMANDCENTER))
 		search->found = obj;
 }
 
@@ -104,6 +111,15 @@ void fire(const char *powerName)
 	DEBUG_LOG(("IbmEngine demoStrike: owner disabled %d, power ready frame %u (now %u), module %s", search.found->isDisabled(),
 		module->getReadyFrame(), TheGameLogic->getFrame(), module->getSpecialPowerTemplate()->getName().str()));
 
+	// The buttons the player sees on it.
+	const CommandSet *commandSet = TheControlBar->findCommandSet(search.found->getCommandSetString());
+	for (Int i = 0; commandSet != nullptr && i < MAX_COMMANDS_PER_SET; ++i)
+	{
+		const CommandButton *button = commandSet->getCommandButton(i);
+		if (button != nullptr)
+			DEBUG_LOG(("IbmEngine demoStrike: %s slot %d = %s", search.found->getCommandSetString().str(), i + 1, button->getName().str()));
+	}
+
 	ObjectID lastID = INVALID_ID;
 	for (Object *obj = TheGameLogic->getFirstObject(); obj != nullptr; obj = obj->getNextObject())
 		lastID = max(lastID, obj->getID());
@@ -144,7 +160,9 @@ void logFlyingThings()
 	for (Object *obj = TheGameLogic->getFirstObject(); obj != nullptr; obj = obj->getNextObject())
 	{
 		const AsciiString &name = obj->getTemplate()->getName();
-		if (!obj->isKindOf(KINDOF_PROJECTILE) && strstr(name.str(), "Launcher") == nullptr && strstr(name.str(), "Napalm") == nullptr
+		const Bool watched = strstr(name.str(), "Jet") != nullptr || name.startsWith("IbmGLA") || name.startsWith("IbmWatchZone")
+			|| (s_aimAt != nullptr && name.compareNoCase(s_aimAt) == 0);
+		if (!watched && !obj->isKindOf(KINDOF_PROJECTILE) && strstr(name.str(), "Launcher") == nullptr && strstr(name.str(), "Napalm") == nullptr
 			&& strstr(name.str(), "Missile") == nullptr)
 			continue;
 		if (name.endsWith("Shell") || name.endsWith("Bullet"))
@@ -163,6 +181,16 @@ void logFlyingThings()
 				weapon ? weapon->getName().str() : "NONE", weapon ? (Int)weapon->getStatus() : -1,
 				weapon ? weapon->getAttackRange(obj) : 0.0f);
 		}
+		else if (watched)
+		{
+			const Weapon *weapon = obj->getCurrentWeapon();
+			const AIUpdateInterface *ai = obj->getAI();
+			const Object *victim = ai ? ai->getCurrentVictim() : nullptr;
+			extra.format(" airborne %d stealthed %d detected %d, ai state %d victim %s, weapon %s status %d",
+				obj->isAirborneTarget(), obj->testStatus(OBJECT_STATUS_STEALTHED), obj->testStatus(OBJECT_STATUS_DETECTED),
+				ai ? (Int)ai->getAIStateType() : -1, victim ? victim->getTemplate()->getName().str() : "none",
+				weapon ? weapon->getName().str() : "NONE", weapon ? (Int)weapon->getStatus() : -1);
+		}
 		DEBUG_LOG(("IbmEngine demoStrike:   frame %u %s #%u at (%.0f, %.0f, %.0f)%s%s", TheGameLogic->getFrame(),
 			name.str(), obj->getID(), pos->x, pos->y, pos->z, obj->isEffectivelyDead() ? " dead" : "", extra.str()));
 	}
@@ -173,9 +201,10 @@ void logFlyingThings()
 //-------------------------------------------------------------------------------------------------
 void IbmEngine::updateDemoTest()
 {
-	static const char *powerName = findStrikeArgument();
+	static const char *powerName = findArgument("-demoStrike");
 	if (powerName == nullptr)
 		return;
+	s_aimAt = findArgument("-demoStrikeAt");
 
 	const UnsignedInt frame = TheGameLogic->getFrame();
 	if (frame == FIRE_FRAME)

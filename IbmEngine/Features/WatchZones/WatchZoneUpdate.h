@@ -7,8 +7,10 @@
 //     TargetKindOf = AIRCRAFT        ; enemies of any of these kinds...
 //     ForbiddenKindOf = STRUCTURE    ; ...and none of these
 //     Targets = AIRBORNE             ; ANY, AIRBORNE (in the air now) or GROUND (on the ground now)
-//     Strikes = 3                    ; jets it calls in at most; the zone ends after the last one
-//     StrikeDelay = 6000             ; at least this long between two jets, in milliseconds
+//     Strikes = 3                    ; passes it calls in at most; the zone ends after the last one
+//     JetsPerStrike = 2              ; jets in each pass, side by side, each at its own enemy (default 1)
+//     JetSpacing = 40                ; how far apart they fly
+//     StrikeDelay = 6000             ; at least this long between two passes, in milliseconds
 //     StrikeOCL = IbmOCL_RaptorPass  ; a DeliverPayload with one transport: the jet
 //     ApproachDistance = 900         ; the jet appears this far from the enemy, on the side of the
 //                                    ; map edge nearest the building that made the zone (0: at that edge)
@@ -18,7 +20,7 @@
 //     End
 //   End
 //
-// Jets come one at a time, each at the nearest enemy that no other jet of the zone is after.
+// Each jet goes at the nearest enemy that no other jet of the zone is after.
 
 #pragma once
 
@@ -46,6 +48,8 @@ public:
 	KindOfMaskType m_forbiddenKindOf;
 	Int m_targets;							///< TargetHeight
 	Int m_strikes;
+	Int m_jetsPerStrike;
+	Real m_jetSpacing;
 	UnsignedInt m_strikeDelay;				///< frames
 	const ObjectCreationList *m_strikeOCL;
 	Real m_approachDistance;
@@ -74,7 +78,7 @@ private:
 	Bool isTarget( const Object *obj ) const;
 	Bool isJetAfter( ObjectID target ) const;
 	Object *findTarget() const;
-	void callStrike( Object *target );
+	Bool callStrike( Object *target, Real sideOffset );
 
 	Bool m_started;							///< the first update set up the zone
 	UnsignedInt m_endFrame;

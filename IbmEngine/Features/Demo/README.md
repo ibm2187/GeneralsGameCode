@@ -10,7 +10,7 @@ A ready-made test setup at game start, for whichever features are on. Feature fl
 
 ## Testing a strike (debug builds)
 
-`generalszh_dbg.exe -win -quickstart -demo -demoSide FactionGLA -demoStrike SuperweaponScudStorm` fires that special power from your Command Center at the enemy's Command Center three seconds in, then `DebugLogFileD.txt` (lines with `IbmEngine demoStrike`) lists every object it creates and follows every projectile, missile and launcher, and the game quits after 40 seconds. Run it windowed: headless games don't run powers.
+`generalszh_dbg.exe -win -quickstart -demo -demoSide FactionGLA -demoStrike SuperweaponScudStorm` fires that special power from your Command Center at the enemy's Command Center three seconds in, then `DebugLogFileD.txt` (lines with `IbmEngine demoStrike`) lists every object it creates and follows every projectile, missile and launcher, and the game quits after 40 seconds. `-demoStrikeAt <Object>` aims at the first enemy object of that kind instead, and the log also follows those objects (airborne, stealth, AI state and victim). The log starts with the buttons of the building that fires. Run it windowed: headless games don't run powers.
 
 ## What it places
 

@@ -755,6 +755,7 @@ public:
 		m_minDistanceAFormation(0.0f),
 		m_minDistanceBFormation(0.0f),
 		m_maxDistanceFormation(0.0f),
+		m_scatterRadius(0.0f),
 		m_fadeIn(false),
 		m_fadeOut(false),
 		m_fadeFrames(0),
@@ -838,6 +839,7 @@ public:
 			{ "MinDistanceAFormation",	INI::parseReal, nullptr, offsetof(GenericObjectCreationNugget, m_minDistanceAFormation) },
 			{ "MinDistanceBFormation",	INI::parseReal, nullptr, offsetof(GenericObjectCreationNugget, m_minDistanceBFormation) },
 			{ "MaxDistanceFormation",	INI::parseReal, nullptr, offsetof(GenericObjectCreationNugget, m_maxDistanceFormation) },
+			{ "ScatterRadius",	INI::parseReal, nullptr, offsetof(GenericObjectCreationNugget, m_scatterRadius) }, // IBM Engine hook
 			{ "FadeIn",			INI::parseBool,	nullptr, offsetof(GenericObjectCreationNugget, m_fadeIn) },
 			{ "FadeOut",			INI::parseBool,	nullptr, offsetof(GenericObjectCreationNugget, m_fadeOut) },
 			{ "FadeTime",	INI::parseDurationUnsignedInt,	nullptr, offsetof(GenericObjectCreationNugget, m_fadeFrames) },
@@ -1384,7 +1386,19 @@ protected:
 			// objects that are placed in the same location are no longer placed in a
 			// diagonal line but rather in random locations nearby, this logic will no
 			// longer be necessary and can be taken out -- amit
-			if (m_spreadFormation)
+			if (m_scatterRadius > 0.0f)
+			{
+				// IBM Engine hook: ScatterRadius puts each object at a random spot within that radius
+				// (evenly over the circle; synced random, so replays match).
+				const Real angle = GameLogicRandomValueReal(0.0f, 2.0f * PI);
+				const Real distance = m_scatterRadius * sqrtf(GameLogicRandomValueReal(0.0f, 1.0f));
+				Coord3D scatterPos = *pos;
+				scatterPos.x += distance * Cos(angle);
+				scatterPos.y += distance * Sin(angle);
+				scatterPos.z = TheTerrainLogic->getGroundHeight(scatterPos.x, scatterPos.y);
+				doStuffToObj( debris, m_names[pick], &scatterPos, mtx, orientation, sourceObj, lifetimeFrames );
+			}
+			else if (m_spreadFormation)
 			{
 				FindPositionOptions fpOptions;
 				fpOptions.minRadius = GameLogicRandomValueReal(m_minDistanceAFormation, m_minDistanceBFormation);
@@ -1491,6 +1505,7 @@ private:
 	Real											m_minDistanceAFormation;
 	Real											m_minDistanceBFormation;
 	Real											m_maxDistanceFormation;
+	Real											m_scatterRadius;	///< IBM Engine hook
 	Int												m_objectCount; // how many objects will there be?
 	AudioEventRTS							m_bounceSound;
 	Bool											m_requiresLivePlayer;
