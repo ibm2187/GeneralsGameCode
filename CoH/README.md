@@ -19,7 +19,7 @@ The original code only calls the hook hub, from the places listed in [Hooks in o
 | [GeneralsArsenal](Features/GeneralsArsenal/README.md) | `GeneralsArsenal` | [02](Docs/Tasks/02-GeneralsArsenal.md) | jets and super weapons are General's powers paid with command points earned in combat; helicopters at the Airfield; skirmish AI uses them |
 | [Upkeep](Features/Upkeep/README.md) | `Upkeep` | [03](Docs/Tasks/03-Upkeep.md) | units take population under a cap that grows with buildings and sectors; upkeep takes a growing share of income; skirmish AI keeps its upkeep low (needs Sectors) |
 | [Squads](Features/Squads/README.md) | `Squads` | [09](Docs/Tasks/09-Squads.md) | infantry is ordered, selected, carried and counted as squads that move in formation, with one health bar; skirmish AI builds and orders them |
-| [Accuracy](Features/Accuracy/README.md) | `Accuracy` | [04](Docs/Tasks/04-Accuracy.md) | direct fire rolls to hit by range, movement, target size and veterancy; a miss lands beside the target; other slices add hit modifiers through `Accuracy.h` |
+| [Accuracy](Features/Accuracy/README.md) | `Accuracy` | [04](Docs/Tasks/04-Accuracy.md) | direct fire rolls to hit by weapon type and range, target size (troops hardest, buildings easiest), movement and veterancy; a miss lands beside the target; other slices add hit modifiers through `Accuracy.h` |
 
 Every feature has a flag. With every flag off the game plays exactly like `main`, replays included.
 

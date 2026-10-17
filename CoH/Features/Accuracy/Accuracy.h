@@ -1,8 +1,8 @@
 // CoH Accuracy: direct fire rolls to hit. The only header of this slice others include.
 //
-// Every shot of a direct-fire weapon at an object rolls against a hit chance: the weapon's base
-// accuracy with the hit modifiers applied in order, kept between a min and a max. A miss lands on the
-// ground near the target. Area weapons and artillery don't roll.
+// Every shot of a direct-fire weapon at an object rolls against a hit chance: the weapon's accuracy
+// at that range (its base) with the hit modifiers applied in order, kept between a min and a max. A
+// miss lands on the ground near the target. Area weapons and artillery don't roll.
 //
 // Other slices change the chance with hit modifiers of their own, added in their init:
 //
@@ -14,7 +14,7 @@
 //     }
 //
 // A modifier counts only while its feature (and Accuracy) is on. The built-in modifiers are named
-// "Range", "ShooterMoving", "TargetMoving", "TargetSize" and "Veterancy". A modifier added under one
+// "ShooterMoving", "TargetMoving", "TargetSize" and "Veterancy". A modifier added under one
 // of those names stands in for the built-in one while its feature is on.
 
 #pragma once

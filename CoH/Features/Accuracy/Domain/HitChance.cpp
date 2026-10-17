@@ -8,30 +8,58 @@
 namespace CoH::Accuracy
 {
 
-float baseAccuracy(const Rules &rules, const WeaponFacts &weapon)
+namespace
 {
-	if (weapon.contact || weapon.laser || weapon.damageAtSelf)
-		return -1.0f;
-	if (weapon.scatterRadius > 0.0f || weapon.damageRadius > rules.maxDamageRadius)
-		return -1.0f;
 
-	const int percent = weapon.weaponPercent >= 0 ? weapon.weaponPercent : weapon.classPercent;
-	if (percent < 0 || percent >= 100)
-		return -1.0f;
-	return percent / 100.0f;
+float lerp(float from, float to, float t)
+{
+	return from + (to - from) * t;
 }
 
-HitModifier rangeModifier(const Rules &rules, const Shot &shot)
-{
-	if (shot.range <= 0.0f)
-		return scaleChance(rules.midMultiplier);
+} // namespace
 
-	const float share = shot.distance / shot.range;
-	if (share <= rules.nearRange)
-		return scaleChance(rules.nearMultiplier);
-	if (share > rules.farRange)
-		return scaleChance(rules.farMultiplier);
-	return scaleChance(rules.midMultiplier);
+RangeProfile rollingProfile(const Rules &rules, const WeaponFacts &weapon)
+{
+	if (weapon.neverMisses || weapon.contact || weapon.laser || weapon.damageAtSelf)
+		return {};
+	if (weapon.scatterRadius > 0.0f || weapon.damageRadius > rules.maxDamageRadius)
+		return {};
+	return weapon.ownProfile.isSet() ? weapon.ownProfile : weapon.classProfile;
+}
+
+float accuracyAt(const RangeProfile &profile, float distance, float range)
+{
+	if (range <= 0.0f)
+		return profile.midAccuracy;
+
+	const float share = std::clamp(distance / range, 0.0f, 1.0f);
+	if (share <= 0.5f)
+		return lerp(profile.nearAccuracy, profile.midAccuracy, share * 2.0f);
+	return lerp(profile.midAccuracy, profile.farAccuracy, (share - 0.5f) * 2.0f);
+}
+
+float sizeMultiplier(const Rules &rules, TargetSize size, float radius)
+{
+	const std::vector<SizePoint> &curve = rules.sizeCurve;
+	float multiplier = 1.0f;
+	if (!curve.empty())
+	{
+		const auto above = std::find_if(curve.begin(), curve.end(),
+			[radius](const SizePoint &point) { return point.radius > radius; });
+		if (above == curve.begin())
+			multiplier = curve.front().multiplier;
+		else if (above == curve.end())
+			multiplier = curve.back().multiplier;
+		else
+		{
+			const SizePoint &below = *(above - 1);
+			multiplier = lerp(below.multiplier, above->multiplier, (radius - below.radius) / (above->radius - below.radius));
+		}
+	}
+
+	if (size == TargetSize::Building)
+		multiplier = std::max(multiplier, rules.buildingSizeMin);
+	return multiplier;
 }
 
 HitModifier shooterMovingModifier(const Rules &rules, const Shot &shot)
@@ -46,10 +74,7 @@ HitModifier targetMovingModifier(const Rules &rules, const Shot &shot)
 
 HitModifier targetSizeModifier(const Rules &rules, const Shot &shot)
 {
-	const int size = (int)shot.targetSize;
-	if (size < 0 || size >= (int)TargetSize::Count)
-		return {};
-	return scaleChance(rules.sizeMultiplier[size]);
+	return scaleChance(sizeMultiplier(rules, shot.targetSize, shot.targetRadius));
 }
 
 HitModifier veterancyModifier(const Rules &rules, const Shot &shot)
@@ -60,7 +85,8 @@ HitModifier veterancyModifier(const Rules &rules, const Shot &shot)
 float hitChance(const Rules &rules, float baseChance, const ModifierStack &modifiers, const Shot &shot)
 {
 	const float chance = modifiers.apply(baseChance, shot);
-	return std::clamp(chance, rules.minChance, std::max(rules.minChance, rules.maxChance));
+	const float maxChance = shot.targetSize == TargetSize::Building ? rules.maxChanceBuilding : rules.maxChance;
+	return std::clamp(chance, rules.minChance, std::max(rules.minChance, maxChance));
 }
 
 namespace

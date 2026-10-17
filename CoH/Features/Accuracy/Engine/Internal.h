@@ -24,12 +24,16 @@ ModifierStack &modifiers();
 void addBuiltInModifiers(const Feature &self);
 void rollShot(Hooks::WeaponShot &shot);
 
-struct Tally
+struct Count
 {
 	int rolls = 0;
 	int hits = 0;
 };
-const Tally &tally();	///< this game's rolls, for the log
+struct Tally
+{
+	Count bySize[(int)TargetSize::Count];
+};
+const Tally &tally();	///< this game's rolls by target size, for the log
 void forgetTally();
 
 // UI/MissPuff.cpp

@@ -30,6 +30,7 @@ struct Shot
 	bool shooterMoving = false;	///< a soldier riding in a vehicle moves with it
 	bool targetMoving = false;
 	TargetSize targetSize = TargetSize::Vehicle;
+	float targetRadius = 0.0f;	///< its bounding circle: bigger targets are easier to hit
 	int veterancy = 0;			///< the shooter's rank: 0 regular, 1 veteran, 2 elite, 3 heroic
 };
 
@@ -50,7 +51,6 @@ using ModifierFunction = HitModifier (*)(const Shot &shot);
 // in the order of their names. Scaling commutes, so the order only matters for modifiers that add.
 namespace ModifierOrder
 {
-constexpr int Range = 100;
 constexpr int Movement = 200;
 constexpr int TargetSize = 300;
 constexpr int Cover = 400;

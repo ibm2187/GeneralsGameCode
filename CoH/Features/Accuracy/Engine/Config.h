@@ -16,29 +16,28 @@ class WeaponTemplate;
 namespace CoH::Accuracy
 {
 
-// A single weapon's own base accuracy, set by name.
+// A single weapon's own accuracy, set by name.
 struct WeaponAccuracy
 {
 	AsciiString weapon;
-	int percent = 0;
+	RangeProfile profile;
 };
 
 struct Config
 {
 	Rules rules;
-	int classPercent[DAMAGE_NUM_TYPES];		///< by damage type; -1 for types that never roll
-	std::vector<WeaponAccuracy> weapons;	///< each Weapon line adds one
-	float movingSpeed = 0.3f;				///< faster than this, in world units a frame, is moving
-	AsciiString missFX;						///< played where a missed bullet lands; empty for none
-
-	Config();
+	RangeProfile classProfiles[DAMAGE_NUM_TYPES];	///< by damage type; not set for types that never roll
+	std::vector<WeaponAccuracy> weapons;			///< each Weapon line adds one
+	std::vector<AsciiString> neverMisses;			///< each NeverMisses line adds its weapons
+	float movingSpeed = 0.3f;						///< faster than this, in world units a frame, is moving
+	AsciiString missFX;								///< played where a missed bullet lands; empty for none
 };
 
 const Config &config();
 void parseConfigBlock(INI *ini);
 void resetConfig();
 
-// The base accuracy of the weapon (0..1), or a negative value when it doesn't roll.
-float weaponBaseAccuracy(const WeaponTemplate *weapon);
+// The profile the weapon rolls with; not set when it doesn't roll.
+const RangeProfile &weaponProfile(const WeaponTemplate *weapon);
 
 } // namespace CoH::Accuracy

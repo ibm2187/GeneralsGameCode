@@ -28,7 +28,6 @@ Tally &storedTally()
 
 // ---- The built-in modifiers, with this game's rules ----------------------------------------------
 
-HitModifier range(const Shot &shot) { return rangeModifier(config().rules, shot); }
 HitModifier shooterMoving(const Shot &shot) { return shooterMovingModifier(config().rules, shot); }
 HitModifier targetMoving(const Shot &shot) { return targetMovingModifier(config().rules, shot); }
 HitModifier targetSize(const Shot &shot) { return targetSizeModifier(config().rules, shot); }
@@ -74,6 +73,7 @@ Shot describeShot(const Hooks::WeaponShot &fired, TargetSize size)
 	shot.shooterMoving = isMoving(fired.source);
 	shot.targetMoving = isMoving(fired.victim);
 	shot.targetSize = size;
+	shot.targetRadius = fired.victim->getGeometryInfo().getBoundingCircleRadius();
 	shot.veterancy = (int)fired.source->getVeterancyLevel();
 	return shot;
 }
@@ -93,10 +93,10 @@ Coord3D findMissSpot(const Object *target)
 	return spot;
 }
 
-bool rollsHit(float chance)
+bool rollsHit(float chance, TargetSize size)
 {
 	const bool hit = isHit(chance, GameLogicRandomValue(0, RollSides - 1));
-	Tally &counted = storedTally();
+	Count &counted = storedTally().bySize[(int)size];
 	++counted.rolls;
 	if (hit)
 		++counted.hits;
@@ -114,7 +114,6 @@ ModifierStack &modifiers()
 void addBuiltInModifiers(const Feature &self)
 {
 	ModifierStack &stack = modifiers();
-	stack.addBuiltIn(self, "Range", ModifierOrder::Range, range);
 	stack.addBuiltIn(self, "ShooterMoving", ModifierOrder::Movement, shooterMoving);
 	stack.addBuiltIn(self, "TargetMoving", ModifierOrder::Movement, targetMoving);
 	stack.addBuiltIn(self, "TargetSize", ModifierOrder::TargetSize, targetSize);
@@ -126,13 +125,16 @@ void rollShot(Hooks::WeaponShot &fired)
 	if (fired.retargeted)
 		return;
 
-	const float base = weaponBaseAccuracy(fired.weapon);
+	const RangeProfile &profile = weaponProfile(fired.weapon);
 	TargetSize size;
-	if (base < 0.0f || !findTargetSize(fired.victim, size))
+	if (!profile.isSet() || !findTargetSize(fired.victim, size))
 		return;
 
-	const float chance = hitChance(config().rules, base, modifiers(), describeShot(fired, size));
-	const bool hit = needsRoll(chance) ? rollsHit(chance) : chance > 0.0f;
+	// The weapon's accuracy at this range is the base; the modifiers do the rest.
+	const Shot shot = describeShot(fired, size);
+	const float base = accuracyAt(profile, shot.distance, shot.range);
+	const float chance = hitChance(config().rules, base, modifiers(), shot);
+	const bool hit = needsRoll(chance) ? rollsHit(chance, size) : chance > 0.0f;
 	if (hit)
 		return;
 

@@ -21,11 +21,27 @@ const CoH::Feature *&theFeature()
 	return feature;
 }
 
+int percentOf(const Count &count)
+{
+	return count.rolls > 0 ? count.hits * 100 / count.rolls : 0;
+}
+
 void logTally(const char *when)
 {
 	const Tally &counted = tally();
-	CoH::log("Accuracy: %s, %d hits of %d rolls (%d%%)", when, counted.hits, counted.rolls,
-		counted.rolls > 0 ? counted.hits * 100 / counted.rolls : 0);
+	Count all;
+	for (const Count &count : counted.bySize)
+	{
+		all.rolls += count.rolls;
+		all.hits += count.hits;
+	}
+	const Count &infantry = counted.bySize[(int)TargetSize::Infantry];
+	const Count &vehicle = counted.bySize[(int)TargetSize::Vehicle];
+	const Count &aircraft = counted.bySize[(int)TargetSize::Aircraft];
+	const Count &building = counted.bySize[(int)TargetSize::Building];
+	CoH::log("Accuracy: %s, %d hits of %d rolls (%d%%); infantry %d%% of %d, vehicles %d%% of %d, aircraft %d%% of %d, buildings %d%% of %d",
+		when, all.hits, all.rolls, percentOf(all), percentOf(infantry), infantry.rolls, percentOf(vehicle), vehicle.rolls,
+		percentOf(aircraft), aircraft.rolls, percentOf(building), building.rolls);
 }
 
 void onGameStartAfterMap(bool /*loadingSaveGame*/)
