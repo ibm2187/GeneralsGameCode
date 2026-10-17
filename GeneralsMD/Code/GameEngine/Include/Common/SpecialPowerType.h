@@ -127,6 +127,14 @@ enum SpecialPowerType CPP_11(: Int)
 
 	SPECIAL_BATTLESHIP_BOMBARDMENT,
 
+	// CoH hook: General's powers of the CoH features (CoH/Features/GeneralsArsenal), at the end so
+	// saved values don't change. Each is a slot of its own for the special power shortcut bar.
+	SPECIAL_COH_STRIKE_1,
+	SPECIAL_COH_STRIKE_2,
+	SPECIAL_COH_STRIKE_3,
+	SPECIAL_COH_COVER_1,
+	SPECIAL_COH_COVER_2,
+
 	SPECIALPOWER_COUNT,
 	// don't forget to add new strings to SpecialPowerMaskType::s_bitNameList[]
 };

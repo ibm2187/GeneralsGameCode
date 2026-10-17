@@ -7,8 +7,12 @@
 //                              to watch the AIs; default: the skirmish preferences' side
 //     -cohAI easy|medium|hard  the AI opponents, on random sides; default: medium
 //     -cohOpponents <count>    how many AI opponents, up to the map's start positions; default: 1
+//     -cohOpponentSides <a,b>  the opponents' sides in order, such as FactionChinaNukeGeneral,FactionGLA;
+//                              one not given (or not known) is random
 //     -cohQuitAfter <seconds>  quit the game after this much game time, or when it is over, for
 //                              unattended test games
+//
+// Several quick skirmishes may run at once (allowsSeveralGames): each has its own replay and CoH log.
 //
 // The game plays with the local flags, so "-coh Sectors" turns Sectors on. It is set up like the
 // skirmish menu sets up a game (SkirmishGameOptionsMenu), so it records a replay like one.
@@ -82,6 +86,20 @@ SlotState findOpponent(const std::vector<std::string> &arguments)
 	return SLOT_MED_AI;
 }
 
+// The side of opponent 'index' from -cohOpponentSides, or random.
+Int findOpponentSide(const std::vector<std::string> &arguments, Int index)
+{
+	const std::optional<std::string> sides = findOption(arguments, "-cohOpponentSides");
+	if (!sides)
+		return PLAYERTEMPLATE_RANDOM;
+	const std::vector<std::string_view> names = Text::split(*sides, ',');
+	if (index >= (Int)names.size())
+		return PLAYERTEMPLATE_RANDOM;
+	const std::string name(names[index]);
+	const Int found = ThePlayerTemplateStore->getTemplateNumByName(name.c_str());
+	return found >= 0 ? found : PLAYERTEMPLATE_RANDOM;
+}
+
 // A count option such as "-cohOpponents 2"; 'fallback' when it is missing or not a number.
 Int findCount(const std::vector<std::string> &arguments, const char *option, Int fallback)
 {
@@ -124,7 +142,7 @@ void setUpGame(const AsciiString &map, const MapMetaData &mapData, const std::ve
 		GameSlot opponent;
 		opponent.setState(findOpponent(arguments));
 		opponent.setColor(-1);
-		opponent.setPlayerTemplate(PLAYERTEMPLATE_RANDOM);
+		opponent.setPlayerTemplate(findOpponentSide(arguments, i));
 		opponent.setStartPos(firstStart + i);
 		TheSkirmishGameInfo->setSlot(1 + i, opponent);
 	}
@@ -156,6 +174,11 @@ std::optional<std::string> findMapArgument()
 }
 
 } // namespace
+
+bool isAsked()
+{
+	return findMapArgument().has_value();
+}
 
 void prepareIfAsked()
 {

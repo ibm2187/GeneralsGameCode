@@ -115,6 +115,8 @@
 #include "Common/AudioEventInfo.h"
 #include "Common/DynamicAudioEventInfo.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 
 #ifdef DEBUG_OBJECT_ID_EXISTS
 ObjectID TheObjectIDToDebug = INVALID_ID;
@@ -3030,6 +3032,7 @@ void Object::scoreTheKill( const Object *victim )
 		controller->getScoreKeeper()->addObjectDestroyed(victim);
 		controller->addSkillPointsForKill(this, victim);
 		controller->doBountyForKill(this, victim);
+		CoH::Hooks::onKillScored(this, victim); // CoH hook
 	}
 
 	// Now handle experience, if we can gain any

@@ -10,6 +10,7 @@
 
 class AsciiString;
 class GameInfo;
+class UnicodeString;
 class INI;
 class ModuleFactory;
 typedef void (*INIBlockParse)( INI *ini );
@@ -66,11 +67,23 @@ INIBlockParse findIniBlock(const char *token);
 
 } // namespace CoH::Registration
 
+namespace CoH::PackText
+{
+
+// The CoHText blocks of the active packs: text for labels the game's string file lacks, such as the
+// names of a feature's new buttons. Forgotten when the game ends, with the packs.
+void parseBlock(INI *ini);
+const UnicodeString *find(const char *label);
+void clear();
+
+} // namespace CoH::PackText
+
 namespace CoH::QuickSkirmish
 {
 
 // With -cohSkirmish on the command line: at engine init, turns off the intro and the shell map,
 // like -loadsave does; once the shell is up, starts the skirmish against the AI.
+bool isAsked();	///< -cohSkirmish is on the command line
 void prepareIfAsked();
 void startIfAsked();
 

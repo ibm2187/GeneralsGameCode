@@ -28,6 +28,9 @@ void registerModule(NewModuleProc create, NewModuleDataProc createData, ModuleTy
 // An INI block the slice's pack can contain, such as CoHSectors. Packs load with INI_LOAD_CREATE_OVERRIDES.
 void registerIniBlock(const char *token, INIBlockParse parse);
 
+// Whether the game was started with this command-line option (for a slice's test options).
+bool hasCommandLineOption(const char *option);
+
 } // namespace CoH
 
 // The CoH form of ModuleFactory's addModule.

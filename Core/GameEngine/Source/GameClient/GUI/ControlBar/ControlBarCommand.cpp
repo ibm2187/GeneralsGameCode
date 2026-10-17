@@ -59,6 +59,10 @@
 #include "GameClient/GameWindowManager.h"
 #include "GameClient/GadgetPushButton.h"
 
+#if RTS_ZEROHOUR
+#include "Kernel/Hooks.h" // CoH hook
+#endif
+
 
 // PRIVATE DATA ///////////////////////////////////////////////////////////////////////////////////
 static GameWindow *commandWindows[ MAX_COMMANDS_PER_SET ];
@@ -1420,6 +1424,12 @@ CommandAvailability ControlBar::getCommandAvailability( const CommandButton *com
 				GadgetButtonDrawInverseClock( applyToWin, percent, m_buildUpClockColor );
 				return COMMAND_NOT_READY;
 			}
+#if RTS_ZEROHOUR
+			else if( !CoH::Hooks::isSpecialPowerAllowed( obj, command->getSpecialPowerTemplate() ) ) // CoH hook
+			{
+				return COMMAND_RESTRICTED;
+			}
+#endif
 			else if( SpecialAbilityUpdate *spUpdate = obj->findSpecialAbilityUpdate( command->getSpecialPowerTemplate()->getSpecialPowerType() ) )
 			{
 				if( spUpdate && spUpdate->isPowerCurrentlyInUse( command ) )

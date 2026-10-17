@@ -5,6 +5,7 @@
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
+#include "Kernel/Domain/Arguments.h"
 #include "Kernel/Engine/Internal.h"
 #include "Kernel/Kernel.h"
 
@@ -69,6 +70,11 @@ void Registration::addModulesTo(ModuleFactory &factory)
 {
 	for (const ModuleEntry &entry : modules())
 		ModuleFactoryAccess::add(factory, entry);
+}
+
+bool hasCommandLineOption(const char *option)
+{
+	return findOption(Kernel::processArguments(), option).has_value();
 }
 
 INIBlockParse Registration::findIniBlock(const char *token)

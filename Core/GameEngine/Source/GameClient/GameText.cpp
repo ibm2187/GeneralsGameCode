@@ -57,6 +57,10 @@
 #include "Common/FileSystem.h"
 #include "Common/version.h"
 
+#if RTS_ZEROHOUR
+#include "Kernel/Hooks.h" // CoH hook
+#endif
+
 
 
 
@@ -1266,6 +1270,19 @@ UnicodeString GameTextManager::fetch( const Char *label, Bool *exists )
 	{
 		lookUp = (StringLookUp *) bsearch( &key, (void*) m_mapStringLUT, m_mapTextCount, sizeof(StringLookUp), compareLUT );
 	}
+
+#if RTS_ZEROHOUR
+	if( lookUp == nullptr )
+	{
+		const UnicodeString *packText = CoH::Hooks::findText( label ); // CoH hook: text a pack adds
+		if( packText )
+		{
+			if( exists )
+				*exists = TRUE;
+			return *packText;
+		}
+	}
+#endif
 
 	if( lookUp == nullptr )
 	{

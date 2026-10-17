@@ -1554,6 +1554,12 @@ Bool ActionManager::canDoSpecialPowerAtLocation( const Object *obj, const Coord3
 			case LAZR_SPECIAL_PARTICLE_UPLINK_CANNON:
 			case SPECIAL_CLEANUP_AREA:
 			case SPECIAL_BATTLESHIP_BOMBARDMENT:
+			// CoH hook: the General's powers the CoH features add (SpecialPowerType.h) aim like the others
+			case SPECIAL_COH_STRIKE_1:
+			case SPECIAL_COH_STRIKE_2:
+			case SPECIAL_COH_STRIKE_3:
+			case SPECIAL_COH_COVER_1:
+			case SPECIAL_COH_COVER_2:
 				//Don't allow "damaging" special powers in shrouded areas, but Fogged are okay.
 				return ThePartitionManager->getShroudStatusForPlayer( obj->getControllingPlayer()->getPlayerIndex(), loc ) != CELLSHROUD_SHROUDED;
 

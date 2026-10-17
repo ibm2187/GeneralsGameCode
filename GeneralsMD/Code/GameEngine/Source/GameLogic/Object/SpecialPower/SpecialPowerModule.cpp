@@ -54,6 +54,8 @@
 #include "GameClient/InGameUI.h"
 #include "GameClient/ControlBar.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 
 
 //-------------------------------------------------------------------------------------------------
@@ -505,6 +507,8 @@ void SpecialPowerModule::triggerSpecialPower( const Coord3D *location )
 
 	// we won't be able to use the power for X number of frames now
 	startPowerRecharge();
+
+	CoH::Hooks::onSpecialPowerTriggered( getObject(), getSpecialPowerTemplate(), location ); // CoH hook
 }
 
 //-------------------------------------------------------------------------------------------------

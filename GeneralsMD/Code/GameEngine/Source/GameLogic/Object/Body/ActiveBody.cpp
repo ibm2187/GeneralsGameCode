@@ -60,6 +60,8 @@
 #include "GameLogic/Module/DamageModule.h"
 #include "GameLogic/Module/DieModule.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 
 
 #define YELLOW_DAMAGE_PERCENT (0.25f)
@@ -567,6 +569,7 @@ void ActiveBody::attemptDamage( DamageInfo *damageInfo )
 		// record the actual damage done from this, and when it happened
 		damageInfo->out.m_actualDamageDealt = amount;
 		damageInfo->out.m_actualDamageClipped = m_prevHealth - m_currentHealth;
+		CoH::Hooks::onDamageDealt(obj, damageInfo); // CoH hook
 
 		// then copy the whole DamageInfo struct for easy lookup
 		// (object pointer loses scope as soon as atteptdamage's caller ends)

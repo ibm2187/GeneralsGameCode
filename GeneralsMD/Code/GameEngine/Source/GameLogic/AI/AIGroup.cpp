@@ -56,6 +56,8 @@
 #include "GameLogic/Module/SpecialPowerUpdateModule.h"
 #include "GameLogic/ObjectIter.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 
 /**
  * NOTE: Only AI objects (ie: having an AIUpdate module) can be in
@@ -2697,6 +2699,9 @@ void AIGroup::groupDoSpecialPower( UnsignedInt specialPowerID, UnsignedInt comma
 					continue;// Nice try, smacktard.
 			}
 
+			if( !CoH::Hooks::isSpecialPowerAllowed( object, spTemplate ) ) // CoH hook: a feature may refuse it
+				continue;
+
 			SpecialPowerModuleInterface *mod = object->getSpecialPowerModule( spTemplate );
 			if( mod )
 			{
@@ -2745,6 +2750,9 @@ void AIGroup::groupDoSpecialPowerAtLocation( UnsignedInt specialPowerID, const C
 					continue;// Nice try, smacktard.
 			}
 
+			if( !CoH::Hooks::isSpecialPowerAllowed( object, spTemplate ) ) // CoH hook: a feature may refuse it
+				continue;
+
 			SpecialPowerModuleInterface *mod = object->getSpecialPowerModule( spTemplate );
 			if( mod )
 			{
@@ -2784,6 +2792,9 @@ void AIGroup::groupDoSpecialPowerAtObject( UnsignedInt specialPowerID, Object *t
 				if( !object->getControllingPlayer()->hasScience(spTemplate->getRequiredScience()) )
 					continue;// Nice try, smacktard.
 			}
+
+			if( !CoH::Hooks::isSpecialPowerAllowed( object, spTemplate ) ) // CoH hook: a feature may refuse it
+				continue;
 
 			SpecialPowerModuleInterface *mod = object->getSpecialPowerModule( spTemplate );
 			if( mod )

@@ -407,6 +407,10 @@ void ControlBar::populateBuildTooltipLayout( const CommandButton *commandButton,
 
 		name = TheGameText->fetch(commandButton->getTextLabel().str());
 
+#if RTS_ZEROHOUR
+		CoH::Hooks::onCommandTooltip( commandButton, descrip ); // CoH hook
+#endif
+
 		if( thingTemplate && commandButton->getCommandType() != GUI_COMMAND_PURCHASE_SCIENCE )
 		{
 			//We are either looking at building a unit or a structure that may or may not have any

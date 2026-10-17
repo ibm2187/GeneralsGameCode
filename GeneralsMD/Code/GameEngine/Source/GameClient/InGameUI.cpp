@@ -2029,7 +2029,13 @@ void InGameUI::update()
 //
 //	}  // end if
 	Player* moneyPlayer = TheControlBar->getCurrentlyViewedPlayer();
-	if( moneyPlayer)
+	if( CoH::Hooks::onMoneyDisplay( moneyPlayer, moneyWin ) ) // CoH hook: a feature writes the money text
+	{
+		lastMoney = ~0u;
+		moneyWin->winHide(FALSE);
+		powerWin->winHide(FALSE);
+	}
+	else if( moneyPlayer)
 	{
 		Money *money = moneyPlayer->getMoney();
 		Bool wantShowIncome = TheGlobalData->m_showMoneyPerMinute;

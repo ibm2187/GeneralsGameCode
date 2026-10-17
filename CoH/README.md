@@ -13,6 +13,7 @@ The original code only calls the hook hub, from the places listed in [Hooks in o
 | Feature | Flag | Task | Status |
 |---|---|---|---|
 | [Sectors](Features/Sectors/README.md) | `Sectors` | [01](Tasks/01-Sectors.md) | supplies only from capturable sectors; skirmish AI plays for them |
+| [GeneralsArsenal](Features/GeneralsArsenal/README.md) | `GeneralsArsenal` | [02](Tasks/02-GeneralsArsenal.md) | jets and super weapons are General's powers paid with command points earned in combat; helicopters at the Airfield; skirmish AI uses them |
 
 Every feature has a flag. With every flag off the game plays exactly like `main`, replays included.
 
@@ -72,7 +73,7 @@ The script does four things:
   CoH\scripts\skirmish.ps1 -Flags Sectors,Accuracy -Map 'Tournament Island' -AI hard -Side FactionGLA -Windowed
   ```
   The script uses the Kernel's command-line options `-cohSkirmish [map]`, `-cohSide <PlayerTemplate>` and `-cohAI easy|medium|hard`. They also work with `-headless`.
-- **Unattended AI games:** `-cohSide Observer -cohOpponents 2` watches two AIs, `-cohQuitAfter <seconds>` quits after that much game time or when the game is over, and `-cohLog` makes features write what happens to `CoH.log` in the user data folder (the profile build has no debug log). Run them from the game folder, headless, so no window opens:
+- **Unattended AI games:** `-cohSide Observer -cohOpponents 2` watches two AIs, `-cohOpponentSides FactionChinaNukeGeneral,FactionGLA` picks their sides (one not given is random), `-cohQuitAfter <seconds>` quits after that much game time or when the game is over, several quick skirmishes may run at once (each writes its own `CoH_InstanceNN.log` and replay), and `-cohLog` makes features write what happens to `CoH.log` in the user data folder (the profile build has no debug log). Run them from the game folder, headless, so no window opens:
   ```powershell
   generalszh.exe -useCwd -headless -coh Sectors -cohSkirmish "Tournament Desert" -cohSide Observer -cohOpponents 2 -cohAI hard -cohLog -cohQuitAfter 600
   ```
@@ -106,7 +107,9 @@ The script does four things:
 
    COH_FEATURE(Sectors, init, reset)
    ```
-4. Put the INI pack in `Data/INI/`. It loads after the base INI and before `map.ini`, only while the flag is on, and it is unloaded between games. It loads like a `map.ini` does (`INI_LOAD_CREATE_OVERRIDES`), so it can change and add objects, command sets, weapons and the other blocks a `map.ini` can.
+4. Put the INI pack in `Data/INI/`. It loads after the base INI and before `map.ini`, only while the flag is on, and it is unloaded between games. It loads like a `map.ini` does (`INI_LOAD_CREATE_OVERRIDES`), so it can change and add objects, command sets, weapons and the other blocks a `map.ini` can. Its files load in name order, and a block must come after what it names (an OCL before the module that uses it). A new object lists its modules inside `AddModule`, and a `Locomotor` line goes after its AI module.
+5. Text for labels the game's string file lacks (a new button's name and tooltip) goes in a `CoHText` block of the pack, one `Text = <label> "<text>"` line each (`
+` starts a new line). The game's own text wins; pack text is forgotten when the game ends.
 
 A subscriber only runs while its feature is on.
 
@@ -126,6 +129,12 @@ These are the points of `Kernel/Hooks.h` that features subscribe to:
 | `inGameUIPostDraw()` | Draw over the 3D view (`TheDisplay`, screen pixels), under the windows. Not in `-headless` games. |
 | `radarDraw(x, y, width, height)` | Draw on the minimap: the area its map is drawn in, over the terrain and shroud, under the icons. |
 | `moneyTooltip(player, description)` | The money tooltip is being made for the viewed player; add to its text. |
+| `killScored(killer, victim)` | A kill of an enemy is credited (`Object::scoreTheKill`, as skill points are). |
+| `damageDealt(victim, damage)` | An object lost health; `damage->out.m_actualDamageClipped` is how much, `in.m_sourceID` who did it. |
+| `specialPowerUse(source, power)` | A `Veto`: may this object use this special power now? Asked when a power is used (not when a script forces it) and for its button, which a no greys out. |
+| `specialPowerTriggered(source, power, target)` | A special power fired and its recharge started; the target may be null. |
+| `commandTooltip(button, description)` | A command button's tooltip is being made; add to its text. |
+| `moneyDisplay(player, text)` | The money text is being made ("$ 1200"); add to it. With a subscriber on, the hub writes it every frame (the per-minute income display is replaced). |
 
 A `Veto` is a question with a yes/no answer (`subscribe` a function returning `bool`); an `Event` only tells. `CoH::log(...)` (`Kernel/Log.h`) writes to `CoH.log` with `-cohLog`.
 
@@ -141,6 +150,7 @@ Every edit to an original file is a minimal call marked `// CoH hook` (`# CoH ho
 |---|---|---|---|
 | `CMakeLists.txt` | after `Tests` | `add_subdirectory(CoH)` | Builds the CoH target after the targets it adds to. |
 | `GeneralsMD/Code/GameEngine/CMakeLists.txt` | `z_gameengine` | links `zi_coh` | Compiles CoH into the engine. |
+| `Core/.../Common/CommandLine.cpp` | `CommandLine::parseCommandLineForStartup` | `allowsSeveralGames()` | With `-cohSkirmish`, the game may run beside others (multi-instance), as replay playback may. |
 | `GeneralsMD/.../Common/GameEngine.cpp` | `GameEngine::init` | `onEngineInit()` | Registers the features and reads the local flags, before the module factory starts. |
 | `GeneralsMD/.../GameClient/GameClient.cpp` | `GameClient::update` | `onShellShown()` | Starts `-cohSkirmish` once the intro is over and the shell is up, where the engine starts `-loadsave`. |
 | `GeneralsMD/.../Common/Thing/ModuleFactory.cpp` | `ModuleFactory::init` | `onModuleFactoryInit(*this)` | Adds the features' modules. |
@@ -160,6 +170,17 @@ Every edit to an original file is a minimal call marked `// CoH hook` (`# CoH ho
 | `Core/GameEngineDevice/.../W3DRadar.cpp` | `W3DRadar::draw` | `onRadarDraw(x, y, width, height)` | Drawing on the minimap, after the shroud. |
 | `Core/.../GUICallbacks/ControlBarPopupDescription.cpp` | `ControlBar::populateBuildTooltipLayout` | `onMoneyTooltip(player, descrip)` | The money tooltip's text. |
 | `GeneralsMD/Code/GameEngineDevice/CMakeLists.txt` | `z_gameenginedevice` | links `zi_coh_hooks` | The hub's header for the radar hook (CoH compiles into `z_gameengine` only). |
+| `GeneralsMD/.../GameLogic/Object/Object.cpp` | `Object::scoreTheKill` | `onKillScored(this, victim)` | A kill of an enemy is credited, after the skill points. |
+| `GeneralsMD/.../GameLogic/Object/Body/ActiveBody.cpp` | `ActiveBody::attemptDamage` | `onDamageDealt(obj, damageInfo)` | Damage taken, once the actual damage is known. |
+| `GeneralsMD/.../Common/RTS/SpecialPower.cpp` | `SpecialPowerStore::canUseSpecialPower` | `isSpecialPowerAllowed(obj, power)` | The `specialPowerUse` veto, after the science check; a no means the power can't be used. |
+| `GeneralsMD/.../GameLogic/Object/SpecialPower/SpecialPowerModule.cpp` | `SpecialPowerModule::triggerSpecialPower` | `onSpecialPowerTriggered(object, power, location)` | A power fired, after its recharge started. |
+| `Core/.../GUI/ControlBar/ControlBarCommand.cpp` | `ControlBar::getCommandAvailability` | `isSpecialPowerAllowed(obj, power)` | A power's button is greyed (`COMMAND_RESTRICTED`) when the veto says no and it isn't recharging. |
+| `Core/.../GUICallbacks/ControlBarPopupDescription.cpp` | `ControlBar::populateBuildTooltipLayout` | `onCommandTooltip(commandButton, descrip)` | A command button's tooltip text. |
+| `GeneralsMD/.../GameClient/InGameUI.cpp` | `InGameUI::update` | `onMoneyDisplay(moneyPlayer, moneyWin)` | When it returns true, a feature wrote the money text and the original money text is skipped. |
+| `Core/.../GameClient/GameText.cpp` | `GameTextManager::fetch` | `findText(label)` | A label the string file lacks is looked up in the active packs' `CoHText`. |
+| `GeneralsMD/.../Include/Common/SpecialPowerType.h`, `Source/Common/RTS/SpecialPower.cpp` | `SpecialPowerType`, its names | `SPECIAL_COH_STRIKE_1..3`, `SPECIAL_COH_COVER_1..2` | Special power types for the features' new General's powers, at the end of the enum so saved values don't change; unused with every flag off. |
+| `GeneralsMD/.../GameLogic/AI/AIGroup.cpp` | `AIGroup::groupDoSpecialPower`, `...AtLocation`, `...AtObject` | `isSpecialPowerAllowed(object, power)` | A player's power order asks the `specialPowerUse` veto in game logic too (orders don't go through `canUseSpecialPower`). |
+| `GeneralsMD/.../Common/RTS/ActionManager.cpp` | `ActionManager::canDoSpecialPowerAtLocation` | the `SPECIAL_COH_*` cases | The new types aim like the other strike powers (not into black shroud); without them a player's cursor shows "can't" for them. |
 
 ## Fixes in original code
 
@@ -168,4 +189,5 @@ Each is marked `// CoH fix` and wrapped in `#if RTS_ZEROHOUR` in `Core/`. With n
 | File | Where | Fix |
 |---|---|---|
 | `Core/.../GUI/ControlBar/ControlBar.cpp` | `ControlBar::newCommandSetOverride` | A second override of a command set (a second pack, or a map.ini after a pack) copied the base set and was chained in front of the first, so only the first override counted. It now builds on the last override and goes after it, as `ThingFactory::newOverride` does for objects. Packs that override the same command set add up, button by button. |
+| `GeneralsMD/.../Common/RTS/SpecialPower.cpp` | `SpecialPowerStore::reset` | Special powers a pack (or a map.ini) adds took new IDs every game, since the counter was never wound back, so the same power had another ID in a replay or on another machine. The counter now restarts after the base powers, as `ThingFactory::reset` already does for object templates. |
 | `Core/.../GUI/ControlBar/ControlBar.cpp` | `CommandSet::parseCommandButton` | In an override file, `N = None` empties slot N, so a pack can take a button out without restating the set. |

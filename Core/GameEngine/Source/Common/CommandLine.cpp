@@ -36,6 +36,10 @@
 #include "GameClient/GameText.h"
 #include "GameNetwork/NetworkDefs.h"
 
+#if RTS_ZEROHOUR
+#include "Kernel/Hooks.h" // CoH hook
+#endif
+
 
 
 
@@ -1436,6 +1440,11 @@ void CommandLine::parseCommandLineForStartup()
 
 	parseCommandLine(paramsForStartup, ARRAY_SIZE(paramsForStartup),
 		TheWritableGlobalData->m_commandLineData.m_parsedArguments);
+
+#if RTS_ZEROHOUR
+	if (CoH::Hooks::allowsSeveralGames()) // CoH hook: quick test skirmishes may run side by side
+		rts::ClientInstance::setMultiInstance(TRUE);
+#endif
 
 	if (!rts::WorkingDirectory::hasSetWorkingDirectory())
 		rts::WorkingDirectory::setExecutableWorkingDirectory();

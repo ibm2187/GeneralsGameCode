@@ -37,6 +37,8 @@
 #include "GameLogic/Object.h"
 #include "Common/BitFlagsIO.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 
 // GLOBAL /////////////////////////////////////////////////////////////////////////////////////////
 SpecialPowerStore *TheSpecialPowerStore = nullptr;
@@ -128,6 +130,13 @@ const char* const SpecialPowerMaskType::s_bitNameList[] =
 	"SUPW_SPECIAL_NEUTRON_MISSILE",
 
 	"SPECIAL_BATTLESHIP_BOMBARDMENT",
+
+	// CoH hook: see SpecialPowerType.h
+	"SPECIAL_COH_STRIKE_1",
+	"SPECIAL_COH_STRIKE_2",
+	"SPECIAL_COH_STRIKE_3",
+	"SPECIAL_COH_COVER_1",
+	"SPECIAL_COH_COVER_2",
 
 	nullptr
 };
@@ -351,6 +360,9 @@ Bool SpecialPowerStore::canUseSpecialPower( Object *obj, const SpecialPowerTempl
 
 	// I THINK THIS IS WHERE WE BAIL OUT IF A DIFFERENT CONYARD IS ALREADY CHARGING THIS SPECIAL RIGHT NOW //LORENZEN
 
+	if( !CoH::Hooks::isSpecialPowerAllowed( obj, specialPowerTemplate ) ) // CoH hook
+		return FALSE;
+
 
 	// all is well
 	return TRUE;
@@ -375,4 +387,12 @@ void SpecialPowerStore::reset()
 			++it;
 		}
 	}
+
+	// CoH fix: new special powers a pack or map.ini added are gone now, so their IDs are free again.
+	// Without this the IDs grow from game to game, and the same power has another ID in a replay or
+	// on another machine, as ThingFactory::reset already avoids for object templates.
+	UnsignedInt highestID = 0;
+	for (size_t i = 0; i < m_specialPowerTemplates.size(); ++i)
+		highestID = max(highestID, m_specialPowerTemplates[i]->getID());
+	m_nextSpecialPowerID = highestID;
 }

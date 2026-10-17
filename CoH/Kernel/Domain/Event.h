@@ -31,6 +31,17 @@ public:
 		}
 	}
 
+	// A feature that is on listens, so the original code may hand the job to the hub.
+	bool hasActiveSubscriber() const
+	{
+		for (const Subscriber &subscriber : m_subscribers)
+		{
+			if (subscriber.owner->isActive())
+				return true;
+		}
+		return false;
+	}
+
 private:
 	struct Subscriber
 	{
