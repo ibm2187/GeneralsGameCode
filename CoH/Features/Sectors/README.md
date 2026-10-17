@@ -97,12 +97,12 @@ It also relies on the CommandSet override fix in `ControlBar` (`// CoH fix`), so
 - Headless AI-vs-AI game, from the game folder:
   `generalszh.exe -useCwd -headless -coh Sectors -cohSkirmish "Tournament Desert" -cohSide Observer -cohOpponents 2 -cohAI hard -cohLog -cohQuitAfter 600`.
   `CoH.log` in the user data folder lists the points, every change of hands, and once a minute each sector's state, each player's income and each AI's money, buildings, units and targets.
-- The game's replay (`Replays\00000000.rep`) plays back with Sectors on (the flag is in its header): `CoH\scripts\replaycheck.ps1 -Replays 00000000.rep` checks that sector play is deterministic.
+- The game's replay (`Replays\00000000.rep`) plays back with Sectors on (the flag is in its header): `CoH\Scripts\replaycheck.ps1 -Replays 00000000.rep` checks that sector play is deterministic.
 
 ## Engine notes
 
 - `InGameUI::postDraw` runs inside `TheDisplay->beginBatch()` (`W3DInGameUI::draw`), so thousands of `drawLine` calls cost one render as long as the texture and mode don't change. The radar hook runs in the same batch.
 - `Display::drawLine` is always a screen-space rectangle (`Render2DClass::Add_Line`); its two-color form shades along the line, not across it. Many parallel lines read as stripes, and rectangles fanned round a curve overlap and poke out. `Render2DClass::Add_Quad_HGradient` shades any four corners, which is what the hub's `drawGradientQuad` exposes.
 - Drawing over the 3D view has no depth test. Hills hide lines because `GroundOverlay` walks each point's sight line to the camera over `getGroundHeight`. The camera is found where the pick rays of two screen corners meet (`View::screenToWorldAtZ` at two heights), since `View` has no camera position getter. Units and buildings don't hide lines.
-- Cost, measured with `-cohLog` (logged every 30 s): about 0.13 ms a frame for the ground drawing on Mountain Guns; the sector borders are made in about 1 ms and the territory outlines in under 1 ms when a sector changes hands.
+- Cost, measured with `-cohLog` (logged every 30 s): about 0.13 ms a frame for the ground drawing on Mountain Guns (16 sectors, hilly) and 0.05 ms on Dark Night (12 sectors, the biggest skirmish map); the sector borders are made in about 1 ms and the territory outlines in under 1 ms when a sector changes hands.
 - Points over water: `TerrainLogic::isUnderwater` gives the water height; lines are lifted to it, or the overlay draws them at the sea bed.

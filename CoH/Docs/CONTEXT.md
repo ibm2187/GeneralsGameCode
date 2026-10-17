@@ -50,7 +50,7 @@ Worked examples in Sectors, to copy the shape of:
 - an INI block: `Engine/Config`
 - AI script rewriting: `Engine/AIScripts.cpp`
 - AI build list control: `Engine/AIBuildList.cpp`
-- ground and radar drawing: `UI/GroundOverlay`, `UI/RadarOverlay`
+- ground and radar drawing: `UI/GroundOverlay`, `UI/RadarOverlay`; geometry made once and culled in chunks, lines hidden behind hills: `UI/BorderGeometry`; smooth lines and outlines as pure code: `Domain/BorderLines`
 - a tooltip hook: `UI/MoneyTooltip`
 - a generated pack: `Data/make_pack.py`
 
@@ -125,6 +125,7 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Tooltips | `C/GameClient/GUI/GUICallbacks/ControlBarPopupDescription.cpp`, `ControlBar::populateBuildTooltipLayout` 244 |
 | General's power screen | `C/GameClient/GUI/GUICallbacks/GeneralsExpPoints.cpp`; `ControlBar::populatePurchaseScience` (`ControlBar.cpp` 178) |
 | World overlay, floating text | `Z/GameClient/InGameUI.cpp` [6.4k]: `postDraw` 3785, `addFloatingText` 5366 |
+| 2D drawing | `TheDisplay` (`Core/GameEngine/Include/GameClient/Display.h`): lines, rects, images, batched inside `W3DInGameUI::draw`. Gradient-filled quads through the hub's `drawGradientQuad` (`W3DDisplay::drawGradientQuad`). No depth test: Sectors' `UI/GroundOverlay` hides lines behind hills itself |
 | Unit icons and bars | `Z/GameClient/Drawable.cpp` [5.7k]: grep `drawHealthBar`, `drawVeterancy`, `drawEmoticon` |
 | Radar | `Core/GameEngine/Include/Common/Radar.h`, `Core/GameEngineDevice/Source/W3DDevice/Common/System/W3DRadar.cpp` |
 | Voice warnings | `Z/GameClient/Eva.cpp`, `Eva::setShouldPlay` 372 |
