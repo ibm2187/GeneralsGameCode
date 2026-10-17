@@ -17,6 +17,7 @@ The original code only calls the hook hub, from the places listed in [Hooks in o
 |---|---|---|---|
 | [Sectors](Features/Sectors/README.md) | `Sectors` | [01](Docs/Tasks/01-Sectors.md) | supplies only from capturable sectors; skirmish AI plays for them |
 | [GeneralsArsenal](Features/GeneralsArsenal/README.md) | `GeneralsArsenal` | [02](Docs/Tasks/02-GeneralsArsenal.md) | jets and super weapons are General's powers paid with command points earned in combat; helicopters at the Airfield; skirmish AI uses them |
+| [Upkeep](Features/Upkeep/README.md) | `Upkeep` | [03](Docs/Tasks/03-Upkeep.md) | units take population under a cap that grows with buildings and sectors; upkeep takes a growing share of income; skirmish AI keeps its upkeep low (needs Sectors) |
 
 Every feature has a flag. With every flag off the game plays exactly like `main`, replays included.
 
@@ -184,6 +185,8 @@ Every edit to an original file is a minimal call marked `// CoH hook` (`# CoH ho
 | `GeneralsMD/.../Include/Common/SpecialPowerType.h`, `Source/Common/RTS/SpecialPower.cpp` | `SpecialPowerType`, its names | `SPECIAL_COH_STRIKE_1..3`, `SPECIAL_COH_COVER_1..2` | Special power types for the features' new General's powers, at the end of the enum so saved values don't change; unused with every flag off. |
 | `GeneralsMD/.../GameLogic/AI/AIGroup.cpp` | `AIGroup::groupDoSpecialPower`, `...AtLocation`, `...AtObject` | `isSpecialPowerAllowed(object, power)` | A player's power order asks the `specialPowerUse` veto in game logic too (orders don't go through `canUseSpecialPower`). |
 | `GeneralsMD/.../Common/RTS/ActionManager.cpp` | `ActionManager::canDoSpecialPowerAtLocation` | the `SPECIAL_COH_*` cases | The new types aim like the other strike powers (not into black shroud); without them a player's cursor shows "can't" for them. |
+| `GeneralsMD/.../Common/RTS/Player.cpp` | `Player::canBuildMoreOfType` | `isProductionAllowed(this, whatToBuild)` | The `production` veto, first; a no is "maxed out" (`CANMAKE_MAXED_OUT_FOR_PLAYER`) for the buttons, the queue and the AI's factory search. |
+| `GeneralsMD/.../Common/RTS/Money.cpp` | `Money::deposit` | `onIncome(player, amountToDeposit)` | Tracked income only (not starting cash, sales, refunds); a feature may lower the amount before it is deposited and counted. |
 
 ## Fixes in original code
 

@@ -49,6 +49,8 @@ void onKillScored(Object *killer, const Object *victim);	///< Object::scoreTheKi
 void onDamageDealt(Object *victim, const DamageInfo *damage);	///< ActiveBody::attemptDamage: health was taken
 bool isSpecialPowerAllowed(const Object *source, const SpecialPowerTemplate *power);	///< SpecialPowerStore::canUseSpecialPower, ControlBar
 void onSpecialPowerTriggered(Object *source, const SpecialPowerTemplate *power, const Coord3D *target);	///< SpecialPowerModule::triggerSpecialPower
+bool isProductionAllowed(const Player *player, const ThingTemplate *build);	///< Player::canBuildMoreOfType
+void onIncome(const Player *player, unsigned int &amount);	///< Money::deposit: income (not starting cash, sales or refunds)
 
 void onInGameUIPostDraw();	///< InGameUI::postDraw: over the 3D view, under the windows
 void onRadarDraw(int x, int y, int width, int height);	///< W3DRadar::draw: over the map and shroud, under the icons
@@ -81,6 +83,14 @@ Event<Object *, const DamageInfo *> &damageDealt();	///< the victim and the dama
 // button, which a no greys out. Powers no feature knows are always allowed.
 Veto<const Object *, const SpecialPowerTemplate *> &specialPowerUse();
 Event<Object *, const SpecialPowerTemplate *, const Coord3D *> &specialPowerTriggered();	///< fired; its recharge has started. The target may be null.
+
+// May 'player' make one more 'build' (a unit or a structure)? Asked for the build buttons, which a no
+// greys, when an order is queued, and by the AI looking for a factory, so a no makes it pick another.
+Veto<const Player *, const ThingTemplate *> &production();
+
+// Income arrives for the player: gathered supplies, sector income, oil derricks, hackers. A subscriber
+// may lower the amount; what is left is deposited and counted as income.
+Event<const Player *, unsigned int &> &income();
 
 // ---- Client: drawing and text. These don't run in -headless games. ------------------------------
 

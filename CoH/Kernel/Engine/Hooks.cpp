@@ -42,6 +42,12 @@ Event<Object *, const SpecialPowerTemplate *, const Coord3D *> &specialPowerTrig
 	static Event<Object *, const SpecialPowerTemplate *, const Coord3D *> event;
 	return event;
 }
+Veto<const Player *, const ThingTemplate *> &production()
+{
+	static Veto<const Player *, const ThingTemplate *> veto;
+	return veto;
+}
+Event<const Player *, unsigned int &> &income() { static Event<const Player *, unsigned int &> event; return event; }
 
 Event<> &inGameUIPostDraw() { static Event<> event; return event; }
 Event<int, int, int, int> &radarDraw() { static Event<int, int, int, int> event; return event; }
@@ -152,6 +158,17 @@ bool isSpecialPowerAllowed(const Object *source, const SpecialPowerTemplate *pow
 void onSpecialPowerTriggered(Object *source, const SpecialPowerTemplate *power, const Coord3D *target)
 {
 	specialPowerTriggered().raise(source, power, target);
+}
+
+bool isProductionAllowed(const Player *player, const ThingTemplate *build)
+{
+	return production().allows(player, build);
+}
+
+void onIncome(const Player *player, unsigned int &amount)
+{
+	if (player != nullptr)
+		income().raise(player, amount);
 }
 
 // ---- Client ------------------------------------------------------------------------------------

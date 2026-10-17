@@ -53,6 +53,8 @@
 #include "Common/Xfer.h"
 #include "GameLogic/GameLogic.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 // ------------------------------------------------------------------------------------------------
 UnsignedInt Money::withdraw(UnsignedInt amountToWithdraw, Bool playSound)
 {
@@ -91,6 +93,9 @@ void Money::deposit(UnsignedInt amountToDeposit, Bool playSound, Bool trackIncom
 
 	if (trackIncome)
 	{
+		CoH::Hooks::onIncome(ThePlayerList->getNthPlayer(m_playerIndex), amountToDeposit); // CoH hook
+		if (amountToDeposit == 0)
+			return;
 		m_incomeBuckets[m_currentBucket] += amountToDeposit;
 		m_cashPerMinute += amountToDeposit;
 	}

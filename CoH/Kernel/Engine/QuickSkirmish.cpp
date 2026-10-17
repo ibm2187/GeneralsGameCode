@@ -9,6 +9,7 @@
 //     -cohOpponents <count>    how many AI opponents, up to the map's start positions; default: 1
 //     -cohOpponentSides <a,b>  the opponents' sides in order, such as FactionChinaNukeGeneral,FactionGLA;
 //                              one not given (or not known) is random
+//     -cohCash <amount>        each player's starting money; default: the skirmish preferences'
 //     -cohQuitAfter <seconds>  quit the game after this much game time, or when it is over, for
 //                              unattended test games
 //
@@ -148,7 +149,11 @@ void setUpGame(const AsciiString &map, const MapMetaData &mapData, const std::ve
 	}
 
 	TheSkirmishGameInfo->setSeed(GetTickCount());
-	TheSkirmishGameInfo->setStartingCash(prefs.getStartingCash());
+	Money startingCash = prefs.getStartingCash();
+	const Int cash = findCount(arguments, "-cohCash", 0);
+	if (cash > 0)
+		startingCash.setStartingCash((UnsignedInt)cash);
+	TheSkirmishGameInfo->setStartingCash(startingCash);
 	TheSkirmishGameInfo->setSuperweaponRestriction(0);
 	TheSkirmishGameInfo->setMap(map);
 	TheSkirmishGameInfo->setMapCRC(mapData.m_CRC);

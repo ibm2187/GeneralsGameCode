@@ -101,6 +101,8 @@
 
 #include "GameNetwork/GameInfo.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 
 //Grey for neutral.
 #define NEUTRAL_PLAYER_COLOR 0xffffffff
@@ -2916,6 +2918,9 @@ static void countExisting( Object *obj, void *userData )
 // Make sure that building another of this unit/structure/object won't exceed MaxSimultaneousOfType()
 Bool Player::canBuildMoreOfType( const ThingTemplate *whatToBuild ) const
 {
+  if ( !CoH::Hooks::isProductionAllowed( this, whatToBuild ) ) // CoH hook
+    return false;
+
   // make sure we're not maxed out for this type of unit.
   UnsignedInt maxSimultaneousOfType = whatToBuild->getMaxSimultaneousOfType();
   if (maxSimultaneousOfType != 0)

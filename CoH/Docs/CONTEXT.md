@@ -40,6 +40,7 @@ Don't read other slices' `Engine/` or `Domain/` code to learn the Kernel. Their 
 | `CoH/Kernel/Engine/` | packs, game options sync, the save block, quick skirmish, `CoH.log` |
 | `CoH/Features/Sectors/` | territory economy: capture, income, the cut-off graph, build rule, AI expansion, ground, radar and tooltip UI |
 | `CoH/Features/GeneralsArsenal/` | command points, sortie and air cover powers, super weapons with a warning, AI power use; its README has *Engine notes* on special powers |
+| `CoH/Features/Upkeep/` | population, its cap, upkeep on income, the AI's army limit |
 | `CoH/Docs/CONTEXT.md` | this map |
 | `CoH/Scripts/` | `install.ps1` (build and install), `skirmish.ps1` (test game), `replaycheck.ps1` (determinism) |
 | `CoH/Tools/retail.py` | extracts the retail data to `build/retail/`; `read_big` and `read_csf` for packs that generate INI |
@@ -109,6 +110,8 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Command points (earning) | hub `killScored` (`Object::scoreTheKill`) and `damageDealt` (`ActiveBody::attemptDamage`); GeneralsArsenal `Engine/Earning.cpp` |
 | Sorties | INI only: OCL `DeliverPayload` with a jet copy carrying `DeliverPayloadAIUpdate`; GeneralsArsenal `Data/make_pack.py` |
 | Air cover | GeneralsArsenal `AirCoverZoneUpdate` (jets with a plain `AIUpdateInterface`; `JetAIUpdate` starts on the runway) |
+| Production limits (population, max of a type) | hub `production` veto in `Player::canBuildMoreOfType`, which `BuildAssistant::canMakeUnit` (buttons, `ProductionUpdate::queueCreateUnit`), `Player::canBuild` and `isPossibleToMakeUnit` (the AI's `findFactory`) all ask; Upkeep `Engine/Rules.cpp` |
+| Income | hub `income` in `Money::deposit` (tracked income only); Sectors pays with `deposit(amount, FALSE)`; Upkeep takes its share there |
 | Super weapon warning | GeneralsArsenal `StrikeCountdownUpdate` (marker, then a hidden building copy at `TerrainLogic::findClosestEdgePoint` fires its power) and `UI/MarkerOverlay.cpp` |
 | Cost and build time | `Core/GameEngine/Source/Common/Thing/ThingTemplate.cpp`: `calcCostToBuild` 1567, `calcTimeToBuild` 1586 |
 | Modules | `Z/Common/Thing/ModuleFactory.cpp`, `ModuleFactory::init` 321; features use `COH_ADD_MODULE` |
@@ -179,3 +182,4 @@ Its hooks table (`git show ibm-engine:IbmEngine/README.md`, *Hooks in original c
 - `Object::crc` doesn't include modules, and `Player::computeSuperweaponTarget` draws synced random numbers (never call it just to log).
 - Upgraded command sets (`CommandSetUpgrade`, such as China's airfield after the mines upgrade) need a pack's changes too.
 - Several `-cohSkirmish` games can run at once (own `CoH_InstanceNN.log`); replacing the installed exe needs every game closed.
+- A quick skirmish takes its starting money from the skirmish preferences (the user's is $50,000): pass `-cohCash 10000` for economy tests. `-win` without `-xres 1600 -yres 900` makes a window taller than the screen.

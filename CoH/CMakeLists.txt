@@ -35,6 +35,7 @@ coh_add_slice(Kernel)
 
 coh_add_feature(Sectors)
 coh_add_feature(GeneralsArsenal)
+coh_add_feature(Upkeep)
 
 # ---- The list of features the Kernel registers ----
 
