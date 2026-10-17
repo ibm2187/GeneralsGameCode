@@ -139,9 +139,13 @@ bool joinsOpenSquad(Object *factory, Object *unit)
 	const auto open = openSquads().find(factory->getID());
 	if (open == openSquads().end())
 		return false;
-	const bool joined = book().join(open->second, (MemberId)unit->getID(), maxHealthOf(unit));
+	const SquadId squad = open->second;
+	const bool joined = book().join(squad, (MemberId)unit->getID(), maxHealthOf(unit));
 	if (firstUnitsToCome(factory) <= 0)
 		openSquads().erase(open);
+	if (joined)
+		CoH::log("Squads: frame %u the order's next %s joined squad %d, now %d", TheGameLogic->getFrame(),
+			unit->getTemplate()->getName().str(), squad, book().find(squad)->memberCount());
 	return joined;
 }
 

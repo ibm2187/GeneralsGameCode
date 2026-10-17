@@ -27,6 +27,7 @@ void onGameEnd()
 void onLogicFrame()
 {
 	carryOutOrders();
+	runSelfTest();
 }
 
 void init(CoH::Feature &self)
@@ -51,6 +52,7 @@ void reset()
 {
 	endGame();
 	forgetProduction();
+	resetSelfTest();
 	resetConfig();
 }
 

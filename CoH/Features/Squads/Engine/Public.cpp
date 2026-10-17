@@ -51,8 +51,9 @@ int slotCount(int squad)
 
 int missingMembers(int squad)
 {
+	// A dying member is lost already, though its body is still there.
 	const Squad *found = isSquadsGame() ? book().find(squad) : nullptr;
-	return found != nullptr ? found->missingCount() : 0;
+	return found != nullptr ? found->slotCount() - (int)livingMembers(*found).size() : 0;
 }
 
 const ThingTemplate *unitOfSlot(int squad, int slot)

@@ -58,6 +58,12 @@ With no `Squad` line the feature does nothing. The pack's squads are: Rangers 4,
 - **Containers.** Transports count slots (`m_extraSlotsInUse + getContainCount() + rider->getTransportSlotCount() <= max`); garrisons count objects. A garrison's fire points come from its model, so members past them sit inside without firing. Tunnels (`CaveContain`) are not changed: they count soldiers.
 - **Cost.** `calcCostToBuild`/`calcTimeToBuild` serve the buttons, tooltips, the queue, cancel refunds and the AI alike. `ThingTemplate::getBuildTime` is protected; escorts' build time is worked out from their price.
 
+## Testing
+
+- Domain tests: `z_googletest.exe --gtest_filter=Squads*` (formation slots, member bookkeeping, squad types and price, container room).
+- In-game self-test: play a skirmish as USA with `-cohSquadsSelfTest -cohLog` (and `-coh Sectors,Upkeep,Squads`). Two Ranger squads, a Humvee and a pub appear near the command center, and the test sends the messages the player's clicks send: it checks the squad's price and population, that a click selects the squad and a box over two squads selects each member once, that deselecting one deselects the squad, the formation at the goal, riding in the Humvee and getting out together, garrisoning and evacuating the pub, and a lost member's empty slot. Grep `CoH.log` (or `CoH_InstanceNN.log`) for `Squads test`; the last line is the summary. Its replay doesn't play back (the test makes its objects directly).
+- With `-cohLog` the slice logs each squad made, a later unit of an order joining its squad (Red Guards), and each squad sent into a transport or building.
+
 ## Known limits
 
 - Squads are not saved: a loaded save has single soldiers.

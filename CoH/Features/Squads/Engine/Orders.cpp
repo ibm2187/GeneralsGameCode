@@ -8,6 +8,7 @@
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
 #include "Common/Player.h"
+#include "Common/ThingTemplate.h"
 #include "GameLogic/AI.h"
 #include "GameLogic/AIPathfind.h"
 #include "GameLogic/GameLogic.h"
@@ -15,7 +16,10 @@
 #include "GameLogic/Object.h"
 #include "GameLogic/TerrainLogic.h"
 
+#include "Kernel/Log.h"
+
 #include "Features/Squads/Domain/Formation.h"
+#include "Features/Squads/Squads.h"
 #include "Features/Squads/Engine/Config.h"
 #include "Features/Squads/Engine/Internal.h"
 
@@ -205,6 +209,12 @@ void onAiCommand(Object *object, const AICommandParms *command)
 		case AICMD_EXIT:
 			if (command->m_obj != nullptr)
 				orders().exits[squad->id()].push_back({ object->getID(), command->m_obj->getID() });
+			break;
+		case AICMD_ENTER:
+			if (CoH::isLogging() && command->m_obj != nullptr && object == leader(squad->id()))
+				CoH::log("Squads: frame %u squad %d (%s, player %d) sent into %s", TheGameLogic->getFrame(), squad->id(),
+					squad->unit().c_str(), object->getControllingPlayer()->getPlayerIndex(),
+					command->m_obj->getTemplate()->getName().str());
 			break;
 		default:
 			break;

@@ -62,4 +62,9 @@ void onContainRoom(const Object *container, const Object *rider, int &used, int 
 
 void onHealthBar(const Object *object, const IRegion2D *bar, float &health, float &maxHealth);
 
+// ---- The in-game self-test, with -cohSquadsSelfTest (SelfTest.cpp) ----
+
+void runSelfTest();
+void resetSelfTest();
+
 } // namespace CoH::Squads
