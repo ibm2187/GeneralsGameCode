@@ -46,6 +46,10 @@
 #include "WWLib/strtok_r.h"
 #include "WWLib/utf8.h"
 
+#if RTS_ZEROHOUR
+#include "Kernel/Hooks.h" // CoH hook
+#endif
+
 
 
 GameInfo *TheGameInfo = nullptr;
@@ -1054,6 +1058,10 @@ static AsciiString buildGameInfoAsciiString(const GameInfo& game, const AsciiStr
 	}
 	optionsString.concat(';');
 
+#if RTS_ZEROHOUR
+	optionsString.concat(CoH::Hooks::gameOptions(&game)); // CoH hook
+#endif
+
 	return optionsString;
 }
 
@@ -1246,6 +1254,11 @@ Bool ParseAsciiStringToGameInfo(GameInfo *game, AsciiString options)
       oldFactionsOnly = ( val.compareNoCase( "Y" ) == 0 );
       sawOldFactions = TRUE;
     }
+#if RTS_ZEROHOUR
+		else if (CoH::Hooks::isGameOptionKey(key)) // CoH hook: read by onGameOptionsParsed
+		{
+		}
+#endif
 		else if (key.getLength() == 1 && *key.str() == slotListID)
 		{
 			sawSlotlist = true;
@@ -1614,6 +1627,9 @@ Bool ParseAsciiStringToGameInfo(GameInfo *game, AsciiString options)
 		game->setSuperweaponRestriction(restriction);
 		game->setStartingCash(startingCash);
 		game->setOldFactionsOnly(oldFactionsOnly);
+#if RTS_ZEROHOUR
+		CoH::Hooks::onGameOptionsParsed(game, options); // CoH hook
+#endif
 
 		return true;
 	}

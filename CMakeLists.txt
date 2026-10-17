@@ -107,5 +107,10 @@ if(RTS_BUILD_OPTION_BENCHMARKS)
     add_subdirectory(Benchmarks)
 endif()
 
+# CoH hook: after the targets CoH adds to (z_gameengine links it, z_googletest gets its tests).
+if(RTS_BUILD_ZEROHOUR)
+    add_subdirectory(CoH)
+endif()
+
 feature_summary(WHAT ENABLED_FEATURES DESCRIPTION "Enabled features:")
 feature_summary(WHAT DISABLED_FEATURES DESCRIPTION "Disabled features:")

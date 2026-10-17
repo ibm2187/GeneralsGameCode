@@ -48,6 +48,8 @@
 #include "GameClient/Drawable.h"
 #include "Common/INI.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 
 enum { TEMPLATE_HASH_SIZE = 12288 };
 
@@ -346,6 +348,8 @@ Object *ThingFactory::newObject( const ThingTemplate *tmplate, Team *team, Objec
 	ThePartitionManager->registerObject( obj );
 
 	obj->initObject();
+
+	CoH::Hooks::onObjectCreated(obj); // CoH hook
 
 	return obj;
 

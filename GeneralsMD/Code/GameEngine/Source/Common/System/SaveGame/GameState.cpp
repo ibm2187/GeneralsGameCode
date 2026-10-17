@@ -60,6 +60,8 @@
 #include "GameLogic/TerrainLogic.h"
 #include "Lib/PathUtil.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 
 // PUBLIC DATA ////////////////////////////////////////////////////////////////////////////////////
 GameState *TheGameState = nullptr;
@@ -309,6 +311,7 @@ void GameState::init()
 	// add all the snapshot objects to our list of data blocks for save game files
 	addSnapshotBlock( GAME_STATE_BLOCK_STRING,				TheGameState,							SNAPSHOT_SAVELOAD );
 	addSnapshotBlock( CAMPAIGN_BLOCK_STRING,					TheCampaignManager,				SNAPSHOT_SAVELOAD );
+	addSnapshotBlock( "CHUNK_CoH",										CoH::Hooks::saveBlock(),	SNAPSHOT_SAVELOAD ); // CoH hook
 	addSnapshotBlock( "CHUNK_GameStateMap",						TheGameStateMap,					SNAPSHOT_SAVELOAD );
 	addSnapshotBlock( "CHUNK_TerrainLogic",						TheTerrainLogic,					SNAPSHOT_SAVELOAD );
 	addSnapshotBlock( "CHUNK_TeamFactory",						TheTeamFactory,						SNAPSHOT_SAVELOAD );

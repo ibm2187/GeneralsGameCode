@@ -280,6 +280,8 @@
 #include "GameClient/Module/SwayClientUpdate.h"
 #include "GameClient/Module/BeaconClientUpdate.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 // PUBLIC DATA ////////////////////////////////////////////////////////////////////////////////////
 ModuleFactory *TheModuleFactory = nullptr;  ///< the module factory singleton
 
@@ -557,6 +559,8 @@ void ModuleFactory::init()
 	addModule( AnimatedParticleSysBoneClientUpdate );
 	addModule( SwayClientUpdate );
 	addModule( BeaconClientUpdate );
+
+	CoH::Hooks::onModuleFactoryInit(*this); // CoH hook
 
 }
 

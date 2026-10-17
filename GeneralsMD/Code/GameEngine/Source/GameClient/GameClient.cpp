@@ -86,6 +86,8 @@
 #include "GameLogic/Object.h"
 #include "GameLogic/ScriptEngine.h"		// For TheScriptEngine - jkmcd
 
+#include "Kernel/Hooks.h" // CoH hook
+
 #define DRAWABLE_HASH_SIZE	8192
 
 /// The GameClient singleton instance
@@ -547,6 +549,8 @@ void GameClient::update()
 			{
 				TheRecorder->loadQueuedReplay();
 			}
+
+			CoH::Hooks::onShellShown(); // CoH hook
 		}
 	}
 

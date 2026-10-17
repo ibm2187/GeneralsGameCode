@@ -113,6 +113,8 @@
 
 #include <rts/profile.h>
 
+#include "Kernel/Hooks.h" // CoH hook
+
 struct QuitGameException {};
 
 DECLARE_PERF_TIMER(SleepyMaintenance)
@@ -479,6 +481,8 @@ void GameLogic::reset()
 	TheWeatherSetting = (WeatherSetting*) ws->deleteOverrides();
 
 	m_rankPointsToAddAtGameStart = 0;
+
+	CoH::Hooks::onGameEnd(); // CoH hook
 }
 
 static Object * placeObjectAtPosition(Int slotNum, AsciiString objectTemplateName, Coord3D& pos, Player *pPlayer,
@@ -1342,6 +1346,8 @@ void GameLogic::tryStartNewGame( Bool loadingSaveGame )
 		updateLoadProgress(LOAD_PROGRESS_POST_PARTICLE_INI_LOAD);
 
 	DEBUG_ASSERTCRASH(m_frame == 0, ("framecounter expected to be 0 here"));
+
+	CoH::Hooks::onGameStartBeforeMap(loadingSaveGame); // CoH hook
 
 	// before loading the map, load the map.ini file in the same directory.
 	loadMapINI( TheGlobalData->m_mapName );
@@ -2209,6 +2215,8 @@ void GameLogic::tryStartNewGame( Bool loadingSaveGame )
 			}
 		}
 	}
+
+	CoH::Hooks::onGameStartAfterMap(loadingSaveGame); // CoH hook
 
 	updateLoadProgress(LOAD_PROGRESS_END);
 
@@ -3895,6 +3903,8 @@ void GameLogic::update()
 		ThePartitionManager->UPDATE();
 	}
 
+	CoH::Hooks::onLogicFrame(); // CoH hook
+
 	//
 	// End of frame clean-up
 	//
@@ -4127,6 +4137,7 @@ void GameLogic::destroyObject( Object *obj )
 	}
 
 
+	CoH::Hooks::onObjectDestroyed(obj); // CoH hook
 }
 
 // ------------------------------------------------------------------------------------------------

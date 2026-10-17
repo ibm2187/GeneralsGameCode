@@ -59,6 +59,10 @@
 #include "GameLogic/ScriptEngine.h"
 #include "GameLogic/Weapon.h"
 
+#if RTS_ZEROHOUR
+#include "Kernel/Hooks.h" // CoH hook
+#endif
+
 #if __cplusplus >= 201611L
 #define USE_STD_FROM_CHARS_PARSING 1
 #else
@@ -342,7 +346,11 @@ static INIBlockParse findBlockParse(const char* token)
 		}
 	}
 
+#if RTS_ZEROHOUR
+	return CoH::Hooks::findIniBlock(token); // CoH hook
+#else
 	return nullptr;
+#endif
 }
 
 //-------------------------------------------------------------------------------------------------

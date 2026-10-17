@@ -108,6 +108,8 @@
 
 #include "Common/version.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 
 //-------------------------------------------------------------------------------------------------
 
@@ -471,6 +473,8 @@ void GameEngine::init()
 
 		// special-case: parse command-line parameters after loading global data
 		CommandLine::parseCommandLineForEngineInit();
+
+		CoH::Hooks::onEngineInit(); // CoH hook
 
 		TheArchiveFileSystem->loadMods();
 
