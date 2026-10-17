@@ -8,6 +8,7 @@
 #include "GameLogic/Module/ProductionUpdate.h"
 
 #include "Features/Sectors/Sectors.h"
+#include "Features/Squads/Squads.h"
 #include "Features/Upkeep/Engine/Config.h"
 #include "Features/Upkeep/Engine/Internal.h"
 
@@ -38,7 +39,9 @@ int queuedPopulation(const Object *factory)
 	{
 		if (entry->getProductionType() != PRODUCTION_UNIT)
 			continue;
-		const int count = entry->getProductionQuantity() > 0 ? entry->getProductionQuantityRemaining() : 1;
+		// An order for a squad makes one squad, however many units the factory makes per order.
+		const int count = Squads::isSquadUnit(entry->getProductionObject()) || entry->getProductionQuantity() <= 0
+			? 1 : entry->getProductionQuantityRemaining();
 		population += unitPopulation(entry->getProductionObject()) * count;
 	}
 	return population;
@@ -65,7 +68,10 @@ void countObject(Object *object, void *userData)
 		return;
 
 	Standing *standing = (Standing *)userData;
-	standing->population += unitPopulation(object->getTemplate()) + queuedPopulation(object);
+	// A squad counts once, by its leader.
+	if (Squads::countsAsUnit(object))
+		standing->population += unitPopulation(object->getTemplate());
+	standing->population += queuedPopulation(object);
 	standing->buildingBonus += buildingBonusOf(object);
 }
 
@@ -78,7 +84,7 @@ int unitPopulation(const ThingTemplate *unit)
 	const Config &rules = config();
 	if (!unit->isAnyKindOf(rules.unitKinds) || unit->isAnyKindOf(rules.nonUnitKinds))
 		return 0;
-	return populationCost(unit->friend_getBuildCost(), overriddenPopulation(unit), rules.cost);
+	return populationCost(Squads::buildCostOf(unit), overriddenPopulation(unit), rules.cost);
 }
 
 bool isNeverRefused(const ThingTemplate *unit)

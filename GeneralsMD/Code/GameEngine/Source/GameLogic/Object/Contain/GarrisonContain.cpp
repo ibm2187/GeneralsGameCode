@@ -54,6 +54,8 @@
 #include "GameClient/InGameUI.h"
 #include "GameClient/View.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 enum { MUZZLE_FLASH_LIFETIME = LOGICFRAMES_PER_SECOND / 7 };
@@ -573,7 +575,9 @@ Bool GarrisonContain::isValidContainerFor(const Object* obj, Bool checkCapacity)
 		{
 			Int garrisonMax = getContainMax();
 			Int containCount = getContainCount();
-			return ( containCount < garrisonMax );
+			Int needed = 1;
+			CoH::Hooks::onContainRoom(getObject(), obj, containCount, needed); // CoH hook
+			return ( containCount + needed <= garrisonMax );
 		}
 		else
 		{

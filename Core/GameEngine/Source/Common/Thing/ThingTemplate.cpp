@@ -72,6 +72,10 @@
 
 #include "Common/UnitTimings.h" //Contains the DO_UNIT_TIMINGS define jba.
 
+#if RTS_ZEROHOUR
+#include "Kernel/Hooks.h" // CoH hook
+#endif
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -1568,7 +1572,13 @@ Int ThingTemplate::calcCostToBuild( const Player* player) const
 	// changePercent format is "-.2 equals 20% cheaper"
 	Real factionModifier = 1 + player->getProductionCostChangePercent( getName() );
 	factionModifier *= player->getProductionCostChangeBasedOnKindOf( m_kindof );
+#if RTS_ZEROHOUR
+	Int cost = getBuildCost() * factionModifier * player->getHandicap()->getHandicap(Handicap::BUILDCOST, this);
+	CoH::Hooks::onBuildCost(player, this, cost); // CoH hook
+	return cost;
+#else
 	return getBuildCost() * factionModifier * player->getHandicap()->getHandicap(Handicap::BUILDCOST, this);
+#endif
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1627,6 +1637,9 @@ Int ThingTemplate::calcTimeToBuild( const Player* player) const
 		}
 	}
 
+#if RTS_ZEROHOUR
+	CoH::Hooks::onBuildTime(player, this, buildTime); // CoH hook
+#endif
 	return(buildTime);
 }
 

@@ -85,6 +85,10 @@
 
 #include "GameNetwork/NetworkInterface.h"
 
+#if RTS_ZEROHOUR
+#include "Kernel/Hooks.h" // CoH hook
+#endif
+
 
 
 
@@ -2029,6 +2033,9 @@ bool GameLogic::onCreateSelectedGroup(MAYBE_UNUSED GameMessage *msg)
 
 		selectObject(obj, createNewGroup && firstObject, msgPlayer->getPlayerMask());
 		firstObject = FALSE;
+#if RTS_ZEROHOUR
+		CoH::Hooks::onPlayerSelection(msgPlayer, obj, true); // CoH hook
+#endif
 	}
 
 	return true;
@@ -2046,6 +2053,9 @@ bool GameLogic::onRemoveFromSelectedGroup(MAYBE_UNUSED GameMessage *msg)
 		}
 
 		deselectObject(objToRemove, msgPlayer->getPlayerMask());
+#if RTS_ZEROHOUR
+		CoH::Hooks::onPlayerSelection(msgPlayer, objToRemove, false); // CoH hook
+#endif
 	}
 
 	return true;

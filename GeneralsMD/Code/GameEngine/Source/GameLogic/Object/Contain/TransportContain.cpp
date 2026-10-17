@@ -46,6 +46,8 @@
 #include "GameLogic/Object.h"
 #include "GameLogic/Weapon.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
@@ -202,7 +204,9 @@ Bool TransportContain::isValidContainerFor(const Object* rider, Bool checkCapaci
     Int containMax = getContainMax();
     Int containCount = getContainCount();
 
-		return (m_extraSlotsInUse + containCount + transportSlotCount <= containMax);
+		Int used = m_extraSlotsInUse + containCount;
+		CoH::Hooks::onContainRoom(getObject(), rider, used, transportSlotCount); // CoH hook
+		return (used + transportSlotCount <= containMax);
 
 	}
 	else

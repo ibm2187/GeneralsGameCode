@@ -41,6 +41,7 @@ Don't read other slices' `Engine/` or `Domain/` code to learn the Kernel. Their 
 | `CoH/Features/Sectors/` | territory economy: capture, income, the cut-off graph, build rule, AI expansion, ground, radar and tooltip UI |
 | `CoH/Features/GeneralsArsenal/` | command points, sortie and air cover powers, super weapons with a warning, AI power use; its README has *Engine notes* on special powers |
 | `CoH/Features/Upkeep/` | population, its cap, upkeep on income, the AI's army limit |
+| `CoH/Features/Squads/` | infantry squads: made per order, one selection, formation moves, one unit in containers and population, the squad health bar; `Squads.h` for Reinforce, Retreat, Abilities, Weapon pickup |
 | `CoH/Docs/CONTEXT.md` | this map |
 | `CoH/Scripts/` | `install.ps1` (build and install), `skirmish.ps1` (test game), `replaycheck.ps1` (determinism) |
 | `CoH/Tools/retail.py` | extracts the retail data to `build/retail/`; `read_big` and `read_csf` for packs that generate INI |
@@ -65,6 +66,8 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 |---|---|
 | Game start, frame, end | `Z/GameLogic/System/GameLogic.cpp` [5.4k]: `tryStartNewGame` 1145, `update` 3691, `destroyObject` 4098, `reset` 408 |
 | Player orders (move, attack, power, build) | `C/GameLogic/System/GameLogicDispatch.cpp` [2.4k], the `MSG_*` switch from about line 500 |
+| Player selection | in game logic: `Player::m_currentSelection` (a `Squad` of IDs, no duplicate check); `GameLogic::selectObject`/`deselectObject` (`GameLogic.cpp` 2721; also called on death); hub `playerSelection` for the player's own messages; Squads `Engine/Orders.cpp` |
+| Every unit command | hub `aiCommand` (`AIUpdateInterface::aiDoCommand`); infantry group moves arrive as `AICMD_FOLLOW_PATH`. Re-issue orders at frame end, not inside it (Squads `Engine/Orders.cpp`) |
 | Synced random | `Core/GameEngine/Include/GameLogic/LogicRandomValue.h`: `GameLogicRandomValue(lo, hi)`, `GameLogicRandomValueReal` |
 | Objects in range | `ThePartitionManager->iterateObjectsInRange(pos, r, FROM_CENTER_2D, filters)`, `GeneralsMD/Code/GameEngine/Include/GameLogic/PartitionManager.h` 1413 |
 | Save and load | `Xfer` and `Snapshot`; examples are `Player::xfer` (`Z/Common/RTS/Player.cpp` around 4050) and Sectors' `SectorPointUpdate` |
@@ -93,7 +96,8 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | AI scripts | `build/retail/Scripts/SkirmishScripts.scb` (binary; §5); the engine side is `Z/GameLogic/ScriptEngine/` [ScriptEngine 10k, Actions 7.8k, Conditions 3k] |
 | AI teams | `Z/Common/RTS/Team.cpp` [2.8k], `TeamTemplateInfo`; the retail teams are in the `.scb` |
 | Pathfinding | `Core/GameEngine/Source/GameLogic/AI/AIPathfind.cpp` [7.5k]; avoid it |
-| Containers and garrisons | `Z/GameLogic/Object/Contain/OpenContain.cpp` [2k], `TransportContain.cpp`, `GarrisonContain.cpp` |
+| Containers and garrisons | `Z/GameLogic/Object/Contain/OpenContain.cpp` [2k], `TransportContain.cpp`, `GarrisonContain.cpp`; capacity through hub `containRoom` (`isValidContainerFor`: transports count slots, garrisons objects) |
+| Unit made by a factory | hub `unitProduced` (`ProductionUpdate::update`, after the door and the team); more objects may leave with `getObjectExitInterface()->exitObjectViaDoor(obj, DOOR_1)`; `QuantityModifier` makes several per order (Red Guards). Squads `Engine/Production.cpp` |
 | Spawned members | `Z/GameLogic/Object/Behavior/SpawnBehavior.cpp` [1.2k], `Update/MobMemberSlavedUpdate.cpp` |
 | Can do X? | `Z/Common/RTS/ActionManager.cpp` [2.2k]: `canEnterObject` 537, `canCaptureBuilding` 1010, `canDoSpecialPowerAtLocation` 1482, `canDoSpecialPowerAtObject` 1640, `canDoSpecialPower` 1902 |
 
@@ -113,7 +117,7 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Production limits (population, max of a type) | hub `production` veto in `Player::canBuildMoreOfType`, which `BuildAssistant::canMakeUnit` (buttons, `ProductionUpdate::queueCreateUnit`), `Player::canBuild` and `isPossibleToMakeUnit` (the AI's `findFactory`) all ask; Upkeep `Engine/Rules.cpp` |
 | Income | hub `income` in `Money::deposit` (tracked income only); Sectors pays with `deposit(amount, FALSE)`; Upkeep takes its share there |
 | Super weapon warning | GeneralsArsenal `StrikeCountdownUpdate` (marker, then a hidden building copy at `TerrainLogic::findClosestEdgePoint` fires its power) and `UI/MarkerOverlay.cpp` |
-| Cost and build time | `Core/GameEngine/Source/Common/Thing/ThingTemplate.cpp`: `calcCostToBuild` 1567, `calcTimeToBuild` 1586 |
+| Cost and build time | `Core/GameEngine/Source/Common/Thing/ThingTemplate.cpp`: `calcCostToBuild` 1567, `calcTimeToBuild` 1586; hub `buildCost`, `buildTime` change them (Squads) |
 | Modules | `Z/Common/Thing/ModuleFactory.cpp`, `ModuleFactory::init` 321; features use `COH_ADD_MODULE` |
 | INI blocks | `C/Common/INI/INI.cpp`, the block table; features use `CoH::registerIniBlock` |
 
@@ -126,7 +130,7 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | General's power screen | `C/GameClient/GUI/GUICallbacks/GeneralsExpPoints.cpp`; `ControlBar::populatePurchaseScience` (`ControlBar.cpp` 178) |
 | World overlay, floating text | `Z/GameClient/InGameUI.cpp` [6.4k]: `postDraw` 3785, `addFloatingText` 5366 |
 | 2D drawing | `TheDisplay` (`Core/GameEngine/Include/GameClient/Display.h`): lines, rects, images, batched inside `W3DInGameUI::draw`. Gradient-filled quads through the hub's `drawGradientQuad` (`W3DDisplay::drawGradientQuad`). No depth test: Sectors' `UI/GroundOverlay` hides lines behind hills itself |
-| Unit icons and bars | `Z/GameClient/Drawable.cpp` [5.7k]: grep `drawHealthBar`, `drawVeterancy`, `drawEmoticon` |
+| Unit icons and bars | `Z/GameClient/Drawable.cpp` [5.7k]: grep `drawHealthBar`, `drawVeterancy`, `drawEmoticon`; hub `healthBar` changes the bar's values and may draw beside it (Squads `UI/HealthBar.cpp`) |
 | Radar | `Core/GameEngine/Include/Common/Radar.h`, `Core/GameEngineDevice/Source/W3DDevice/Common/System/W3DRadar.cpp` |
 | Voice warnings | `Z/GameClient/Eva.cpp`, `Eva::setShouldPlay` 372 |
 
@@ -167,7 +171,7 @@ Its hooks table (`git show ibm-engine:IbmEngine/README.md`, *Hooks in original c
 |---|---|---|
 | 04 Accuracy | `IbmEngine/Features/Accuracy` | `WeaponTemplate::fireWeaponTemplate`: the roll before the fire effects; a miss lands near the target |
 | 07 Directional armor | `IbmEngine/Features/Armor` | `WeaponTemplate::dealDamageInternal`: the penetration roll |
-| 09 Squads, 10 Reinforce | `IbmEngine/Features/Squads` | `SpawnBehavior`, `MobMemberSlavedUpdate`, `TransportContain`, `AIUpdate` enter/attack, `GameLogicDispatch` skill orders, `Drawable` pips |
+| 10 Reinforce | `IbmEngine/Features/Squads` (`SquadReinforce.cpp`) | refilling near the Barracks. Squads (09) is done differently (no leader object): build on `Squads.h` (`emptySlots`, `unitOfSlot`, `addMember`) |
 | 02 Arsenal | `IbmEngine/Features/AirPower`, `WatchZones` | `canDoSpecialPowerAtLocation`, `DeliverPayloadAIUpdate` (jets following a target), new power types appended |
 | 03 Upkeep | `IbmEngine/Features/Economy` | `ThingTemplate::calcCostToBuild` and `calcTimeToBuild`, `ActiveBody` constructor, `Weapon::computeBonus` |
 

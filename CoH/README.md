@@ -18,6 +18,7 @@ The original code only calls the hook hub, from the places listed in [Hooks in o
 | [Sectors](Features/Sectors/README.md) | `Sectors` | [01](Docs/Tasks/01-Sectors.md) | supplies only from capturable sectors; skirmish AI plays for them |
 | [GeneralsArsenal](Features/GeneralsArsenal/README.md) | `GeneralsArsenal` | [02](Docs/Tasks/02-GeneralsArsenal.md) | jets and super weapons are General's powers paid with command points earned in combat; helicopters at the Airfield; skirmish AI uses them |
 | [Upkeep](Features/Upkeep/README.md) | `Upkeep` | [03](Docs/Tasks/03-Upkeep.md) | units take population under a cap that grows with buildings and sectors; upkeep takes a growing share of income; skirmish AI keeps its upkeep low (needs Sectors) |
+| [Squads](Features/Squads/README.md) | `Squads` | [09](Docs/Tasks/09-Squads.md) | infantry is ordered, selected, carried and counted as squads that move in formation, with one health bar; skirmish AI builds and orders them |
 
 Every feature has a flag. With every flag off the game plays exactly like `main`, replays included.
 
@@ -139,6 +140,12 @@ These are the points of `Kernel/Hooks.h` that features subscribe to:
 | `specialPowerTriggered(source, power, target)` | A special power fired and its recharge started; the target may be null. |
 | `commandTooltip(button, description)` | A command button's tooltip is being made; add to its text. |
 | `moneyDisplay(player, text)` | The money text is being made ("$ 1200"); add to it. With a subscriber on, the hub writes it every frame (the per-minute income display is replaced). |
+| `unitProduced(factory, unit)` | A factory made a unit; it has its team and is on its way out of the door. Raised for each unit of an order that makes several. |
+| `buildCost(player, build, cost)`, `buildTime(player, build, frames)` | What a unit or structure costs the player and how many frames it takes, with the player's modifiers; a subscriber may change the amount. Asked for buttons, tooltips, the queue, refunds and the AI. |
+| `playerSelection(player, object, selected)` | A player's selection message selected or deselected one of its objects (clicks, boxes). Not deaths or scripts. |
+| `aiCommand(object, command)` | An object accepted a command (`AICommandParms`: move, attack, enter, exit, ...) from a player, a script or the AI. |
+| `containRoom(container, rider, used, needed)` | May the rider go in? `used` is the room taken and `needed` what the rider takes (transport slots, garrison places); it fits while `used + needed` is at most the maximum. A subscriber may change both. |
+| `healthBar(object, bar, health, maxHealth)` | A selected or moused-over object's health bar is drawn in `bar` from these; a subscriber may change them, and a max of 0 draws none. |
 
 The hub also passes on drawing that `TheDisplay` doesn't offer, which original code provides:
 
@@ -194,6 +201,12 @@ Every edit to an original file is a minimal call marked `// CoH hook` (`# CoH ho
 | `GeneralsMD/.../Common/RTS/ActionManager.cpp` | `ActionManager::canDoSpecialPowerAtLocation` | the `SPECIAL_COH_*` cases | The new types aim like the other strike powers (not into black shroud); without them a player's cursor shows "can't" for them. |
 | `GeneralsMD/.../Common/RTS/Player.cpp` | `Player::canBuildMoreOfType` | `isProductionAllowed(this, whatToBuild)` | The `production` veto, first; a no is "maxed out" (`CANMAKE_MAXED_OUT_FOR_PLAYER`) for the buttons, the queue and the AI's factory search. |
 | `GeneralsMD/.../Common/RTS/Money.cpp` | `Money::deposit` | `onIncome(player, amountToDeposit)` | Tracked income only (not starting cash, sales, refunds); a feature may lower the amount before it is deposited and counted. |
+| `GeneralsMD/.../GameLogic/Object/Update/ProductionUpdate.cpp` | `ProductionUpdate::update` | `onUnitProduced(creationBuilding, newObj)` | A unit was made, after it left by the door, joined its team (`onUnitCreated`) and its create modules ran; before the entry counts it. |
+| `Core/.../Common/Thing/ThingTemplate.cpp` | `ThingTemplate::calcCostToBuild`, `calcTimeToBuild` | `onBuildCost(player, this, cost)`, `onBuildTime(player, this, buildTime)` | The final cost and build time, after the player's modifiers. |
+| `Core/.../GameLogic/System/GameLogicDispatch.cpp` | `GameLogic::onCreateSelectedGroup`, `onRemoveFromSelectedGroup` | `onPlayerSelection(msgPlayer, obj, selected)` | After each object a selection message selects or deselects. |
+| `GeneralsMD/.../GameLogic/Object/Update/AIUpdate.cpp` | `AIUpdateInterface::aiDoCommand` | `onAiCommand(getObject(), parms)` | A command the object accepted, before it is carried out. |
+| `GeneralsMD/.../GameLogic/Object/Contain/TransportContain.cpp`, `GarrisonContain.cpp` | `isValidContainerFor` | `onContainRoom(getObject(), rider, used, needed)` | The capacity check, rewritten as `used + needed <= max` (the garrison's `count < max` is the same with `needed` 1). |
+| `GeneralsMD/.../GameClient/Drawable.cpp` | `Drawable::drawHealthBar` | `onHealthBar(obj, healthBarRegion, health, maxHealth)` | The health and max health the bar is drawn from. |
 
 ## Fixes in original code
 

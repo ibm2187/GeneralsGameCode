@@ -21,7 +21,9 @@ class Snapshot;
 class SpecialPowerTemplate;
 class ThingTemplate;
 class UnicodeString;
+struct AICommandParms;
 struct Coord3D;
+struct IRegion2D;
 class DamageInfo;
 typedef void (*INIBlockParse)( INI *ini );
 
@@ -51,6 +53,12 @@ bool isSpecialPowerAllowed(const Object *source, const SpecialPowerTemplate *pow
 void onSpecialPowerTriggered(Object *source, const SpecialPowerTemplate *power, const Coord3D *target);	///< SpecialPowerModule::triggerSpecialPower
 bool isProductionAllowed(const Player *player, const ThingTemplate *build);	///< Player::canBuildMoreOfType
 void onIncome(const Player *player, unsigned int &amount);	///< Money::deposit: income (not starting cash, sales or refunds)
+void onUnitProduced(Object *factory, Object *unit);	///< ProductionUpdate::update: a unit is made and on its way out
+void onBuildCost(const Player *player, const ThingTemplate *build, int &cost);	///< ThingTemplate::calcCostToBuild
+void onBuildTime(const Player *player, const ThingTemplate *build, int &frames);	///< ThingTemplate::calcTimeToBuild
+void onPlayerSelection(Player *player, Object *object, bool selected);	///< GameLogicDispatch: a player's (de)select message
+void onAiCommand(Object *object, const AICommandParms *command);	///< AIUpdateInterface::aiDoCommand, once it is accepted
+void onContainRoom(const Object *container, const Object *rider, int &used, int &needed);	///< Transport/GarrisonContain::isValidContainerFor
 
 void onInGameUIPostDraw();	///< InGameUI::postDraw: over the 3D view, under the windows
 void onRadarDraw(int x, int y, int width, int height);	///< W3DRadar::draw: over the map and shroud, under the icons
@@ -58,6 +66,7 @@ void onMoneyTooltip(const Player *player, UnicodeString &description);	///< Cont
 void onCommandTooltip(const CommandButton *button, UnicodeString &description);	///< ControlBar: a button's tooltip text is made
 bool onMoneyDisplay(const Player *player, GameWindow *moneyWindow);	///< InGameUI: true when a feature writes the money text
 const UnicodeString *findText(const char *label);	///< GameTextManager::fetch: text a pack adds, for a label the game lacks
+void onHealthBar(const Object *object, const IRegion2D *bar, float &health, float &maxHealth);	///< Drawable::drawHealthBar
 
 AsciiString gameOptions(const GameInfo *game);	///< appended to the game options string; empty with no flags
 bool isGameOptionKey(const AsciiString &key);	///< tells the options parser the CoH key is known
@@ -92,6 +101,28 @@ Veto<const Player *, const ThingTemplate *> &production();
 // may lower the amount; what is left is deposited and counted as income.
 Event<const Player *, unsigned int &> &income();
 
+// A factory made 'unit' (the factory, the unit). The unit has its team and is on its way out of the
+// door. A factory making several per order (Red Guards) raises this for each.
+Event<Object *, Object *> &unitProduced();
+
+// What 'build' costs 'player', and how many logic frames it takes to make. The original amount, with
+// the player's modifiers, comes in; a subscriber may change it. Asked for the buttons, tooltips, the
+// queue, refunds and the AI alike.
+Event<const Player *, const ThingTemplate *, int &> &buildCost();
+Event<const Player *, const ThingTemplate *, int &> &buildTime();
+
+// A player's selection message selected (true) or deselected (false) one of the objects it names: the
+// player's clicks and boxes. Not deaths, scripts or anything else the engine deselects.
+Event<Player *, Object *, bool> &playerSelection();
+
+// An object accepted a command (move, attack, enter, exit, ...) from a player, a script or the AI.
+Event<Object *, const AICommandParms *> &aiCommand();
+
+// May 'rider' go into 'container'? 'used' is the room taken now and 'needed' the room the rider takes,
+// in the container's own units (transport slots, garrison places). The rider fits while used + needed
+// is at most the container's maximum. A subscriber may change both.
+Event<const Object *, const Object *, int &, int &> &containRoom();
+
 // ---- Client: drawing and text. These don't run in -headless games. ------------------------------
 
 Event<> &inGameUIPostDraw();			///< draw over the 3D view with TheDisplay, in screen pixels
@@ -99,6 +130,10 @@ Event<int, int, int, int> &radarDraw();	///< the radar's drawn map area on scree
 Event<const Player *, UnicodeString &> &moneyTooltip();	///< the viewed player; the description to add to
 Event<const CommandButton *, UnicodeString &> &commandTooltip();	///< a command button's tooltip; the description to add to
 Event<const Player *, UnicodeString &> &moneyDisplay();	///< the viewed player; the money text ("$ 1200") to add to
+
+// An object's health bar is drawn in 'bar' (screen pixels) from 'health' of 'maxHealth'. A subscriber
+// may change both; a max of 0 draws no bar. Asked for selected and moused-over objects.
+Event<const Object *, const IRegion2D *, float &, float &> &healthBar();
 
 // ---- Client: drawing the display offers but TheDisplay doesn't. Original code provides it. ---------
 

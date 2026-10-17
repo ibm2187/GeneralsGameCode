@@ -71,6 +71,8 @@
 #include "GameLogic/Weapon.h"
 #include "Common/Radar.h"									// For TheRadar
 
+#include "Kernel/Hooks.h" // CoH hook
+
 #define SLEEPY_AI
 
 
@@ -2650,6 +2652,7 @@ void AIUpdateInterface::aiDoCommand(const AICommandParms* parms)
 	}
 #endif
 
+	CoH::Hooks::onAiCommand(getObject(), parms); // CoH hook
 
 	switch (parms->m_cmd)
 	{

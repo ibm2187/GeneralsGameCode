@@ -55,6 +55,8 @@
 #include "GameLogic/Object.h"
 #include "GameLogic/ScriptEngine.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 
 // PUBLIC /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -809,6 +811,8 @@ UpdateSleepTime ProductionUpdate::update()
 							}
 
 							creationBuilding->getControllingPlayer()->getAcademyStats()->recordProduction( newObj, creationBuilding );
+
+							CoH::Hooks::onUnitProduced( creationBuilding, newObj ); // CoH hook
 
 							//We created one guy, but we may want to do more so we should stay in this node of production.
 							// This is last so the voice check can easily check for "first" guy

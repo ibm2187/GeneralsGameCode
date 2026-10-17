@@ -81,6 +81,8 @@
 
 #include "WW3D2/ww3d.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 #define VERY_TRANSPARENT_MATERIAL_PASS_OPACITY (0.001f)
 #define MATERIAL_PASS_OPACITY_FADE_SCALAR (0.8f)
 
@@ -3834,6 +3836,7 @@ void Drawable::drawHealthBar(const IRegion2D* healthBarRegion)
 		// get the health and max health
 		Real health = body->getHealth();
 		Real maxHealth = body->getMaxHealth();
+		CoH::Hooks::onHealthBar(obj, healthBarRegion, health, maxHealth); // CoH hook
 
 		// if no max health or health at all we will draw nothing
 		if( maxHealth == 0.0f || health == 0.0f )

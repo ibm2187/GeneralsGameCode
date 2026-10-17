@@ -48,12 +48,35 @@ Veto<const Player *, const ThingTemplate *> &production()
 	return veto;
 }
 Event<const Player *, unsigned int &> &income() { static Event<const Player *, unsigned int &> event; return event; }
+Event<Object *, Object *> &unitProduced() { static Event<Object *, Object *> event; return event; }
+Event<const Player *, const ThingTemplate *, int &> &buildCost()
+{
+	static Event<const Player *, const ThingTemplate *, int &> event;
+	return event;
+}
+Event<const Player *, const ThingTemplate *, int &> &buildTime()
+{
+	static Event<const Player *, const ThingTemplate *, int &> event;
+	return event;
+}
+Event<Player *, Object *, bool> &playerSelection() { static Event<Player *, Object *, bool> event; return event; }
+Event<Object *, const AICommandParms *> &aiCommand() { static Event<Object *, const AICommandParms *> event; return event; }
+Event<const Object *, const Object *, int &, int &> &containRoom()
+{
+	static Event<const Object *, const Object *, int &, int &> event;
+	return event;
+}
 
 Event<> &inGameUIPostDraw() { static Event<> event; return event; }
 Event<int, int, int, int> &radarDraw() { static Event<int, int, int, int> event; return event; }
 Event<const Player *, UnicodeString &> &moneyTooltip() { static Event<const Player *, UnicodeString &> event; return event; }
 Event<const CommandButton *, UnicodeString &> &commandTooltip() { static Event<const CommandButton *, UnicodeString &> event; return event; }
 Event<const Player *, UnicodeString &> &moneyDisplay() { static Event<const Player *, UnicodeString &> event; return event; }
+Event<const Object *, const IRegion2D *, float &, float &> &healthBar()
+{
+	static Event<const Object *, const IRegion2D *, float &, float &> event;
+	return event;
+}
 
 // ---- Engine ------------------------------------------------------------------------------------
 
@@ -171,6 +194,38 @@ void onIncome(const Player *player, unsigned int &amount)
 		income().raise(player, amount);
 }
 
+void onUnitProduced(Object *factory, Object *unit)
+{
+	unitProduced().raise(factory, unit);
+}
+
+void onBuildCost(const Player *player, const ThingTemplate *build, int &cost)
+{
+	buildCost().raise(player, build, cost);
+}
+
+void onBuildTime(const Player *player, const ThingTemplate *build, int &frames)
+{
+	buildTime().raise(player, build, frames);
+}
+
+void onPlayerSelection(Player *player, Object *object, bool selected)
+{
+	if (player != nullptr && object != nullptr)
+		playerSelection().raise(player, object, selected);
+}
+
+void onAiCommand(Object *object, const AICommandParms *command)
+{
+	if (object != nullptr)
+		aiCommand().raise(object, command);
+}
+
+void onContainRoom(const Object *container, const Object *rider, int &used, int &needed)
+{
+	containRoom().raise(container, rider, used, needed);
+}
+
 // ---- Client ------------------------------------------------------------------------------------
 
 void onInGameUIPostDraw()
@@ -181,6 +236,11 @@ void onInGameUIPostDraw()
 void onRadarDraw(int x, int y, int width, int height)
 {
 	radarDraw().raise(x, y, width, height);
+}
+
+void onHealthBar(const Object *object, const IRegion2D *bar, float &health, float &maxHealth)
+{
+	healthBar().raise(object, bar, health, maxHealth);
 }
 
 namespace
