@@ -99,8 +99,8 @@ After the Kernel, 01, 02, 04, 07, 09 and 12 can all start.
 
 ### Spikes
 
-Spikes are time-boxed experiments on throwaway branches. Only their findings are merged.
+Spikes try a new way of working, on real tasks. The user decides afterwards what to keep.
 
 | # | Spike | Starts | Question |
 |---|---|---|---|
-| S1 | [A modern language for CoH code](Tasks/S1-LanguageSpike.md) | once 04 or 09 is merged, whichever is first | Do cppfront, Nim, Rust (`cxx`) or Lua beat plain C++20 for CoH code, without costing determinism or debugging? |
+| S1 | [A modern language for CoH code](Tasks/S1-LanguageSpike.md) | the next task after 04 and 09 are both merged is built in it | Do cppfront, Nim, Rust (`cxx`) or Lua beat plain C++20 for CoH code, without costing determinism or debugging? |
