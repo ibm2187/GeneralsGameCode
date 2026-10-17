@@ -1,6 +1,6 @@
 # CoH
 
-Company of Heroes ideas for Zero Hour, kept apart from the original code. [PLAN.md](PLAN.md) has the direction, the conventions and the roadmap; [Tasks](Tasks) has one file per feature.
+Company of Heroes ideas for Zero Hour, kept apart from the original code. [PLAN.md](PLAN.md) has the direction, the conventions and the roadmap; [Tasks](Tasks) has one file per feature; [CONTEXT.md](CONTEXT.md) maps what to read for which job.
 
 Everything lives in this folder:
 - `Kernel/` is shared by every feature: the feature registry, the flags, the INI packs and the hook hub.

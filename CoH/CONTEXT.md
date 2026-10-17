@@ -1,0 +1,171 @@
+# CoH context map
+
+The engine is about 1.5 million lines. A session that explores it freely fills its context before it writes any code.
+This map says what to read for each job, so a session opens only the files it needs, at the lines it needs.
+**Keep it current.** When a task finds a new place in the engine that later tasks will need, add one line here before merging.
+
+## 1. Start of a task: read these, in order
+
+1. This file.
+2. `CoH/Tasks/<NN>-<Name>.md`, your task.
+3. `CoH/PLAN.md`: only *Conventions* and *Done, for every task*.
+4. The README and public header of each slice your task uses. Read the header first; read the README only if the header isn't enough.
+5. `CoH/README.md`: only when you add a hook or register something (*Writing a feature*, the hook events, the hooks table).
+   It is long, so jump to the section you need.
+
+Don't read other slices' `Engine/` or `Domain/` code to learn the Kernel. Their README and `Kernel/Kernel.h` and `Kernel/Hooks.h` are the interface.
+
+## 2. Context budget rules
+
+- **Never read a whole engine file.** Many are 3,000 to 10,000 lines (sizes in §4).
+  Grep for the function with `-n`, then read about 80 lines around it with offset and limit.
+- **Never stream build or game output.** Send it to a log in your scratchpad, then search the log:
+  `CoH\scripts\install.ps1 *> $log; Select-String -Path $log -Pattern 'error|warning C' | Select -First 30`.
+  A full build's output is tens of thousands of lines.
+- **Search the retail data as files, not archives.** Run `python CoH/tools/retail.py` once per checkout. It writes `build/retail/` (§5).
+  Grep it (`^Object Raptor`, `^CommandSet AmericaDozer`) and read the block you need; never read a whole INI file into context.
+- **Broad questions go to an Explore subagent** ("where does the engine decide X?"). It returns the answer, not the file dumps.
+- **Write down what you learn as you go.** Put engine findings in your slice README's *Engine notes* section as soon as you find them.
+  If the context is compacted, or the next session picks up, they aren't lost and don't need to be found again.
+- **Prior art:** before working out a hook point yourself, check whether the old IbmEngine work already found it (§7).
+  It is reference only, never copied in.
+
+## 3. CoH itself
+
+| Path | What |
+|---|---|
+| `CoH/Kernel/Kernel.h` | `COH_FEATURE(Name, init, reset)`, `registerIniBlock`, `COH_ADD_MODULE`, flags |
+| `CoH/Kernel/Hooks.h` | the hub: one event per engine point; features `subscribe(self, fn)` |
+| `CoH/Kernel/Domain/` | flags, the feature set and argument parsing, as pure code |
+| `CoH/Kernel/Engine/` | packs, game options sync, the save block, quick skirmish, `CoH.log` |
+| `CoH/Features/Sectors/` | territory economy: capture, income, the cut-off graph, build rule, AI expansion, ground, radar and tooltip UI |
+| `CoH/Features/GeneralsArsenal/` | (task 02, in progress) command points, air and super weapon powers |
+| `CoH/CONTEXT.md` | this map |
+| `CoH/scripts/` | `install.ps1` (build and install), `skirmish.ps1` (test game), `replaycheck.ps1` (determinism) |
+| `CoH/tools/retail.py` | extracts the retail data to `build/retail/`; `read_big` and `read_csf` for packs that generate INI |
+
+Worked examples in Sectors, to copy the shape of:
+- a module with saved state that's part of the CRC: `Engine/SectorPointUpdate`
+- an INI block: `Engine/Config`
+- AI script rewriting: `Engine/AIScripts.cpp`
+- AI build list control: `Engine/AIBuildList.cpp`
+- ground and radar drawing: `UI/GroundOverlay`, `UI/RadarOverlay`
+- a tooltip hook: `UI/MoneyTooltip`
+- a generated pack: `Data/make_pack.py`
+
+## 4. Engine map
+
+`Z` = `GeneralsMD/Code/GameEngine/Source`, `C` = `Core/GameEngine/Source`, line counts in brackets.
+Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `Generals/` is the original game and is never touched.
+
+### Frame and messages
+
+| Thing | Where |
+|---|---|
+| Game start, frame, end | `Z/GameLogic/System/GameLogic.cpp` [5.4k]: `tryStartNewGame` 1145, `update` 3691, `destroyObject` 4098, `reset` 408 |
+| Player orders (move, attack, power, build) | `C/GameLogic/System/GameLogicDispatch.cpp` [2.4k], the `MSG_*` switch from about line 500 |
+| Synced random | `Core/GameEngine/Include/GameLogic/LogicRandomValue.h`: `GameLogicRandomValue(lo, hi)`, `GameLogicRandomValueReal` |
+| Objects in range | `ThePartitionManager->iterateObjectsInRange(pos, r, FROM_CENTER_2D, filters)`, `GeneralsMD/Code/GameEngine/Include/GameLogic/PartitionManager.h` 1413 |
+| Save and load | `Xfer` and `Snapshot`; examples are `Player::xfer` (`Z/Common/RTS/Player.cpp` around 4050) and Sectors' `SectorPointUpdate` |
+
+### Combat
+
+| Thing | Where |
+|---|---|
+| Firing | `Z/GameLogic/Object/Weapon.cpp` [3.7k]: `Weapon::privateFireWeapon` 2621, `WeaponTemplate::fireWeaponTemplate` 774, projectiles inside it |
+| Damage dealt | `WeaponTemplate::dealDamageInternal` 1377 (victims, radius, damage type), then `Object::attemptDamage` (`Object.cpp` 1906), then `ActiveBody::attemptDamage` (`Body/ActiveBody.cpp` 354) |
+| Weapon bonuses, reload | `Weapon::computeBonus` 1952, `getDelayBetweenShots` 506, `getClipReloadTime` 527 and 2001 |
+| Weapon choice | `Z/GameLogic/Object/WeaponSet.cpp` [1.2k] |
+| Veterancy | `Z/GameLogic/Object/ExperienceTracker.cpp` [300]: `addExperiencePoints` 162, `setVeterancyLevel` 120; `Object::onVeterancyLevelChanged` 3169 |
+| Kills and score | `Object::scoreTheKill` 2993, `Player::addSkillPointsForKill` 2528 |
+| Disabled states | `Object::setDisabled` 2147, `setDisabledUntil` 2153 (stun, immobile, and so on) |
+
+### Units and AI
+
+| Thing | Where |
+|---|---|
+| Unit orders | `Z/GameLogic/Object/Update/AIUpdate.cpp` [5.4k]: `aiDoCommand` 2627, `privateMoveToPosition` 2894, `privateAttackObject` 3431, `privateEnter` 3815, `privateGuardPosition` 4112 |
+| Speed | `AIUpdateInterface::chooseLocomotorSetExplicit` 834; `Z/GameLogic/Object/Locomotor.cpp` [2.8k] |
+| AI state machine | `Z/GameLogic/AI/AIStates.cpp` [7.5k]: grep the state class, never read it whole |
+| Group orders | `Z/GameLogic/AI/AIGroup.cpp` [3.4k] |
+| Skirmish AI | `Z/GameLogic/AI/AISkirmishPlayer.cpp` [1.2k]: `processBaseBuilding` 94, `acquireEnemy` 480, `processTeamBuilding` 857; the shared parts are in `AIPlayer.cpp` [3.9k] |
+| AI scripts | `build/retail/Scripts/SkirmishScripts.scb` (binary; §5); the engine side is `Z/GameLogic/ScriptEngine/` [ScriptEngine 10k, Actions 7.8k, Conditions 3k] |
+| AI teams | `Z/Common/RTS/Team.cpp` [2.8k], `TeamTemplateInfo`; the retail teams are in the `.scb` |
+| Pathfinding | `Core/GameEngine/Source/GameLogic/AI/AIPathfind.cpp` [7.5k]; avoid it |
+| Containers and garrisons | `Z/GameLogic/Object/Contain/OpenContain.cpp` [2k], `TransportContain.cpp`, `GarrisonContain.cpp` |
+| Spawned members | `Z/GameLogic/Object/Behavior/SpawnBehavior.cpp` [1.2k], `Update/MobMemberSlavedUpdate.cpp` |
+| Can do X? | `Z/Common/RTS/ActionManager.cpp` [2.2k]: `canEnterObject` 537, `canCaptureBuilding` 1010, `canDoSpecialPowerAtLocation` 1482, `canDoSpecialPowerAtObject` 1640, `canDoSpecialPower` 1902 |
+
+### Players, economy, powers
+
+| Thing | Where |
+|---|---|
+| Money | `Z/Common/RTS/Money.cpp` [214]: `deposit` 82, `withdraw` 57 |
+| Player | `Z/Common/RTS/Player.cpp` [4.6k]: `update` 669, `onUnitCreated` 1553, `canBuild` 2946 |
+| Rank and science | `Player::addSkillPoints` 2503, `setRankLevel` 2720, `addSciencePurchasePoints` 2621, `attemptToPurchaseScience` 2635, `grantScience` 2658; `Z/Common/RTS/Science.cpp` |
+| Special powers | `Z/GameLogic/Object/SpecialPower/SpecialPowerModule.cpp` [926]: `isReady` 311, `initiateIntentToDoSpecialPower` 462, `startPowerRecharge` 421, `doSpecialPowerAtLocation` 750; the templates are in `Z/Common/RTS/SpecialPower.cpp` |
+| Power types | `GeneralsMD/Code/GameEngine/Include/Common/SpecialPowerType.h`; append only, so saved IDs don't change |
+| Cost and build time | `Core/GameEngine/Source/Common/Thing/ThingTemplate.cpp`: `calcCostToBuild` 1567, `calcTimeToBuild` 1586 |
+| Modules | `Z/Common/Thing/ModuleFactory.cpp`, `ModuleFactory::init` 321; features use `COH_ADD_MODULE` |
+| INI blocks | `C/Common/INI/INI.cpp`, the block table; features use `CoH::registerIniBlock` |
+
+### UI
+
+| Thing | Where |
+|---|---|
+| Command bar | `C/GameClient/GUI/ControlBar/ControlBar.cpp` [3.8k], `ControlBarCommand.cpp` [1.6k] (`updateContextCommand` 715) |
+| Tooltips | `C/GameClient/GUI/GUICallbacks/ControlBarPopupDescription.cpp`, `ControlBar::populateBuildTooltipLayout` 244 |
+| General's power screen | `C/GameClient/GUI/GUICallbacks/GeneralsExpPoints.cpp`; `ControlBar::populatePurchaseScience` (`ControlBar.cpp` 178) |
+| World overlay, floating text | `Z/GameClient/InGameUI.cpp` [6.4k]: `postDraw` 3785, `addFloatingText` 5366 |
+| Unit icons and bars | `Z/GameClient/Drawable.cpp` [5.7k]: grep `drawHealthBar`, `drawVeterancy`, `drawEmoticon` |
+| Radar | `Core/GameEngine/Include/Common/Radar.h`, `Core/GameEngineDevice/Source/W3DDevice/Common/System/W3DRadar.cpp` |
+| Voice warnings | `Z/GameClient/Eva.cpp`, `Eva::setShouldPlay` 372 |
+
+## 5. Retail data (`build/retail/`, made by `python CoH/tools/retail.py`)
+
+| Path | What |
+|---|---|
+| `INI/Object/<Faction><Kind>.ini` | units and buildings: `AmericaAir`, `AmericaVehicle`, `ChinaInfantry`, `GLAVehicle`, and so on |
+| `INI/Object/<General>General.ini` | each general's own versions: `AirforceGeneral`, `SuperWeaponGeneral`, `NukeGeneral`, `LaserGeneral`, `InfantryGeneral`, `TankGeneral`, `ChemicalGeneral`, `DemoGeneral`, `StealthGeneral` |
+| `INI/Object/SpecialPowerObjects.ini` | strike aircraft and the objects the powers spawn |
+| `INI/Weapon.ini`, `INI/Armor.ini`, `INI/Locomotor.ini` | weapons, armor tables, movement |
+| `INI/CommandSet.ini`, `INI/CommandButton.ini` | build menus and buttons |
+| `INI/SpecialPower.ini`, `INI/Science.ini`, `INI/Rank.ini`, `INI/Upgrade.ini` | powers, promotions, rank thresholds, upgrades |
+| `INI/PlayerTemplate.ini` | factions and generals, starting units, purchasable sciences |
+| `INI/AIData.ini` | skirmish AI tuning and its build lists |
+| `INI/GameData.ini` | global settings |
+| `strings.txt` | display text, as `LABEL = text` (`OBJECT:Raptor = Raptor`) |
+| `Scripts/SkirmishScripts.scb` | the skirmish AI's scripts, binary: chunked, a `CkMp` TOC and then chunks. Sectors reads it at run time (`Engine/AIScripts.cpp`); decode it with a small scratch script rather than reading it raw |
+| `files.txt` | every file in every `.big`, with its archive |
+
+## 6. Build and test, in short
+
+The full steps are in `CoH/README.md`, *Install* and *Testing*.
+
+- Install: `CoH\scripts\install.ps1 *> $log`, then check the log. It refuses while the game is running.
+- Unit tests: configure once with `-DRTS_BUILD_OPTION_TESTS=ON`; build target `z_googletest --config Release`; run with `--gtest_filter=<Slice>*`.
+- Test game, which the user watches: `CoH\scripts\skirmish.ps1 -Flags X -Windowed`. AI against AI: `-cohSide Observer -cohOpponents 2`.
+  Use `-cohLog` and grep `CoH.log` in the user data folder, rather than reading it.
+- Determinism: `CoH\scripts\replaycheck.ps1` (headless). Retail `GeneralsReplays` always mismatch on this compiler; that's expected.
+- Replays run in `GAME_REPLAY` mode. A check like `isInSkirmishGame()` must also accept replays, or playback mismatches at frame 0.
+
+## 7. Prior art (reference only)
+
+The old work is on branch `ibm-engine`. Read it with `git show ibm-engine:<path>`; never merge or copy it.
+Its hooks table (`git show ibm-engine:IbmEngine/README.md`, *Hooks in original code*) lists engine points it already found and used.
+
+| Task | Old slice | Hook points it used |
+|---|---|---|
+| 04 Accuracy | `IbmEngine/Features/Accuracy` | `WeaponTemplate::fireWeaponTemplate`: the roll before the fire effects; a miss lands near the target |
+| 07 Directional armor | `IbmEngine/Features/Armor` | `WeaponTemplate::dealDamageInternal`: the penetration roll |
+| 09 Squads, 10 Reinforce | `IbmEngine/Features/Squads` | `SpawnBehavior`, `MobMemberSlavedUpdate`, `TransportContain`, `AIUpdate` enter/attack, `GameLogicDispatch` skill orders, `Drawable` pips |
+| 02 Arsenal | `IbmEngine/Features/AirPower`, `WatchZones` | `canDoSpecialPowerAtLocation`, `DeliverPayloadAIUpdate` (jets following a target), new power types appended |
+| 03 Upkeep | `IbmEngine/Features/Economy` | `ThingTemplate::calcCostToBuild` and `calcTimeToBuild`, `ActiveBody` constructor, `Weapon::computeBonus` |
+
+## 8. Gotchas already paid for
+
+- The skirmish AI scripts gate buildings on `BUILT_BY_PLAYER [SupplyCenter]`. Sectors renames those conditions at game start (`AIScriptRename`).
+- A priority build-list entry the AI can't place blocks all its building.
+- Packs that change the same command set add up only if each lists just the slots it changes. `N = None` empties a slot (a Kernel `// CoH fix` in `ControlBar`).
+- `SpecialPowerStore` and similar stores must keep IDs stable across games, or replays of later games break.
+- A multi-config build without `--config Release` builds Debug, and the installed exe stays old.
