@@ -93,6 +93,8 @@
 
 #include "Common/UnitTimings.h" //Contains the DO_UNIT_TIMINGS define jba.
 
+#include "Kernel/Hooks.h" // CoH hook
+
 
 
 // ------------------------------------------------------------------------------------------------
@@ -3784,6 +3786,8 @@ void InGameUI::postWindowDraw()
 //-------------------------------------------------------------------------------------------------
 void InGameUI::postDraw()
 {
+
+	CoH::Hooks::onInGameUIPostDraw(); // CoH hook
 
 	// render our display strings for the messages if on
 	if( m_messagesOn )

@@ -152,3 +152,30 @@ TEST_F(FeatureRegistryTest, EventsPassTheirArguments)
 	created.raise(sectors);
 	EXPECT_EQ(lastObject, sectors);
 }
+
+namespace
+{
+
+bool sayNo(int) { return false; }
+bool sayYesToEven(int value) { return value % 2 == 0; }
+
+} // namespace
+
+TEST_F(FeatureRegistryTest, VetoesAllowUnlessAnActiveSubscriberSaysNo)
+{
+	CoH::Feature *sectors = registry.add(Sectors);
+	CoH::Feature *accuracy = registry.add(Accuracy);
+	CoH::Veto<int> mayBuild;
+	EXPECT_TRUE(mayBuild.allows(1));
+
+	mayBuild.subscribe(*sectors, sayYesToEven);
+	mayBuild.subscribe(*accuracy, sayNo);
+	EXPECT_TRUE(mayBuild.allows(1));	// both features off
+
+	registry.activate(CoH::FeatureSet::fromList("Sectors"));
+	EXPECT_TRUE(mayBuild.allows(2));
+	EXPECT_FALSE(mayBuild.allows(1));
+
+	registry.activate(CoH::FeatureSet::fromList("Sectors,Accuracy"));
+	EXPECT_FALSE(mayBuild.allows(2));
+}

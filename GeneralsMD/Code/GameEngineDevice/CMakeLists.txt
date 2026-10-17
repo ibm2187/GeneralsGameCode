@@ -211,6 +211,7 @@ target_link_libraries(z_gameenginedevice PRIVATE
     corei_gameenginedevice_private
     zi_always
     zi_main
+    zi_coh_hooks # CoH hook
 )
 
 target_link_libraries(z_gameenginedevice PUBLIC

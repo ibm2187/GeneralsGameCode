@@ -56,6 +56,10 @@
 #include "WW3D2/dx8caps.h"
 #include "WWMath/vector2i.h"
 
+#if RTS_ZEROHOUR
+#include "Kernel/Hooks.h" // CoH hook
+#endif
+
 
 
 // PRIVATE DATA ///////////////////////////////////////////////////////////////////////////////////
@@ -1500,6 +1504,10 @@ void W3DRadar::draw( Int pixelX, Int pixelY, Int width, Int height )
 	{
 		TheDisplay->drawImage( m_shroudImage, ul.x, ul.y, lr.x, lr.y );
 	}
+
+#if RTS_ZEROHOUR
+	CoH::Hooks::onRadarDraw( ul.x, ul.y, scaledWidth, scaledHeight ); // CoH hook
+#endif
 
 	// draw any icons
 	drawIcons( ul.x, ul.y, scaledWidth, scaledHeight );

@@ -810,6 +810,16 @@ void CommandSet::parseCommandButton( INI* ini, void *instance, void *store, cons
 {
 	const char *token = ini->getNextToken();
 
+#if RTS_ZEROHOUR
+	// CoH fix: an override (a map.ini or a CoH pack) can empty a slot with "None", so it changes
+	// only the buttons it names and two overrides of one set add up.
+	if( ini->getLoadType() == INI_LOAD_CREATE_OVERRIDES && stricmp( token, "None" ) == 0 )
+	{
+		((const CommandButton **)store)[ (Int)userData ] = nullptr;
+		return;
+	}
+#endif
+
 	// get find the command button from this name
 	const CommandButton *commandButton = TheControlBar->findCommandButton( AsciiString( token ) );
 	if( commandButton == nullptr )
@@ -2113,10 +2123,21 @@ CommandSet *ControlBar::newCommandSetOverride( CommandSet *setToOverride )
 	// it's an override; DON'T add it to the main list.
 	// !!! DO NOT DO THIS !!! -- > set->friend_addToList(&m_commandSets); <-- !!! DO NOT DO THIS !!!
 
+#if RTS_ZEROHOUR
+	// CoH fix: build on the last override and hang the new one after it, as ThingFactory::newOverride
+	// does. Copying the base set dropped the buttons of an earlier override (one CoH pack's changes
+	// were lost when another pack or map.ini overrode the same set) and left that override in front.
+	CommandSet *lastOverride = (CommandSet *)setToOverride->friend_getFinalOverride();
+	*set = *lastOverride;
+	set->markAsOverride();
+
+	lastOverride->setNextOverride(set);
+#else
 	*set = *setToOverride;
 	set->markAsOverride();
 
 	setToOverride->setNextOverride(set);
+#endif
 
 	return set;
 }

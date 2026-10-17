@@ -3,6 +3,8 @@
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
+#include "GameLogic/Object.h"
+
 #include "Kernel/Domain/GameFlags.h"
 #include "Kernel/Engine/Internal.h"
 #include "Kernel/Hooks.h"
@@ -18,6 +20,15 @@ Event<> &logicFrame() { static Event<> event; return event; }
 Event<Object *> &objectCreated() { static Event<Object *> event; return event; }
 Event<Object *> &objectDestroyed() { static Event<Object *> event; return event; }
 Event<> &gameEnd() { static Event<> event; return event; }
+Veto<const ThingTemplate *, const Coord3D *, const Player *> &buildLocation()
+{
+	static Veto<const ThingTemplate *, const Coord3D *, const Player *> veto;
+	return veto;
+}
+
+Event<> &inGameUIPostDraw() { static Event<> event; return event; }
+Event<int, int, int, int> &radarDraw() { static Event<int, int, int, int> event; return event; }
+Event<const Player *, UnicodeString &> &moneyTooltip() { static Event<const Player *, UnicodeString &> event; return event; }
 
 // ---- Engine ------------------------------------------------------------------------------------
 
@@ -63,6 +74,7 @@ void onGameStartAfterMap(bool loadingSaveGame)
 void onLogicFrame()
 {
 	logicFrame().raise();
+	QuickSkirmish::quitIfDue();
 }
 
 void onObjectCreated(Object *object)
@@ -85,6 +97,31 @@ void onGameEnd()
 	registry.resetAll();
 	registry.deactivateAll();
 	GameFlags::clearSaved();
+}
+
+bool isBuildLocationAllowed(const ThingTemplate *build, const Coord3D *position, const Player *player,
+	const Object *builder)
+{
+	if (player == nullptr && builder != nullptr)
+		player = builder->getControllingPlayer();
+	return buildLocation().allows(build, position, player);
+}
+
+// ---- Client ------------------------------------------------------------------------------------
+
+void onInGameUIPostDraw()
+{
+	inGameUIPostDraw().raise();
+}
+
+void onRadarDraw(int x, int y, int width, int height)
+{
+	radarDraw().raise(x, y, width, height);
+}
+
+void onMoneyTooltip(const Player *player, UnicodeString &description)
+{
+	moneyTooltip().raise(player, description);
 }
 
 // ---- Game options ------------------------------------------------------------------------------

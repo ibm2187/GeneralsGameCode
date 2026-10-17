@@ -14,7 +14,11 @@ class GameInfo;
 class INI;
 class ModuleFactory;
 class Object;
+class Player;
 class Snapshot;
+class ThingTemplate;
+class UnicodeString;
+struct Coord3D;
 typedef void (*INIBlockParse)( INI *ini );
 
 namespace CoH::Hooks
@@ -34,6 +38,12 @@ void onLogicFrame();		///< GameLogic::update, after objects update, before destr
 void onObjectCreated(Object *object);		///< ThingFactory::newObject, once the object is set up
 void onObjectDestroyed(Object *object);		///< GameLogic::destroyObject, once the object is marked destroyed
 void onGameEnd();			///< GameLogic::reset, once every object is gone
+bool isBuildLocationAllowed(const ThingTemplate *build, const Coord3D *position, const Player *player,
+	const Object *builder);	///< BuildAssistant::isLocationLegalToBuild; the player is the builder's when null
+
+void onInGameUIPostDraw();	///< InGameUI::postDraw: over the 3D view, under the windows
+void onRadarDraw(int x, int y, int width, int height);	///< W3DRadar::draw: over the map and shroud, under the icons
+void onMoneyTooltip(const Player *player, UnicodeString &description);	///< ControlBar: the money tooltip's text is made
 
 AsciiString gameOptions(const GameInfo *game);	///< appended to the game options string; empty with no flags
 bool isGameOptionKey(const AsciiString &key);	///< tells the options parser the CoH key is known
@@ -47,5 +57,15 @@ Event<> &logicFrame();
 Event<Object *> &objectCreated();
 Event<Object *> &objectDestroyed();
 Event<> &gameEnd();					///< every object is gone; the feature's reset runs next
+
+// The structure 'build' may go at 'position' for 'player' (which may be null). Saying no makes the
+// spot illegal for the player's placement cursor and for the AI.
+Veto<const ThingTemplate *, const Coord3D *, const Player *> &buildLocation();
+
+// ---- Client: drawing and text. These don't run in -headless games. ------------------------------
+
+Event<> &inGameUIPostDraw();			///< draw over the 3D view with TheDisplay, in screen pixels
+Event<int, int, int, int> &radarDraw();	///< the radar's drawn map area on screen: x, y, width, height
+Event<const Player *, UnicodeString &> &moneyTooltip();	///< the viewed player; the description to add to
 
 } // namespace CoH::Hooks

@@ -55,6 +55,8 @@
 #include "GameLogic/Module/ProductionUpdate.h"
 #include "GameLogic/Module/ParkingPlaceBehavior.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 // PUBLIC DATA ////////////////////////////////////////////////////////////////////////////////////
 BuildAssistant *TheBuildAssistant = nullptr;
 
@@ -943,6 +945,9 @@ LegalBuildCode BuildAssistant::isLocationLegalToBuild( const Coord3D *worldPos,
 			}
 		}
 	}
+
+	if( !CoH::Hooks::isBuildLocationAllowed( build, worldPos, player, builderObject ) ) // CoH hook
+		return LBC_RESTRICTED_TERRAIN;
 
 	//
 	// if NO_OBJECT_OVERLAP is set, we are not allowed to construct 'build' if it would overlap

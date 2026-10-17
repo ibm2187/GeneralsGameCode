@@ -12,7 +12,7 @@ The original code only calls the hook hub, from the places listed in [Hooks in o
 
 | Feature | Flag | Task | Status |
 |---|---|---|---|
-| (none yet) | | | |
+| [Sectors](Features/Sectors/README.md) | `Sectors` | [01](Tasks/01-Sectors.md) | supplies only from capturable sectors; skirmish AI plays for them |
 
 Every feature has a flag. With every flag off the game plays exactly like `main`, replays included.
 
@@ -72,6 +72,10 @@ The script does four things:
   CoH\scripts\skirmish.ps1 -Flags Sectors,Accuracy -Map 'Tournament Island' -AI hard -Side FactionGLA -Windowed
   ```
   The script uses the Kernel's command-line options `-cohSkirmish [map]`, `-cohSide <PlayerTemplate>` and `-cohAI easy|medium|hard`. They also work with `-headless`.
+- **Unattended AI games:** `-cohSide Observer -cohOpponents 2` watches two AIs, `-cohQuitAfter <seconds>` quits after that much game time or when the game is over, and `-cohLog` makes features write what happens to `CoH.log` in the user data folder (the profile build has no debug log). Run them from the game folder, headless, so no window opens:
+  ```powershell
+  generalszh.exe -useCwd -headless -coh Sectors -cohSkirmish "Tournament Desert" -cohSide Observer -cohOpponents 2 -cohAI hard -cohLog -cohQuitAfter 600
+  ```
 - **Replay check:** plays replays headless and reports mismatches. It plays `Replays\CoH\*.rep` by default.
   ```powershell
   CoH\scripts\replaycheck.ps1
@@ -118,6 +122,12 @@ These are the points of `Kernel/Hooks.h` that features subscribe to:
 | `objectCreated(Object *)` | An object is fully set up (`ThingFactory::newObject`). |
 | `objectDestroyed(Object *)` | An object is marked destroyed (`GameLogic::destroyObject`). |
 | `gameEnd()` | Every object is gone. The feature's `reset` runs next. |
+| `buildLocation()` | A `Veto`: may this structure go at this spot for this player? Asked for the placement cursor and the AI's base building. Allowed unless an active feature says no. |
+| `inGameUIPostDraw()` | Draw over the 3D view (`TheDisplay`, screen pixels), under the windows. Not in `-headless` games. |
+| `radarDraw(x, y, width, height)` | Draw on the minimap: the area its map is drawn in, over the terrain and shroud, under the icons. |
+| `moneyTooltip(player, description)` | The money tooltip is being made for the viewed player; add to its text. |
+
+A `Veto` is a question with a yes/no answer (`subscribe` a function returning `bool`); an `Event` only tells. `CoH::log(...)` (`Kernel/Log.h`) writes to `CoH.log` with `-cohLog`.
 
 Features register their modules (`COH_ADD_MODULE`) and INI blocks (`CoH::registerIniBlock`) in `init`. The Kernel passes them on through the module factory hook and the INI block table hook.
 
@@ -145,5 +155,17 @@ Every edit to an original file is a minimal call marked `// CoH hook` (`# CoH ho
 | `Core/.../GameNetwork/GameInfo.cpp` | `buildGameInfoAsciiString` | `gameOptions(&game)` | Writes the host's flags into the game options and replay header. Writes nothing when no flag is on. |
 | `Core/.../GameNetwork/GameInfo.cpp` | `ParseAsciiStringToGameInfo` | `isGameOptionKey(key)` | Accepts the `CoH` key. |
 | `Core/.../GameNetwork/GameInfo.cpp` | `ParseAsciiStringToGameInfo` | `onGameOptionsParsed(game, options)` | Keeps the flags a host or replay sent. |
+| `GeneralsMD/.../Common/System/BuildAssistant.cpp` | `isLocationLegalToBuild` | `isBuildLocationAllowed(build, pos, player, builder)` | The `buildLocation` veto, after the shroud check; a no is `LBC_RESTRICTED_TERRAIN`. |
+| `GeneralsMD/.../GameClient/InGameUI.cpp` | `InGameUI::postDraw` | `onInGameUIPostDraw()` | Drawing over the 3D view. |
+| `Core/GameEngineDevice/.../W3DRadar.cpp` | `W3DRadar::draw` | `onRadarDraw(x, y, width, height)` | Drawing on the minimap, after the shroud. |
+| `Core/.../GUICallbacks/ControlBarPopupDescription.cpp` | `ControlBar::populateBuildTooltipLayout` | `onMoneyTooltip(player, descrip)` | The money tooltip's text. |
+| `GeneralsMD/Code/GameEngineDevice/CMakeLists.txt` | `z_gameenginedevice` | links `zi_coh_hooks` | The hub's header for the radar hook (CoH compiles into `z_gameengine` only). |
 
-There are no `// CoH fix` edits yet.
+## Fixes in original code
+
+Each is marked `// CoH fix` and wrapped in `#if RTS_ZEROHOUR` in `Core/`. With no flag on no pack loads, and a single override (a map.ini's) behaves exactly as before; only a map.ini that overrides the same command set twice, or names `None`, would load differently.
+
+| File | Where | Fix |
+|---|---|---|
+| `Core/.../GUI/ControlBar/ControlBar.cpp` | `ControlBar::newCommandSetOverride` | A second override of a command set (a second pack, or a map.ini after a pack) copied the base set and was chained in front of the first, so only the first override counted. It now builds on the last override and goes after it, as `ThingFactory::newOverride` does for objects. Packs that override the same command set add up, button by button. |
+| `Core/.../GUI/ControlBar/ControlBar.cpp` | `CommandSet::parseCommandButton` | In an override file, `N = None` empties slot N, so a pack can take a button out without restating the set. |

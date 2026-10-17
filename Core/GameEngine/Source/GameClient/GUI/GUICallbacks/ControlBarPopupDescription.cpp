@@ -94,6 +94,10 @@
 
 #include "GameNetwork/NetworkInterface.h"
 
+#if RTS_ZEROHOUR
+#include "Kernel/Hooks.h" // CoH hook
+#endif
+
 static WindowLayout *theLayout = nullptr;
 static GameWindow *theWindow = nullptr;
 static AnimateWindowManager *theAnimateWindowManager = nullptr;
@@ -568,6 +572,9 @@ void ControlBar::populateBuildTooltipLayout( const CommandButton *commandButton,
 		{
 			name = TheGameText->fetch("CONTROLBAR:Money");
 			descrip = TheGameText->fetch("CONTROLBAR:MoneyDescription");
+#if RTS_ZEROHOUR
+			CoH::Hooks::onMoneyTooltip( getCurrentlyViewedPlayer(), descrip ); // CoH hook
+#endif
 		}
 		else if(tooltipWin == TheWindowManager->winGetWindowFromId(m_buildToolTipLayout->getFirstWindow(), TheNameKeyGenerator->nameToKey("ControlBar.wnd:PowerWindow")) )
 		{

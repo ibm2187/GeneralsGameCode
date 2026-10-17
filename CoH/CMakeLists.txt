@@ -7,6 +7,11 @@
 add_library(zi_coh INTERFACE)
 target_include_directories(zi_coh INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
+# Only the hub's header, for the engine's device library: it calls a few hooks (the radar) but the
+# CoH sources compile into z_gameengine alone.
+add_library(zi_coh_hooks INTERFACE)
+target_include_directories(zi_coh_hooks INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+
 # Adds a slice folder: its sources to the engine, its tests to z_googletest.
 function(coh_add_slice folder)
     file(GLOB_RECURSE sources CONFIGURE_DEPENDS ${folder}/*.cpp ${folder}/*.h)
@@ -27,6 +32,8 @@ endfunction()
 coh_add_slice(Kernel)
 
 # ---- Features, in the order their INI packs load, for example: coh_add_feature(Sectors) ----
+
+coh_add_feature(Sectors)
 
 # ---- The list of features the Kernel registers ----
 

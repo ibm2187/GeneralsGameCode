@@ -74,4 +74,7 @@ namespace CoH::QuickSkirmish
 void prepareIfAsked();
 void startIfAsked();
 
+// With -cohQuitAfter <seconds>: quits the game once that much game time has passed.
+void quitIfDue();
+
 } // namespace CoH::QuickSkirmish

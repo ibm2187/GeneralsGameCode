@@ -3,15 +3,19 @@
 //
 //     -cohSkirmish [map]       start a skirmish; the map is a folder under Maps ("Tournament Desert",
 //                              the default) or a map path the map list knows
-//     -cohSide <template>      the player's side, such as FactionAmericaAirForceGeneral; default: the
-//                              skirmish preferences' side
-//     -cohAI easy|medium|hard  the one AI opponent, on a random side; default: medium
+//     -cohSide <template>      the player's side, such as FactionAmericaAirForceGeneral, or Observer
+//                              to watch the AIs; default: the skirmish preferences' side
+//     -cohAI easy|medium|hard  the AI opponents, on random sides; default: medium
+//     -cohOpponents <count>    how many AI opponents, up to the map's start positions; default: 1
+//     -cohQuitAfter <seconds>  quit the game after this much game time, or when it is over, for
+//                              unattended test games
 //
 // The game plays with the local flags, so "-coh Sectors" turns Sectors on. It is set up like the
 // skirmish menu sets up a game (SkirmishGameOptionsMenu), so it records a replay like one.
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
+#include "Common/GameEngine.h"
 #include "Common/GlobalData.h"
 #include "Common/MessageStream.h"
 #include "Common/PlayerTemplate.h"
@@ -19,11 +23,13 @@
 #include "Common/SkirmishPreferences.h"
 #include "GameClient/MapUtil.h"
 #include "GameLogic/GameLogic.h"
+#include "GameLogic/VictoryConditions.h"
 #include "GameNetwork/GameInfo.h"
 
 #include "Kernel/Domain/Arguments.h"
 #include "Kernel/Domain/Text.h"
 #include "Kernel/Engine/Internal.h"
+#include "Kernel/Log.h"
 
 namespace CoH::QuickSkirmish
 {
@@ -59,6 +65,8 @@ Int findPlayerSide(const std::vector<std::string> &arguments, Int preferred)
 	const std::optional<std::string> side = findOption(arguments, "-cohSide");
 	if (!side || side->empty())
 		return preferred;
+	if (Text::equalsNoCase(*side, "observer"))
+		return PLAYERTEMPLATE_OBSERVER;
 
 	const Int found = ThePlayerTemplateStore->getTemplateNumByName(side->c_str());
 	return found >= 0 ? found : preferred;
@@ -74,6 +82,16 @@ SlotState findOpponent(const std::vector<std::string> &arguments)
 	return SLOT_MED_AI;
 }
 
+// A count option such as "-cohOpponents 2"; 'fallback' when it is missing or not a number.
+Int findCount(const std::vector<std::string> &arguments, const char *option, Int fallback)
+{
+	const std::optional<std::string> value = findOption(arguments, option);
+	if (!value || value->empty())
+		return fallback;
+	const Int count = atoi(value->c_str());
+	return count > 0 ? count : fallback;
+}
+
 void setUpGame(const AsciiString &map, const MapMetaData &mapData, const std::vector<std::string> &arguments)
 {
 	if (TheSkirmishGameInfo == nullptr)
@@ -86,20 +104,30 @@ void setUpGame(const AsciiString &map, const MapMetaData &mapData, const std::ve
 
 	SkirmishPreferences prefs;
 
+	const Int side = findPlayerSide(arguments, prefs.getPreferredFaction());
+	const Bool observing = side == PLAYERTEMPLATE_OBSERVER;
+
 	GameSlot player;
 	player.setName(prefs.getUserName());
 	player.setState(SLOT_PLAYER, prefs.getUserName());
-	player.setColor(prefs.getPreferredColor());
-	player.setPlayerTemplate(findPlayerSide(arguments, prefs.getPreferredFaction()));
-	player.setStartPos(0);
+	player.setColor(observing ? -1 : prefs.getPreferredColor());
+	player.setPlayerTemplate(side);
+	player.setStartPos(observing ? -1 : 0);
 	TheSkirmishGameInfo->setSlot(0, player);
 
-	GameSlot opponent;
-	opponent.setState(findOpponent(arguments));
-	opponent.setColor(-1);
-	opponent.setPlayerTemplate(PLAYERTEMPLATE_RANDOM);
-	opponent.setStartPos(1);
-	TheSkirmishGameInfo->setSlot(1, opponent);
+	// An observer leaves every start position to the AIs.
+	const Int firstStart = observing ? 0 : 1;
+	const Int starts = max(mapData.m_numPlayers, 2);
+	const Int opponents = min(findCount(arguments, "-cohOpponents", 1), min(starts - firstStart, MAX_SLOTS - 1));
+	for (Int i = 0; i < opponents; ++i)
+	{
+		GameSlot opponent;
+		opponent.setState(findOpponent(arguments));
+		opponent.setColor(-1);
+		opponent.setPlayerTemplate(PLAYERTEMPLATE_RANDOM);
+		opponent.setStartPos(firstStart + i);
+		TheSkirmishGameInfo->setSlot(1 + i, opponent);
+	}
 
 	TheSkirmishGameInfo->setSeed(GetTickCount());
 	TheSkirmishGameInfo->setStartingCash(prefs.getStartingCash());
@@ -155,6 +183,23 @@ void startIfAsked()
 
 	setUpGame(mapPath, *mapData, Kernel::processArguments());
 	sendNewGame();
+}
+
+// Also once one side is left: the game stops there, and an unattended game would wait forever.
+void quitIfDue()
+{
+	static const Int quitAfter = findCount(Kernel::processArguments(), "-cohQuitAfter", 0);
+	if (quitAfter <= 0)
+		return;
+
+	const Bool timeIsUp = TheGameLogic->getFrame() >= (UnsignedInt)(quitAfter * LOGICFRAMES_PER_SECOND);
+	const Bool gameIsOver = TheVictoryConditions && TheVictoryConditions->getEndFrame() > 0;
+	if (!timeIsUp && !gameIsOver)
+		return;
+
+	CoH::log("CoH: -cohQuitAfter %d: quitting at frame %u%s", quitAfter, TheGameLogic->getFrame(),
+		gameIsOver ? ", the game is over" : "");
+	TheGameEngine->setQuitting(TRUE);
 }
 
 } // namespace CoH::QuickSkirmish
