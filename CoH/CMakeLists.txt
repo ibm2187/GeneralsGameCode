@@ -37,6 +37,7 @@ coh_add_feature(Sectors)
 coh_add_feature(GeneralsArsenal)
 coh_add_feature(Upkeep)
 coh_add_feature(Squads)
+coh_add_feature(Accuracy)
 
 # ---- The list of features the Kernel registers ----
 

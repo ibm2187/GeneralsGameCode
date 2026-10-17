@@ -77,6 +77,8 @@
 #include "GameLogic/Module/SpawnBehavior.h"
 #include "GameLogic/TerrainLogic.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 #define RATIONALIZE_ATTACK_RANGE
 #define ATTACK_RANGE_IS_2D
 
@@ -910,6 +912,14 @@ UnsignedInt WeaponTemplate::fireWeaponTemplate
 
 			return 0;
 		}
+	}
+
+	// CoH hook: a feature may send a shot at an object to a spot near it instead (a miss)
+	if (victimObj && !isProjectileDetonation && CoH::Hooks::onWeaponFiringAtObject(sourceObj, this, bonus, victimObj, victimPosStorage))
+	{
+		victimPos = &victimPosStorage;
+		victimObj = nullptr;
+		victimID = INVALID_ID;
 	}
 
 	// call this even if FXList is null, because this also handles stuff like Gun Barrel Recoil

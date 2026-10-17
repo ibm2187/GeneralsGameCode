@@ -22,6 +22,8 @@ class SpecialPowerTemplate;
 class ThingTemplate;
 class UnicodeString;
 struct AICommandParms;
+class WeaponBonus;
+class WeaponTemplate;
 struct Coord3D;
 struct IRegion2D;
 class DamageInfo;
@@ -59,6 +61,8 @@ void onBuildTime(const Player *player, const ThingTemplate *build, int &frames);
 void onPlayerSelection(Player *player, Object *object, bool selected);	///< GameLogicDispatch: a player's (de)select message
 void onAiCommand(Object *object, const AICommandParms *command);	///< AIUpdateInterface::aiDoCommand, once it is accepted
 void onContainRoom(const Object *container, const Object *rider, int &used, int &needed);	///< Transport/GarrisonContain::isValidContainerFor
+bool onWeaponFiringAtObject(const Object *source, const WeaponTemplate *weapon, const WeaponBonus &bonus,
+	const Object *victim, Coord3D &spot);	///< WeaponTemplate::fireWeaponTemplate: true sends the shot to 'spot' instead
 
 void onInGameUIPostDraw();	///< InGameUI::postDraw: over the 3D view, under the windows
 void onRadarDraw(int x, int y, int width, int height);	///< W3DRadar::draw: over the map and shroud, under the icons
@@ -122,6 +126,21 @@ Event<Object *, const AICommandParms *> &aiCommand();
 // in the container's own units (transport slots, garrison places). The rider fits while used + needed
 // is at most the container's maximum. A subscriber may change both.
 Event<const Object *, const Object *, int &, int &> &containRoom();
+
+// A weapon is about to fire at an object: a shot leaving the weapon, not a projectile going off. A
+// subscriber may send the shot to a spot instead (a miss): it writes the spot and sets 'retargeted'.
+// The shot then goes there as a shot at the ground does: its tracers aim there, a projectile flies
+// there, and the damage lands there, hurting whatever its radius reaches. The first to retarget wins.
+struct WeaponShot
+{
+	const Object *source;
+	const WeaponTemplate *weapon;
+	const WeaponBonus *bonus;
+	const Object *victim;
+	Coord3D *spot;			///< where a retargeted shot goes
+	bool retargeted;
+};
+Event<WeaponShot &> &weaponFiringAtObject();
 
 // ---- Client: drawing and text. These don't run in -headless games. ------------------------------
 

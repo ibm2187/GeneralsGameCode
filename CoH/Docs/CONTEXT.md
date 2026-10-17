@@ -42,6 +42,7 @@ Don't read other slices' `Engine/` or `Domain/` code to learn the Kernel. Their 
 | `CoH/Features/GeneralsArsenal/` | command points, sortie and air cover powers, super weapons with a warning, AI power use; its README has *Engine notes* on special powers |
 | `CoH/Features/Upkeep/` | population, its cap, upkeep on income, the AI's army limit |
 | `CoH/Features/Squads/` | infantry squads: made per order, one selection, formation moves, one unit in containers and population, the squad health bar; `Squads.h` for Reinforce, Retreat, Abilities, Weapon pickup |
+| `CoH/Features/Accuracy/` | hit rolls for direct fire, misses beside the target; `Accuracy.h` has the hit modifier stack Cover, Suppression and Veterancy plug into |
 | `CoH/Docs/CONTEXT.md` | this map |
 | `CoH/Scripts/` | `install.ps1` (build and install), `skirmish.ps1` (test game), `replaycheck.ps1` (determinism) |
 | `CoH/Tools/retail.py` | extracts the retail data to `build/retail/`; `read_big` and `read_csf` for packs that generate INI |
@@ -77,6 +78,7 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Thing | Where |
 |---|---|
 | Firing | `Z/GameLogic/Object/Weapon.cpp` [3.7k]: `Weapon::privateFireWeapon` 2621, `WeaponTemplate::fireWeaponTemplate` 774, projectiles inside it |
+| Shot redirect (a miss) | hub `weaponFiringAtObject` in `fireWeaponTemplate`, after the range checks: a retargeted shot becomes a shot at a spot; Accuracy `Engine/Shots.cpp`. A hit modifier goes through `Accuracy.h` `addHitModifier`, not a new hook |
 | Damage dealt | `WeaponTemplate::dealDamageInternal` 1377 (victims, radius, damage type), then `Object::attemptDamage` (`Object.cpp` 1906), then `ActiveBody::attemptDamage` (`Body/ActiveBody.cpp` 354) |
 | Weapon bonuses, reload | `Weapon::computeBonus` 1952, `getDelayBetweenShots` 506, `getClipReloadTime` 527 and 2001 |
 | Weapon choice | `Z/GameLogic/Object/WeaponSet.cpp` [1.2k] |

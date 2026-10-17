@@ -19,6 +19,7 @@ The original code only calls the hook hub, from the places listed in [Hooks in o
 | [GeneralsArsenal](Features/GeneralsArsenal/README.md) | `GeneralsArsenal` | [02](Docs/Tasks/02-GeneralsArsenal.md) | jets and super weapons are General's powers paid with command points earned in combat; helicopters at the Airfield; skirmish AI uses them |
 | [Upkeep](Features/Upkeep/README.md) | `Upkeep` | [03](Docs/Tasks/03-Upkeep.md) | units take population under a cap that grows with buildings and sectors; upkeep takes a growing share of income; skirmish AI keeps its upkeep low (needs Sectors) |
 | [Squads](Features/Squads/README.md) | `Squads` | [09](Docs/Tasks/09-Squads.md) | infantry is ordered, selected, carried and counted as squads that move in formation, with one health bar; skirmish AI builds and orders them |
+| [Accuracy](Features/Accuracy/README.md) | `Accuracy` | [04](Docs/Tasks/04-Accuracy.md) | direct fire rolls to hit by range, movement, target size and veterancy; a miss lands beside the target; other slices add hit modifiers through `Accuracy.h` |
 
 Every feature has a flag. With every flag off the game plays exactly like `main`, replays included.
 
@@ -146,6 +147,7 @@ These are the points of `Kernel/Hooks.h` that features subscribe to:
 | `aiCommand(object, command)` | An object accepted a command (`AICommandParms`: move, attack, enter, exit, ...) from a player, a script or the AI. |
 | `containRoom(container, rider, used, needed)` | May the rider go in? `used` is the room taken and `needed` what the rider takes (transport slots, garrison places); it fits while `used + needed` is at most the maximum. A subscriber may change both. |
 | `healthBar(object, bar, health, maxHealth)` | A selected or moused-over object's health bar is drawn in `bar` from these; a subscriber may change them, and a max of 0 draws none. |
+| `weaponFiringAtObject(shot)` | A weapon is about to fire at an object (not a projectile going off). A subscriber may send the shot to a spot instead (a miss) by writing `*shot.spot` and setting `shot.retargeted`; the engine then fires at that spot as at the ground, so tracers, projectiles and blast damage go there. The first to retarget wins. |
 
 The hub also passes on drawing that `TheDisplay` doesn't offer, which original code provides:
 
@@ -207,6 +209,7 @@ Every edit to an original file is a minimal call marked `// CoH hook` (`# CoH ho
 | `GeneralsMD/.../GameLogic/Object/Update/AIUpdate.cpp` | `AIUpdateInterface::aiDoCommand` | `onAiCommand(getObject(), parms)` | A command the object accepted, before it is carried out. |
 | `GeneralsMD/.../GameLogic/Object/Contain/TransportContain.cpp`, `GarrisonContain.cpp` | `isValidContainerFor` | `onContainRoom(getObject(), rider, used, needed)` | The capacity check, rewritten as `used + needed <= max` (the garrison's `count < max` is the same with `needed` 1). |
 | `GeneralsMD/.../GameClient/Drawable.cpp` | `Drawable::drawHealthBar` | `onHealthBar(obj, healthBarRegion, health, maxHealth)` | The health and max health the bar is drawn from. |
+| `GeneralsMD/.../GameLogic/Object/Weapon.cpp` | `WeaponTemplate::fireWeaponTemplate` | `onWeaponFiringAtObject(sourceObj, this, bonus, victimObj, victimPosStorage)` | After the range checks, before the fire effects, not for a projectile going off. True turns the shot into a shot at the spot, as the engine's sneaky targeting offset does (`victimObj` null, `victimID` invalid). |
 
 ## Fixes in original code
 
