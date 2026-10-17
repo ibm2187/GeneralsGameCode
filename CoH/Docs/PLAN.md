@@ -96,3 +96,11 @@ A new main package is added only for a new kind of thing, never for a feature.
 
 Tasks whose needs are met can run at the same time on their own branches.
 After the Kernel, 01, 02, 04, 07, 09 and 12 can all start.
+
+### Spikes
+
+Spikes are time-boxed experiments on throwaway branches. Only their findings are merged.
+
+| # | Spike | Starts | Question |
+|---|---|---|---|
+| S1 | [A modern language for CoH code](Tasks/S1-LanguageSpike.md) | once 04 or 09 is merged, whichever is first | Do cppfront, Nim, Rust (`cxx`) or Lua beat plain C++20 for CoH code, without costing determinism or debugging? |
