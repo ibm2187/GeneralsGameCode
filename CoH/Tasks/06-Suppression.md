@@ -1,0 +1,21 @@
+# 06 Suppression
+
+**Branch** `coh/suppression` · **Needs** 04 · **Slice** `CoH/Features/Suppression/` · **Flag** `Suppression`
+
+## Goal
+
+Machine guns and explosions pin infantry, so firepower controls space instead of only killing.
+
+## Behavior
+
+- Weapons have a suppression value set in INI: high for machine guns, some for explosives.
+- Hits and near misses fill a target's suppression meter, which drains over time.
+- **Suppressed:** slower movement, worse accuracy and a slower rate of fire.
+- **Pinned:** the unit can't move except to retreat, and fires rarely.
+- Cover reduces how much suppression a unit takes. Vehicles aren't suppressed.
+- An icon over the unit shows its state.
+- The AI pulls pinned infantry back and flanks machine-gun positions.
+
+## Done
+
+Domain tests cover the meter, the thresholds and the decay. The states are visible in game. A machine gun stops an infantry rush at range.
