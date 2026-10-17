@@ -39,7 +39,7 @@ Don't read other slices' `Engine/` or `Domain/` code to learn the Kernel. Their 
 | `CoH/Kernel/Domain/` | flags, the feature set and argument parsing, as pure code |
 | `CoH/Kernel/Engine/` | packs, game options sync, the save block, quick skirmish, `CoH.log` |
 | `CoH/Features/Sectors/` | territory economy: capture, income, the cut-off graph, build rule, AI expansion, ground, radar and tooltip UI |
-| `CoH/Features/GeneralsArsenal/` | (task 02, in progress) command points, air and super weapon powers |
+| `CoH/Features/GeneralsArsenal/` | command points, sortie and air cover powers, super weapons with a warning, AI power use; its README has *Engine notes* on special powers |
 | `CoH/CONTEXT.md` | this map |
 | `CoH/scripts/` | `install.ps1` (build and install), `skirmish.ps1` (test game), `replaycheck.ps1` (determinism) |
 | `CoH/tools/retail.py` | extracts the retail data to `build/retail/`; `read_big` and `read_csf` for packs that generate INI |
@@ -104,7 +104,12 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Player | `Z/Common/RTS/Player.cpp` [4.6k]: `update` 669, `onUnitCreated` 1553, `canBuild` 2946 |
 | Rank and science | `Player::addSkillPoints` 2503, `setRankLevel` 2720, `addSciencePurchasePoints` 2621, `attemptToPurchaseScience` 2635, `grantScience` 2658; `Z/Common/RTS/Science.cpp` |
 | Special powers | `Z/GameLogic/Object/SpecialPower/SpecialPowerModule.cpp` [926]: `isReady` 311, `initiateIntentToDoSpecialPower` 462, `startPowerRecharge` 421, `doSpecialPowerAtLocation` 750; the templates are in `Z/Common/RTS/SpecialPower.cpp` |
-| Power types | `GeneralsMD/Code/GameEngine/Include/Common/SpecialPowerType.h`; append only, so saved IDs don't change |
+| Power types | `GeneralsMD/Code/GameEngine/Include/Common/SpecialPowerType.h`; append only, so saved IDs don't change. A new type also goes in `ActionManager::canDoSpecialPowerAtLocation` (the cursor) |
+| Power use and payment | hub `specialPowerUse` (veto: `SpecialPowerStore::canUseSpecialPower`, `AIGroup::groupDoSpecialPower*`, ControlBar greying) and `specialPowerTriggered` (`SpecialPowerModule::triggerSpecialPower`); GeneralsArsenal `Engine/Powers.cpp` |
+| Command points (earning) | hub `killScored` (`Object::scoreTheKill`) and `damageDealt` (`ActiveBody::attemptDamage`); GeneralsArsenal `Engine/Earning.cpp` |
+| Sorties | INI only: OCL `DeliverPayload` with a jet copy carrying `DeliverPayloadAIUpdate`; GeneralsArsenal `Data/make_pack.py` |
+| Air cover | GeneralsArsenal `AirCoverZoneUpdate` (jets with a plain `AIUpdateInterface`; `JetAIUpdate` starts on the runway) |
+| Super weapon warning | GeneralsArsenal `StrikeCountdownUpdate` (marker, then a hidden building copy at `TerrainLogic::findClosestEdgePoint` fires its power) and `UI/MarkerOverlay.cpp` |
 | Cost and build time | `Core/GameEngine/Source/Common/Thing/ThingTemplate.cpp`: `calcCostToBuild` 1567, `calcTimeToBuild` 1586 |
 | Modules | `Z/Common/Thing/ModuleFactory.cpp`, `ModuleFactory::init` 321; features use `COH_ADD_MODULE` |
 | INI blocks | `C/Common/INI/INI.cpp`, the block table; features use `CoH::registerIniBlock` |
@@ -169,3 +174,8 @@ Its hooks table (`git show ibm-engine:IbmEngine/README.md`, *Hooks in original c
 - Packs that change the same command set add up only if each lists just the slots it changes. `N = None` empties a slot (a Kernel `// CoH fix` in `ControlBar`).
 - `SpecialPowerStore` and similar stores must keep IDs stable across games, or replays of later games break.
 - A multi-config build without `--config Release` builds Debug, and the installed exe stays old.
+- A pack's new object lists all its modules inside `AddModule`; a `Locomotor` line goes after the AI module; a block names only what an earlier file defined. Crash reasons are in `ReleaseCrashInfo.txt` in the user data folder.
+- `objectCreated` fires before a loaded object gets its saved ID: register modules (constructor and destructor), not object IDs.
+- `Object::crc` doesn't include modules, and `Player::computeSuperweaponTarget` draws synced random numbers (never call it just to log).
+- Upgraded command sets (`CommandSetUpgrade`, such as China's airfield after the mines upgrade) need a pack's changes too.
+- Several `-cohSkirmish` games can run at once (own `CoH_InstanceNN.log`); replacing the installed exe needs every game closed.
