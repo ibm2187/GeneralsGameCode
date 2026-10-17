@@ -9,7 +9,7 @@ This is a fresh start from `main`. Earlier `IbmEngine/` work on other branches i
 
 - **Territory is the economy.** Supplies come from capturable sectors. There are no supply centers, supply trucks, supply docks or gathering workers.
   A sector is taken by conquest: forces stand on its point while no enemy contests it. No capture upgrade is needed.
-- **The sky belongs to the General.** Fixed-wing aircraft and super weapons are General's powers, bought with General's points and called in.
+- **The sky belongs to the General.** Fixed-wing aircraft and super weapons are General's powers, called in and paid per use with command points earned in combat.
   Helicopters stay part of the army and are built like other units.
 - **CoH combat.** Hits can miss, cover matters, machine guns suppress, armor has a front and a rear, vehicles take critical damage.
 - **CoH units.** Infantry fights in squads that reinforce, retreat and earn veterancy.

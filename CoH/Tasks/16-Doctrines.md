@@ -9,7 +9,7 @@ Each match, a commander path shapes the army, built on Zero Hour's generals and 
 ## Behavior
 
 - Early in a match, each player picks one of three doctrines for their faction, for example USA Air, Armor or Infantry.
-- The doctrine decides which General's powers and unit upgrades the General's points can buy.
+- The doctrine decides which General's powers can be called in with command points, and which unit upgrades promotion points can buy.
 - The doctrines draw on 02's air and super weapon powers.
 - The AI picks a doctrine and buys its powers.
 
