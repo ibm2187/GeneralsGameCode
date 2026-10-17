@@ -22,22 +22,28 @@ This is a fresh start from `main`. Earlier `IbmEngine/` work on other branches i
 
 ## Layout
 
+`CoH/` is made of main packages, one folder each. Vertical slices live only inside `Features/`.
+
 ```
 CoH/
+  README.md               entry point: feature list, install, testing, the hooks table
   CMakeLists.txt          one target, compiled into the Zero Hour engine (z_gameengine)
-  README.md               feature list, install, and the table of every hook in original code
-  PLAN.md                 this file
-  Tasks/                  one task file per feature
-  Kernel/                 shared by every feature: flags, INI packs, hook hub, sync, test support
-  Features/<Name>/
-    README.md             what it does, its flag, its INI settings, its hooks
-    <Name>.h              the slice's public header; the only file other slices may include
-    Domain/               rules as plain C++ with no engine headers: unit tested
-    Engine/               adapters: hook subscribers, modules, AI glue; the only code touching engine types
-    UI/                   in-game display (rings, icons, bars, tooltips)
-    Data/INI/             the feature's INI pack, loaded when its flag is on
-    Tests/                Google Test cases for Domain/, built into z_googletest
+  Kernel/                 framework shared by every feature: registry, flags, INI packs, hook hub, sync
+  Features/               one vertical slice per feature:
+    <Name>/
+      README.md           what it does, its flag, its INI settings, its hooks, engine notes
+      <Name>.h            the slice's public header; the only file other slices may include
+      Domain/             rules as plain C++ with no engine headers: unit tested
+      Engine/             adapters: hook subscribers, modules, AI glue; the only code touching engine types
+      UI/                 in-game display (rings, icons, bars, tooltips)
+      Data/INI/           the feature's INI pack, loaded when its flag is on
+      Tests/              Google Test cases for Domain/, built into z_googletest
+  Scripts/                PowerShell for building, installing and testing (install, skirmish, replaycheck)
+  Tools/                  developer tools (retail.py: retail data to build/retail/)
+  Docs/                   PLAN.md (this file), CONTEXT.md (the context map), Tasks/ (one file per feature)
 ```
+
+A new main package is added only for a new kind of thing, never for a feature.
 
 ## Conventions
 

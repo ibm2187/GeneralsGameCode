@@ -1,5 +1,5 @@
 // CoH Kernel: INI packs. A slice's Data/INI folder installs to CoH\Packs\<Name> in the game folder
-// (CoH/scripts/install.ps1). At game start, after the base INI and before map.ini, the pack of every
+// (CoH/Scripts/install.ps1). At game start, after the base INI and before map.ini, the pack of every
 // active feature loads like a map.ini does: with INI_LOAD_CREATE_OVERRIDES, so the objects, command
 // sets, weapons and so on that it changes are overrides, and the engine drops them when the game
 // resets. A feature without a pack folder loads nothing.

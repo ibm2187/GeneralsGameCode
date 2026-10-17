@@ -11,8 +11,8 @@ Retail replays (GeneralsReplays) need a VC6 build (TESTING.md): the win32-profil
 mismatches all of them at frame 110 too.
 
 .EXAMPLE
-CoH\scripts\replaycheck.ps1
-CoH\scripts\replaycheck.ps1 -Replays '00000000.rep'
+CoH\Scripts\replaycheck.ps1
+CoH\Scripts\replaycheck.ps1 -Replays '00000000.rep'
 #>
 param(
     [string]$Replays = 'CoH/*.rep',

@@ -7,8 +7,8 @@ This map says what to read for each job, so a session opens only the files it ne
 ## 1. Start of a task: read these, in order
 
 1. This file.
-2. `CoH/Tasks/<NN>-<Name>.md`, your task.
-3. `CoH/PLAN.md`: only *Conventions* and *Done, for every task*.
+2. `CoH/Docs/Tasks/<NN>-<Name>.md`, your task.
+3. `CoH/Docs/PLAN.md`: only *Conventions* and *Done, for every task*.
 4. The README and public header of each slice your task uses. Read the header first; read the README only if the header isn't enough.
 5. `CoH/README.md`: only when you add a hook or register something (*Writing a feature*, the hook events, the hooks table).
    It is long, so jump to the section you need.
@@ -20,9 +20,9 @@ Don't read other slices' `Engine/` or `Domain/` code to learn the Kernel. Their 
 - **Never read a whole engine file.** Many are 3,000 to 10,000 lines (sizes in §4).
   Grep for the function with `-n`, then read about 80 lines around it with offset and limit.
 - **Never stream build or game output.** Send it to a log in your scratchpad, then search the log:
-  `CoH\scripts\install.ps1 *> $log; Select-String -Path $log -Pattern 'error|warning C' | Select -First 30`.
+  `CoH\Scripts\install.ps1 *> $log; Select-String -Path $log -Pattern 'error|warning C' | Select -First 30`.
   A full build's output is tens of thousands of lines.
-- **Search the retail data as files, not archives.** Run `python CoH/tools/retail.py` once per checkout. It writes `build/retail/` (§5).
+- **Search the retail data as files, not archives.** Run `python CoH/Tools/retail.py` once per checkout. It writes `build/retail/` (§5).
   Grep it (`^Object Raptor`, `^CommandSet AmericaDozer`) and read the block you need; never read a whole INI file into context.
 - **Broad questions go to an Explore subagent** ("where does the engine decide X?"). It returns the answer, not the file dumps.
 - **Write down what you learn as you go.** Put engine findings in your slice README's *Engine notes* section as soon as you find them.
@@ -40,9 +40,9 @@ Don't read other slices' `Engine/` or `Domain/` code to learn the Kernel. Their 
 | `CoH/Kernel/Engine/` | packs, game options sync, the save block, quick skirmish, `CoH.log` |
 | `CoH/Features/Sectors/` | territory economy: capture, income, the cut-off graph, build rule, AI expansion, ground, radar and tooltip UI |
 | `CoH/Features/GeneralsArsenal/` | command points, sortie and air cover powers, super weapons with a warning, AI power use; its README has *Engine notes* on special powers |
-| `CoH/CONTEXT.md` | this map |
-| `CoH/scripts/` | `install.ps1` (build and install), `skirmish.ps1` (test game), `replaycheck.ps1` (determinism) |
-| `CoH/tools/retail.py` | extracts the retail data to `build/retail/`; `read_big` and `read_csf` for packs that generate INI |
+| `CoH/Docs/CONTEXT.md` | this map |
+| `CoH/Scripts/` | `install.ps1` (build and install), `skirmish.ps1` (test game), `replaycheck.ps1` (determinism) |
+| `CoH/Tools/retail.py` | extracts the retail data to `build/retail/`; `read_big` and `read_csf` for packs that generate INI |
 
 Worked examples in Sectors, to copy the shape of:
 - a module with saved state that's part of the CRC: `Engine/SectorPointUpdate`
@@ -126,7 +126,7 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Radar | `Core/GameEngine/Include/Common/Radar.h`, `Core/GameEngineDevice/Source/W3DDevice/Common/System/W3DRadar.cpp` |
 | Voice warnings | `Z/GameClient/Eva.cpp`, `Eva::setShouldPlay` 372 |
 
-## 5. Retail data (`build/retail/`, made by `python CoH/tools/retail.py`)
+## 5. Retail data (`build/retail/`, made by `python CoH/Tools/retail.py`)
 
 | Path | What |
 |---|---|
@@ -147,11 +147,11 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 
 The full steps are in `CoH/README.md`, *Install* and *Testing*.
 
-- Install: `CoH\scripts\install.ps1 *> $log`, then check the log. It refuses while the game is running.
+- Install: `CoH\Scripts\install.ps1 *> $log`, then check the log. It refuses while the game is running.
 - Unit tests: configure once with `-DRTS_BUILD_OPTION_TESTS=ON`; build target `z_googletest --config Release`; run with `--gtest_filter=<Slice>*`.
-- Test game, which the user watches: `CoH\scripts\skirmish.ps1 -Flags X -Windowed`. AI against AI: `-cohSide Observer -cohOpponents 2`.
+- Test game, which the user watches: `CoH\Scripts\skirmish.ps1 -Flags X -Windowed`. AI against AI: `-cohSide Observer -cohOpponents 2`.
   Use `-cohLog` and grep `CoH.log` in the user data folder, rather than reading it.
-- Determinism: `CoH\scripts\replaycheck.ps1` (headless). Retail `GeneralsReplays` always mismatch on this compiler; that's expected.
+- Determinism: `CoH\Scripts\replaycheck.ps1` (headless). Retail `GeneralsReplays` always mismatch on this compiler; that's expected.
 - Replays run in `GAME_REPLAY` mode. A check like `isInSkirmishGame()` must also accept replays, or playback mismatches at frame 0.
 
 ## 7. Prior art (reference only)

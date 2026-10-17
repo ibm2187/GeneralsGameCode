@@ -1,4 +1,4 @@
-# CoH: Company of Heroes ideas for Zero Hour. See README.md and PLAN.md.
+# CoH: Company of Heroes ideas for Zero Hour. See README.md and Docs/PLAN.md.
 #
 # zi_coh is the one CoH target. Its sources compile into the Zero Hour engine (z_gameengine links it),
 # and every slice's Tests/*.cpp compiles into z_googletest. A feature adds itself with one

@@ -23,11 +23,11 @@ Build the base every feature stands on, so feature tasks only add slices and sub
   Later tasks add points as they need them.
   One hook in `ModuleFactory::init` lets features register their own modules. One hook in the INI block table lets features register their own INI blocks.
 - **Tests:** `CoH/**/Tests/*.cpp` builds into `z_googletest` with `RTS_BUILD_OPTION_TESTS`. Include a sample test for the registry.
-- **Install script** `CoH/scripts/install.ps1`:
+- **Install script** `CoH/Scripts/install.ps1`:
   - Builds the profile preset with `--config Release`, otherwise the exe silently stays stale; check the exe's timestamp.
   - Copies `generalszh.exe` and `.pdb` and the enabled packs into the Steam Zero Hour folder.
   - If the game is running, it asks before doing anything; it never closes the game on its own.
-- **Quick test:** `CoH/scripts/skirmish.ps1` starts a skirmish against the AI on a small map with given flags, for play-testing.
+- **Quick test:** `CoH/Scripts/skirmish.ps1` starts a skirmish against the AI on a small map with given flags, for play-testing.
 - **Docs:** `CoH/README.md` with the feature table, install steps and the hooks table.
 
 ## Done

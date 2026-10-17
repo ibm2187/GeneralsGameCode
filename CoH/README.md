@@ -1,10 +1,13 @@
 # CoH
 
-Company of Heroes ideas for Zero Hour, kept apart from the original code. [PLAN.md](PLAN.md) has the direction, the conventions and the roadmap; [Tasks](Tasks) has one file per feature; [CONTEXT.md](CONTEXT.md) maps what to read for which job.
+Company of Heroes ideas for Zero Hour, kept apart from the original code. [PLAN.md](Docs/PLAN.md) has the direction, the conventions and the roadmap; [Tasks](Docs/Tasks) has one file per feature; [CONTEXT.md](Docs/CONTEXT.md) maps what to read for which job.
 
-Everything lives in this folder:
+Everything lives in this folder, in main packages:
 - `Kernel/` is shared by every feature: the feature registry, the flags, the INI packs and the hook hub.
-- `Features/<Name>/` holds one slice per feature.
+- `Features/<Name>/` holds one vertical slice per feature.
+- `Scripts/` builds, installs and tests: `install.ps1`, `skirmish.ps1`, `replaycheck.ps1`.
+- `Tools/` holds developer tools: `retail.py` writes the retail data to `build/retail/`.
+- `Docs/` holds the plan, the context map and the task files.
 
 The original code only calls the hook hub, from the places listed in [Hooks in original code](#hooks-in-original-code).
 
@@ -12,8 +15,8 @@ The original code only calls the hook hub, from the places listed in [Hooks in o
 
 | Feature | Flag | Task | Status |
 |---|---|---|---|
-| [Sectors](Features/Sectors/README.md) | `Sectors` | [01](Tasks/01-Sectors.md) | supplies only from capturable sectors; skirmish AI plays for them |
-| [GeneralsArsenal](Features/GeneralsArsenal/README.md) | `GeneralsArsenal` | [02](Tasks/02-GeneralsArsenal.md) | jets and super weapons are General's powers paid with command points earned in combat; helicopters at the Airfield; skirmish AI uses them |
+| [Sectors](Features/Sectors/README.md) | `Sectors` | [01](Docs/Tasks/01-Sectors.md) | supplies only from capturable sectors; skirmish AI plays for them |
+| [GeneralsArsenal](Features/GeneralsArsenal/README.md) | `GeneralsArsenal` | [02](Docs/Tasks/02-GeneralsArsenal.md) | jets and super weapons are General's powers paid with command points earned in combat; helicopters at the Airfield; skirmish AI uses them |
 
 Every feature has a flag. With every flag off the game plays exactly like `main`, replays included.
 
@@ -48,7 +51,7 @@ With no flags on, the game options string is exactly the original, so replays re
 Run this from any shell. It sets up the Visual Studio x86 environment itself.
 
 ```powershell
-CoH\scripts\install.ps1
+CoH\Scripts\install.ps1
 ```
 
 The script does four things:
@@ -69,8 +72,8 @@ The script does four things:
   ```
 - **Quick skirmish:** one AI on a small map, with the given flags.
   ```powershell
-  CoH\scripts\skirmish.ps1 -Flags Sectors
-  CoH\scripts\skirmish.ps1 -Flags Sectors,Accuracy -Map 'Tournament Island' -AI hard -Side FactionGLA -Windowed
+  CoH\Scripts\skirmish.ps1 -Flags Sectors
+  CoH\Scripts\skirmish.ps1 -Flags Sectors,Accuracy -Map 'Tournament Island' -AI hard -Side FactionGLA -Windowed
   ```
   The script uses the Kernel's command-line options `-cohSkirmish [map]`, `-cohSide <PlayerTemplate>` and `-cohAI easy|medium|hard`. They also work with `-headless`.
 - **Unattended AI games:** `-cohSide Observer -cohOpponents 2` watches two AIs, `-cohOpponentSides FactionChinaNukeGeneral,FactionGLA` picks their sides (one not given is random), `-cohQuitAfter <seconds>` quits after that much game time or when the game is over, several quick skirmishes may run at once (each writes its own `CoH_InstanceNN.log` and replay), and `-cohLog` makes features write what happens to `CoH.log` in the user data folder (the profile build has no debug log). Run them from the game folder, headless, so no window opens:
@@ -79,13 +82,13 @@ The script does four things:
   ```
 - **Replay check:** plays replays headless and reports mismatches. It plays `Replays\CoH\*.rep` by default.
   ```powershell
-  CoH\scripts\replaycheck.ps1
+  CoH\Scripts\replaycheck.ps1
   ```
   `Replays\CoH` holds two replays recorded with every flag off. `main` plays both without a mismatch. Retail replays from `GeneralsReplays` need a VC6 build (see TESTING.md). The `win32-profile` build of `main` mismatches every one of them at frame 110, and this build does exactly the same.
 
 ## Writing a feature
 
-1. Make `Features/<Name>/` with the layout in PLAN.md.
+1. Make `Features/<Name>/` with the layout in Docs/PLAN.md.
 2. Add `coh_add_feature(<Name>)` to `CoH/CMakeLists.txt`. Its sources build into the engine, its `Tests/*.cpp` build into `z_googletest`, and the Kernel registers it. Packs load in the order of these lines.
 3. Declare the slice once in its `Engine/` code:
    ```cpp

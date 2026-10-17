@@ -1,6 +1,6 @@
 """CoH: the retail Zero Hour data as plain files, so it can be searched instead of re-read from archives.
 
-    python CoH/tools/retail.py ["<Zero Hour folder>"]
+    python CoH/Tools/retail.py ["<Zero Hour folder>"]
 
 writes build/retail/ in the checkout (ignored by git):
     INI/...            every INI file of INIZH.big, with its folders (Object/AmericaAirUnits.ini, CommandSet.ini, ...)

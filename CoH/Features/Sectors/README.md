@@ -1,6 +1,6 @@
 # Sectors
 
-**Flag** `Sectors` · **Task** [01](../../Tasks/01-Sectors.md) · **Public header** [Sectors.h](Sectors.h)
+**Flag** `Sectors` · **Task** [01](../../Docs/Tasks/01-Sectors.md) · **Public header** [Sectors.h](Sectors.h)
 
 Supplies come from territory. The map is divided into sectors around capture points, units take a point by standing on it, and every held sector joined to its owner's home pays money. There are no supply centers, supply trucks, supply stashes, drop zones or gathering. Money is the only resource.
 
@@ -89,4 +89,4 @@ It also relies on the CommandSet override fix in `ControlBar` (`// CoH fix`), so
 - Headless AI-vs-AI game, from the game folder:
   `generalszh.exe -useCwd -headless -coh Sectors -cohSkirmish "Tournament Desert" -cohSide Observer -cohOpponents 2 -cohAI hard -cohLog -cohQuitAfter 600`.
   `CoH.log` in the user data folder lists the points, every change of hands, and once a minute each sector's state, each player's income and each AI's money, buildings, units and targets.
-- The game's replay (`Replays\00000000.rep`) plays back with Sectors on (the flag is in its header): `CoH\scripts\replaycheck.ps1 -Replays 00000000.rep` checks that sector play is deterministic.
+- The game's replay (`Replays\00000000.rep`) plays back with Sectors on (the flag is in its header): `CoH\Scripts\replaycheck.ps1 -Replays 00000000.rep` checks that sector play is deterministic.

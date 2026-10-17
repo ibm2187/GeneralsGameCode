@@ -1,6 +1,6 @@
 # GeneralsArsenal
 
-**Flag** `GeneralsArsenal` · **Task** [02](../../Tasks/02-GeneralsArsenal.md) · **Public header** [GeneralsArsenal.h](GeneralsArsenal.h)
+**Flag** `GeneralsArsenal` · **Task** [02](../../Docs/Tasks/02-GeneralsArsenal.md) · **Public header** [GeneralsArsenal.h](GeneralsArsenal.h)
 
 The sky belongs to the General. Fixed-wing aircraft and super weapons are no longer built: they are General's powers, called in from off the map and paid for each time with **command points (CP)** earned in combat. Helicopters stay part of the army and are built at the Airfield.
 

@@ -11,8 +11,8 @@ Builds the Zero Hour profile exe and installs it, with the CoH INI packs, into t
    (the coh_add_feature lines in CoH\CMakeLists.txt). A pack only loads in games where its flag is on.
 
 .EXAMPLE
-CoH\scripts\install.ps1
-CoH\scripts\install.ps1 -NoBuild
+CoH\Scripts\install.ps1
+CoH\Scripts\install.ps1 -NoBuild
 #>
 param(
     [string]$GameDir,

@@ -1,5 +1,5 @@
 // CoH Kernel: a quick skirmish for play-testing, started straight from startup without the menus
-// (CoH/scripts/skirmish.ps1). On the command line:
+// (CoH/Scripts/skirmish.ps1). On the command line:
 //
 //     -cohSkirmish [map]       start a skirmish; the map is a folder under Maps ("Tournament Desert",
 //                              the default) or a map path the map list knows

@@ -100,5 +100,5 @@ New points go in the Kernel hub as general events, recorded in the hooks table.
 
 - Domain tests cover earning and spending command points, the rank gates, cooldowns with loss penalties, and the super weapon warning timer.
 - Every faction and general plays a full skirmish against the AI: powers work, there are no buildable jets or super weapons, helicopters are built at the Airfield, and the AI uses its powers.
-- With the flag off, play is unchanged (`CoH/scripts/replaycheck.ps1`).
+- With the flag off, play is unchanged (`CoH/Scripts/replaycheck.ps1`).
 - The README (with the power table) and the hooks table are updated.

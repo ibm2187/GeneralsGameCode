@@ -3,13 +3,13 @@
 Starts a quick skirmish against one AI with the given flags, straight from startup, for play-testing.
 
 .DESCRIPTION
-Runs the installed generalszh.exe (CoH\scripts\install.ps1) with the Kernel's -cohSkirmish option.
+Runs the installed generalszh.exe (CoH\Scripts\install.ps1) with the Kernel's -cohSkirmish option.
 The flags replace Features.ini for this run; with no -Flags every feature is off.
 The game records the usual last replay, Replays\00000000.rep.
 
 .EXAMPLE
-CoH\scripts\skirmish.ps1 -Flags Sectors
-CoH\scripts\skirmish.ps1 -Flags Sectors,Accuracy -Map 'Tournament Island' -AI hard -Side FactionGLA -Windowed
+CoH\Scripts\skirmish.ps1 -Flags Sectors
+CoH\Scripts\skirmish.ps1 -Flags Sectors,Accuracy -Map 'Tournament Island' -AI hard -Side FactionGLA -Windowed
 #>
 param(
     [string[]]$Flags = @(),
@@ -25,7 +25,7 @@ $ErrorActionPreference = 'Stop'
 if (-not $GameDir) { $GameDir = $CoHDefaultGameDir }
 
 $exe = Join-Path $GameDir 'generalszh.exe'
-if (-not (Test-Path $exe)) { throw "No generalszh.exe in $GameDir; run CoH\scripts\install.ps1 first." }
+if (-not (Test-Path $exe)) { throw "No generalszh.exe in $GameDir; run CoH\Scripts\install.ps1 first." }
 
 $flagList = if ($Flags.Count) { $Flags -join ',' } else { 'none' }
 $arguments = @('-cohSkirmish', "`"$Map`"", '-coh', $flagList, '-cohAI', $AI)
