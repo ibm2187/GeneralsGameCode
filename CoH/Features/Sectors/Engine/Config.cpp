@@ -68,6 +68,9 @@ const FieldParse configFields[] =
 	{ "AIRemoveFromBuildList",		KindOfMaskType::parseFromINI, nullptr, offsetof(Config, aiBuildListRemovals) },
 	{ "AIScriptRename",				parseScriptRename, nullptr, 0 },
 
+	{ "BorderSmoothing",			INI::parseInt,	nullptr, offsetof(Config, borderLines.smoothing) },
+	{ "BorderBandWidth",			INI::parseReal,	nullptr, offsetof(Config, borderBandWidth) },
+
 	{ "PointObject",				INI::parseAsciiString, nullptr, offsetof(Config, pointObject) },
 	{ nullptr, nullptr, nullptr, 0 }
 };

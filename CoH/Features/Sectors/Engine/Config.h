@@ -6,6 +6,7 @@
 #include "Common/KindOf.h"
 
 #include "Features/Sectors/Domain/AiTargets.h"
+#include "Features/Sectors/Domain/BorderLines.h"
 #include "Features/Sectors/Domain/BuildRule.h"
 #include "Features/Sectors/Domain/Capture.h"
 #include "Features/Sectors/Domain/Network.h"
@@ -35,6 +36,9 @@ struct Config
 	IncomeValues income;
 	BuildRules build;
 	AiWeights ai;
+	LineRules borderLines;				///< how borders are drawn: rounding, point spacing
+
+	Real borderBandWidth = 40.0f;		///< the soft band inside an owned sector's border, world units
 
 	Real captureRadius = 150.0f;		///< units this close to a point capture it
 	Real captureIntervalSeconds = 0.5f;	///< how often capture is worked out

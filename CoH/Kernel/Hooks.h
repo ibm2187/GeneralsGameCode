@@ -100,4 +100,12 @@ Event<const Player *, UnicodeString &> &moneyTooltip();	///< the viewed player; 
 Event<const CommandButton *, UnicodeString &> &commandTooltip();	///< a command button's tooltip; the description to add to
 Event<const Player *, UnicodeString &> &moneyDisplay();	///< the viewed player; the money text ("$ 1200") to add to
 
+// ---- Client: drawing the display offers but TheDisplay doesn't. Original code provides it. ---------
+
+// A filled four-cornered shape in screen pixels, shaded from color1 at corners 0 and 1 to color2 at
+// corners 2 and 3; corners 1 and 2 are on its diagonal. 'corners' is x0, y0, ... x3, y3.
+using GradientQuadDraw = void (*)(const float corners[8], unsigned int color1, unsigned int color2);
+void provideGradientQuad(GradientQuadDraw draw);	///< W3DDisplay::init
+bool drawGradientQuad(const float corners[8], unsigned int color1, unsigned int color2);	///< false while no display provides it
+
 } // namespace CoH::Hooks

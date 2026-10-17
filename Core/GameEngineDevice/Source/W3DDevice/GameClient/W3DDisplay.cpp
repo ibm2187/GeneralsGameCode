@@ -112,6 +112,10 @@ static void drawFramerateBar();
 
 #include "WinMain.h"
 
+#if RTS_ZEROHOUR
+#include "Kernel/Hooks.h" // CoH hook
+#endif
+
 
 // DEFINE AND ENUMS ///////////////////////////////////////////////////////////
 
@@ -743,6 +747,10 @@ void W3DDisplay::init()
 	// with its own logic
 	//
 	Display::init();
+
+#if RTS_ZEROHOUR
+	CoH::Hooks::provideGradientQuad( []( const float *corners, unsigned int color1, unsigned int color2 ) { static_cast<W3DDisplay *>( TheDisplay )->drawGradientQuad( corners, color1, color2 ); } ); // CoH hook
+#endif
 
 	// handle re-entry for ourselves
 	if( m_initialized )
@@ -2354,6 +2362,22 @@ void W3DDisplay::drawLine( Int startX, Int startY,
 
 }
 
+
+#if RTS_ZEROHOUR
+// CoH hook: a four-cornered shape shaded from color1 (corners 0, 1) to color2 (corners 2, 3), for the hub.
+void W3DDisplay::drawGradientQuad( const Real corners[8], UnsignedInt color1, UnsignedInt color2 )
+{
+	setup2DRenderState(nullptr, DRAW_IMAGE_ALPHA, FALSE);
+
+	m_2DRender->Add_Quad_HGradient( Vector2( corners[0], corners[1] ), Vector2( corners[2], corners[3] ),
+		Vector2( corners[4], corners[5] ), Vector2( corners[6], corners[7] ), RectClass( 0, 0, 1, 1 ), color1, color2 );
+
+	if (!m_isBatching)
+	{
+		m_2DRender->Render();
+	}
+}
+#endif
 
 // W3DDisplay::drawOpenRect ===================================================
 //=============================================================================

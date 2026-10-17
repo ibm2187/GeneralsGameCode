@@ -34,6 +34,7 @@ public:
 	// Made from the point objects; false while there are none, as in a game without sectors.
 	bool build();
 	bool isBuilt() const { return m_built; }
+	int buildNumber() const { return m_buildNumber; }	///< new for every build, so the UI knows to redo its drawing
 	bool hasSectors() const { return !m_sectors.empty(); }
 
 	int sectorCount() const { return (int)m_sectors.size(); }
@@ -70,6 +71,7 @@ private:
 	void findCommandCenters();
 
 	bool m_built = false;
+	int m_buildNumber = 0;
 	std::vector<Sector> m_sectors;
 	SectorMap m_map;
 	std::vector<Occupation> m_occupation;

@@ -183,6 +183,24 @@ void onRadarDraw(int x, int y, int width, int height)
 	radarDraw().raise(x, y, width, height);
 }
 
+namespace
+{
+GradientQuadDraw theGradientQuad = nullptr;
+}
+
+void provideGradientQuad(GradientQuadDraw draw)
+{
+	theGradientQuad = draw;
+}
+
+bool drawGradientQuad(const float corners[8], unsigned int color1, unsigned int color2)
+{
+	if (theGradientQuad == nullptr)
+		return false;
+	theGradientQuad(corners, color1, color2);
+	return true;
+}
+
 void onMoneyTooltip(const Player *player, UnicodeString &description)
 {
 	moneyTooltip().raise(player, description);

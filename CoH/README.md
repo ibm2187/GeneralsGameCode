@@ -140,6 +140,12 @@ These are the points of `Kernel/Hooks.h` that features subscribe to:
 | `commandTooltip(button, description)` | A command button's tooltip is being made; add to its text. |
 | `moneyDisplay(player, text)` | The money text is being made ("$ 1200"); add to it. With a subscriber on, the hub writes it every frame (the per-minute income display is replaced). |
 
+The hub also passes on drawing that `TheDisplay` doesn't offer, which original code provides:
+
+| Function | What |
+|---|---|
+| `drawGradientQuad(corners, color1, color2)` | A filled four-cornered shape in screen pixels, shaded from `color1` at corners 0 and 1 to `color2` at corners 2 and 3 (`Render2DClass::Add_Quad_HGradient`). Call it while drawing (`inGameUIPostDraw`, `radarDraw`); it is batched with `TheDisplay`'s lines. Returns false where no display provides it. |
+
 A `Veto` is a question with a yes/no answer (`subscribe` a function returning `bool`); an `Event` only tells. `CoH::log(...)` (`Kernel/Log.h`) writes to `CoH.log` with `-cohLog`.
 
 Features register their modules (`COH_ADD_MODULE`) and INI blocks (`CoH::registerIniBlock`) in `init`. The Kernel passes them on through the module factory hook and the INI block table hook.
@@ -172,8 +178,9 @@ Every edit to an original file is a minimal call marked `// CoH hook` (`# CoH ho
 | `GeneralsMD/.../Common/System/BuildAssistant.cpp` | `isLocationLegalToBuild` | `isBuildLocationAllowed(build, pos, player, builder)` | The `buildLocation` veto, after the shroud check; a no is `LBC_RESTRICTED_TERRAIN`. |
 | `GeneralsMD/.../GameClient/InGameUI.cpp` | `InGameUI::postDraw` | `onInGameUIPostDraw()` | Drawing over the 3D view. |
 | `Core/GameEngineDevice/.../W3DRadar.cpp` | `W3DRadar::draw` | `onRadarDraw(x, y, width, height)` | Drawing on the minimap, after the shroud. |
+| `Core/GameEngineDevice/.../W3DDisplay.h`, `W3DDisplay.cpp` | `W3DDisplay::init`, new `W3DDisplay::drawGradientQuad` | `provideGradientQuad(...)` | Gives the hub a gradient-filled quad (`Add_Quad_HGradient`) that `Display` has no call for; used for Sectors' territory bands. |
 | `Core/.../GUICallbacks/ControlBarPopupDescription.cpp` | `ControlBar::populateBuildTooltipLayout` | `onMoneyTooltip(player, descrip)` | The money tooltip's text. |
-| `GeneralsMD/Code/GameEngineDevice/CMakeLists.txt` | `z_gameenginedevice` | links `zi_coh_hooks` | The hub's header for the radar hook (CoH compiles into `z_gameengine` only). |
+| `GeneralsMD/Code/GameEngineDevice/CMakeLists.txt` | `z_gameenginedevice` | links `zi_coh_hooks` | The hub's header for the radar and display hooks (CoH compiles into `z_gameengine` only). |
 | `GeneralsMD/.../GameLogic/Object/Object.cpp` | `Object::scoreTheKill` | `onKillScored(this, victim)` | A kill of an enemy is credited, after the skill points. |
 | `GeneralsMD/.../GameLogic/Object/Body/ActiveBody.cpp` | `ActiveBody::attemptDamage` | `onDamageDealt(obj, damageInfo)` | Damage taken, once the actual damage is known. |
 | `GeneralsMD/.../Common/RTS/SpecialPower.cpp` | `SpecialPowerStore::canUseSpecialPower` | `isSpecialPowerAllowed(obj, power)` | The `specialPowerUse` veto, after the science check; a no means the power can't be used. |

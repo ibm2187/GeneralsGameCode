@@ -66,6 +66,8 @@ bool World::build()
 {
 	clear();
 	m_built = true;
+	static int builds = 0;
+	m_buildNumber = ++builds;
 
 	std::vector<Object *> points;
 	for (Object *object = TheGameLogic->getFirstObject(); object; object = object->getNextObject())

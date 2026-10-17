@@ -21,8 +21,13 @@ Supplies come from territory. The map is divided into sectors around capture poi
 
 ## UI
 
-- On the ground: each border is a pair of lines, one inside each sector in its owner's color (grey for neutral). Each point has a ring in its owner's color; the capture progress is an inner arc in the capturing side's color. A contested ring blinks white; a cut-off sector's ring is broken. A high-value point has a second, inner ring.
-- On the minimap: the borders in the owners' colors and a dot per point, hollow when cut off.
+- On the ground, in the style of Company of Heroes' territory lines:
+  - Each player's territory (all their sectors together) has one smooth, connected outline that follows the ground: a crisp line in the owner's color just inside it, and a soft band that fades from that color to nothing further in. The band narrows where the outline turns tightly, so it never folds.
+  - The neutral ground's outline is a dim dashed grey line. Between two sectors of the same owner, or two neutral ones, there is only a faint line (dashed when neutral).
+  - When a sector changes hands, its edge flashes white for a few seconds.
+  - Hills hide the lines and rings behind them.
+  - Each point has a ring in its owner's color; the capture progress is an inner arc in the capturing side's color. A contested ring blinks white; a cut-off sector's ring is broken. A high-value point has a second, inner ring.
+- On the minimap: a light tint of the owner's color over each owned sector, the smooth borders in the colors of the sectors on each side (faint between two sectors of one owner), and a dot per point, hollow when cut off.
 - The money tooltip: income per minute from sectors, with how many are held and cut off.
 - Messages "Sector captured" and "Sector lost" for the local player (labels `CoH:SectorCaptured`, `CoH:SectorLost`, `CoH:SectorIncome`; English text is built in).
 
@@ -62,13 +67,15 @@ The generated files come from the retail `INIZH.big`: `python CoH/Features/Secto
 | `AIDefendWeight`, `AIReconnectWeight`, `AIFrontierWeight`, `AIHighValueWeight`, `AIEnemyOwnedWeight`, `AIDistanceWeight` | 1000, 400, 300, 150, -50, -200 | how the AI ranks targets (distance per 1000 units from its home) |
 | `AIRemoveFromBuildList` | FS_SUPPLY_CENTER FS_SUPPLY_DROPZONE | taken out of AI build lists |
 | `AIScriptRename = <from> <to>` | SupplyCenter Barracks, SupplyStash Barracks, SupplyDropZone Barracks | AI script conditions on those kinds ask about the template named with the first match replaced; one line each |
+| `BorderSmoothing` | 3 | rounding passes for the drawn borders; 0 draws the grid's staircase |
+| `BorderBandWidth` | 40 | the soft band inside a territory's outline, world units |
 | `PointObject` | CoHSectorPoint | the point object |
 
 ## Code
 
-- `Domain/`: the rules, unit tested in `Tests/`. `Points` (sources into points), `SectorMap` (dividing the ground, neighbors, borders), `Capture` (occupation, contesting, neutralizing, speed), `Network` (the cut-off walk and income), `BuildRule`, `AiTargets`.
+- `Domain/`: the rules, unit tested in `Tests/`. `Points` (sources into points), `SectorMap` (dividing the ground, neighbors, borders), `Capture` (occupation, contesting, neutralizing, speed), `Network` (the cut-off walk and income), `BuildRule`, `AiTargets`, `BorderLines` (drawing geometry: the grid's border edges chained into lines and region outlines, rounded through the middle of each straight run and then by corner cutting, resampled, inset into a sector or region, and how deep a band can reach without folding).
 - `Engine/`: `Sectors.cpp` (declaration and hook subscribers), `Setup.cpp` (a new game's points, emptying supplies, AI build lists), `SectorPointUpdate` (the point object's module; its state is saved and part of the CRC), `World` (the game's sectors, made from the point objects on the first frame, so loaded games work), `Logic.cpp` (capture, owner changes, income), `AI.cpp` (sending units), `AIScripts.cpp` (script conditions), `AIBuildList.cpp`, `BuildRule.cpp`, `Config` (the INI block), `Public.cpp` (`Sectors.h`).
-- `UI/`: `GroundOverlay`, `RadarOverlay`, `MoneyTooltip`, `Colors`.
+- `UI/`: `BorderGeometry` (the lines lifted onto the ground and cut into culled chunks: the sector borders once per World build, the territory outlines again only when an owner changes; client only, so the game logic and replays are untouched), `GroundOverlay` (styles, culling, hills hiding lines, the flashes, the rings), `RadarOverlay`, `MoneyTooltip`, `Colors`.
 
 ## Hooks
 
@@ -79,6 +86,7 @@ Sectors subscribes to `gameStartAfterMap`, `logicFrame`, `objectCreated`, `gameE
 | `buildLocation()` (a `Veto`) | `BuildAssistant::isLocationLegalToBuild` | building only in owned sectors |
 | `inGameUIPostDraw()` | `InGameUI::postDraw` | borders and rings on the ground |
 | `radarDraw(x, y, w, h)` | `W3DRadar::draw` | borders and points on the minimap |
+| `drawGradientQuad(...)` (provided, not an event) | `W3DDisplay::init`, `W3DDisplay::drawGradientQuad` | the territory band's gradient |
 | `moneyTooltip(player, text)` | `ControlBar::populateBuildTooltipLayout` | income per minute |
 
 It also relies on the CommandSet override fix in `ControlBar` (`// CoH fix`), so its command set changes add up with other packs'.
@@ -89,4 +97,12 @@ It also relies on the CommandSet override fix in `ControlBar` (`// CoH fix`), so
 - Headless AI-vs-AI game, from the game folder:
   `generalszh.exe -useCwd -headless -coh Sectors -cohSkirmish "Tournament Desert" -cohSide Observer -cohOpponents 2 -cohAI hard -cohLog -cohQuitAfter 600`.
   `CoH.log` in the user data folder lists the points, every change of hands, and once a minute each sector's state, each player's income and each AI's money, buildings, units and targets.
-- The game's replay (`Replays\00000000.rep`) plays back with Sectors on (the flag is in its header): `CoH\Scripts\replaycheck.ps1 -Replays 00000000.rep` checks that sector play is deterministic.
+- The game's replay (`Replays\00000000.rep`) plays back with Sectors on (the flag is in its header): `CoH\scripts\replaycheck.ps1 -Replays 00000000.rep` checks that sector play is deterministic.
+
+## Engine notes
+
+- `InGameUI::postDraw` runs inside `TheDisplay->beginBatch()` (`W3DInGameUI::draw`), so thousands of `drawLine` calls cost one render as long as the texture and mode don't change. The radar hook runs in the same batch.
+- `Display::drawLine` is always a screen-space rectangle (`Render2DClass::Add_Line`); its two-color form shades along the line, not across it. Many parallel lines read as stripes, and rectangles fanned round a curve overlap and poke out. `Render2DClass::Add_Quad_HGradient` shades any four corners, which is what the hub's `drawGradientQuad` exposes.
+- Drawing over the 3D view has no depth test. Hills hide lines because `GroundOverlay` walks each point's sight line to the camera over `getGroundHeight`. The camera is found where the pick rays of two screen corners meet (`View::screenToWorldAtZ` at two heights), since `View` has no camera position getter. Units and buildings don't hide lines.
+- Cost, measured with `-cohLog` (logged every 30 s): about 0.13 ms a frame for the ground drawing on Mountain Guns; the sector borders are made in about 1 ms and the territory outlines in under 1 ms when a sector changes hands.
+- Points over water: `TerrainLogic::isUnderwater` gives the water height; lines are lifted to it, or the overlay draws them at the sea bed.
