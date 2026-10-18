@@ -62,6 +62,12 @@ A new main package is added only for a new kind of thing, never for a feature.
 8. **Clean code.** Small functions with one job, names that say what they mean, early returns, no globals outside the Kernel, comments that explain why.
    Engine-facing code follows the engine's style (`m_` members, CamelCase types).
 9. **The skirmish AI keeps up.** A feature that changes how the game is played also makes the skirmish AI play by it, so every merge is playable against the AI.
+10. **Modern C++20 for new code.** New CoH code is written in C++20 against the Kernel wrapper (`Kernel/Time.h`, `Random.h`, `Objects.h`, `Players.h`, `Ini.h`; see [K1](Tasks/K1-ModernCpp.md)).
+    Use what makes it shorter and safer: `std::span`, `std::optional`, ranges and views, structured bindings, designated initializers, `constexpr`, `enum class`, lambdas, and concepts where they help.
+    - `// CoH hook` calls inside original files stay in the original style.
+    - Existing slices aren't converted. A slice keeps the style it was written in.
+    - Avoid what breaks determinism: unordered containers (`std::unordered_map`, `std::unordered_set`) iterated in game logic, pointer-keyed ordering, `<random>` and `rand`, the clock (`<chrono>`) for game time, and floating-point library calls whose results may differ between compilers, CPUs or library versions (`std::sin`, `std::cos`, `std::pow`, `std::exp`, `std::log`, the C++17 special math functions) in game logic.
+      Use the wrapper's `chance`, `pick` and frames, the engine's own math (`Coord3D`, `WWMath`), and plain float arithmetic.
 
 ## Done, for every task
 
@@ -76,6 +82,7 @@ A new main package is added only for a new kind of thing, never for a feature.
 | # | Task | Phase | Needs |
 |---|---|---|---|
 | 00 | [Kernel](Tasks/00-Kernel.md) | Foundation | none |
+| K1 | [Modern C++: the C++20 wrapper](Tasks/K1-ModernCpp.md) | Foundation | 00; the next feature task is written against it |
 | 01 | [Sectors](Tasks/01-Sectors.md) | Territory | 00 |
 | 02 | [General's air and super weapons](Tasks/02-GeneralsArsenal.md) | Territory | 00 |
 | 03 | [Upkeep and population](Tasks/03-Upkeep.md) | Territory | 01 |
@@ -104,4 +111,4 @@ Spikes try a new way of working, on real tasks. The user decides afterwards what
 
 | # | Spike | Starts | Question |
 |---|---|---|---|
-| S1 | [A modern language for CoH code](Tasks/S1-LanguageSpike.md) | the next task after 04 and 09 are both merged is built in it | Do cppfront, Nim, Rust (`cxx`) or Lua beat plain C++20 for CoH code, without costing determinism or debugging? |
+| S1 | [A modern language for CoH code](Tasks/S1-LanguageSpike.md) | set aside: the user chose plain C++20 with the Kernel wrapper ([K1](Tasks/K1-ModernCpp.md)) | Do cppfront, Nim, Rust (`cxx`) or Lua beat plain C++20 for CoH code, without costing determinism or debugging? |
