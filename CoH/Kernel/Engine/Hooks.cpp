@@ -66,6 +66,7 @@ Event<const Object *, const Object *, int &, int &> &containRoom()
 	static Event<const Object *, const Object *, int &, int &> event;
 	return event;
 }
+Event<WeaponShot &> &weaponFiringAtObject() { static Event<WeaponShot &> event; return event; }
 
 Event<> &inGameUIPostDraw() { static Event<> event; return event; }
 Event<int, int, int, int> &radarDraw() { static Event<int, int, int, int> event; return event; }
@@ -224,6 +225,16 @@ void onAiCommand(Object *object, const AICommandParms *command)
 void onContainRoom(const Object *container, const Object *rider, int &used, int &needed)
 {
 	containRoom().raise(container, rider, used, needed);
+}
+
+bool onWeaponFiringAtObject(const Object *source, const WeaponTemplate *weapon, const WeaponBonus &bonus,
+	const Object *victim, Coord3D &spot)
+{
+	if (source == nullptr || victim == nullptr || !weaponFiringAtObject().hasActiveSubscriber())
+		return false;
+	WeaponShot shot = { source, weapon, &bonus, victim, &spot, false };
+	weaponFiringAtObject().raise(shot);
+	return shot.retargeted;
 }
 
 // ---- Client ------------------------------------------------------------------------------------

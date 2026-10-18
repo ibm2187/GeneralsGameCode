@@ -42,6 +42,7 @@ Don't read other slices' `Engine/` or `Domain/` code to learn the Kernel. Their 
 | `CoH/Features/GeneralsArsenal/` | command points, sortie and air cover powers, super weapons with a warning, AI power use; its README has *Engine notes* on special powers |
 | `CoH/Features/Upkeep/` | population, its cap, upkeep on income, the AI's army limit |
 | `CoH/Features/Squads/` | infantry squads: made per order, one selection, formation moves, one unit in containers and population, the squad health bar; `Squads.h` for Reinforce, Retreat, Abilities, Weapon pickup |
+| `CoH/Features/Accuracy/` | hit rolls for direct fire, misses beside the target; `Accuracy.h` has the hit modifier stack Cover, Suppression and Veterancy plug into |
 | `CoH/Docs/CONTEXT.md` | this map |
 | `CoH/Scripts/` | `install.ps1` (build and install), `skirmish.ps1` (test game), `replaycheck.ps1` (determinism) |
 | `CoH/Tools/retail.py` | extracts the retail data to `build/retail/`; `read_big` and `read_csf` for packs that generate INI |
@@ -77,6 +78,7 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Thing | Where |
 |---|---|
 | Firing | `Z/GameLogic/Object/Weapon.cpp` [3.7k]: `Weapon::privateFireWeapon` 2621, `WeaponTemplate::fireWeaponTemplate` 774, projectiles inside it |
+| Shot redirect (a miss) | hub `weaponFiringAtObject` in `fireWeaponTemplate`, after the range checks: a retargeted shot becomes a shot at a spot; Accuracy `Engine/Shots.cpp`. A hit modifier goes through `Accuracy.h` `addHitModifier`, not a new hook |
 | Damage dealt | `WeaponTemplate::dealDamageInternal` 1377 (victims, radius, damage type), then `Object::attemptDamage` (`Object.cpp` 1906), then `ActiveBody::attemptDamage` (`Body/ActiveBody.cpp` 354) |
 | Weapon bonuses, reload | `Weapon::computeBonus` 1952, `getDelayBetweenShots` 506, `getClipReloadTime` 527 and 2001 |
 | Weapon choice | `Z/GameLogic/Object/WeaponSet.cpp` [1.2k] |
@@ -188,3 +190,5 @@ Its hooks table (`git show ibm-engine:IbmEngine/README.md`, *Hooks in original c
 - Upgraded command sets (`CommandSetUpgrade`, such as China's airfield after the mines upgrade) need a pack's changes too.
 - Several `-cohSkirmish` games can run at once (own `CoH_InstanceNN.log`); replacing the installed exe needs every game closed.
 - A quick skirmish takes its starting money from the skirmish preferences (the user's is $50,000): pass `-cohCash 10000` for economy tests. `-win` without `-xres 1600 -yres 900` makes a window taller than the screen.
+- `near` and `far` are empty macros from the Windows headers: a member named that fails with "syntax error: '='", even in Domain code.
+- Known, not yet fixed (2026-10-17): with Sectors on, a replay whose AIs are America's Superweapon and Laser generals mismatches at frame 0 (repro in `Replays\CoHDiag`); China against GLA plays clean. Pick sides with `-cohOpponentSides` when recording replays for a check.
