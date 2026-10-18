@@ -110,7 +110,6 @@ static ShaderClass detailOpaqueShader(SC_DETAIL_BLEND);
 #define DEFAULT_MAX_MAP_SHORELINE_TILES		4096	//default size of array allocated to hold all map shoreline tiles.
 
 #define ADJUST_FROM_INDEX_TO_REAL(k) ((k-m_map->getBorderSizeInline())*MAP_XY_FACTOR)
-inline Int IABS(Int x) {	if (x>=0) return x; return -x;};
 
 //-----------------------------------------------------------------------------
 //         Private Functions
@@ -1773,8 +1772,8 @@ void HeightMapRenderObjClass::updateCenter(CameraClass *camera, const Vector3 *c
 		shiftPivot.X = viewDir.X * magicEdgeLenScale;
 		shiftPivot.Y = viewDir.Y * magicEdgeLenScale;
 
-		newOrgX = WWMath::Round((cameraPivot->X + shiftPivot.X)/MAP_XY_FACTOR) - m_x/2 + m_map->getBorderSizeInline();
-		newOrgY = WWMath::Round((cameraPivot->Y + shiftPivot.Y)/MAP_XY_FACTOR) - m_y/2 + m_map->getBorderSizeInline();
+		newOrgX = WWMath::Roundf((cameraPivot->X + shiftPivot.X)/MAP_XY_FACTOR) - m_x/2 + m_map->getBorderSizeInline();
+		newOrgY = WWMath::Roundf((cameraPivot->Y + shiftPivot.Y)/MAP_XY_FACTOR) - m_y/2 + m_map->getBorderSizeInline();
 	}
 
 	WorldHeightMap::DrawArea newDrawArea = m_map->createDrawArea(newOrgX, newOrgY);

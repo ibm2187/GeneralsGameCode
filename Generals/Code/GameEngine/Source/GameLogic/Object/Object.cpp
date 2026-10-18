@@ -1640,13 +1640,13 @@ inline Bool isPosDifferent(const Coord3D* a, const Coord3D* b)
 	// so we must put in some cleverness...
 	const Real THRESH = 0.01f;
 
-	if (fabs(a->x - b->x) > THRESH)
+	if (WWMath::Fabs(a->x - b->x) > THRESH)
 		return true;
 
-	if (fabs(a->y - b->y) > THRESH)
+	if (WWMath::Fabs(a->y - b->y) > THRESH)
 		return true;
 
-	if (fabs(a->z - b->z) > THRESH)
+	if (WWMath::Fabs(a->z - b->z) > THRESH)
 		return true;
 
 	return false;
@@ -1662,7 +1662,7 @@ inline Bool isAngleDifferent(Real a, Real b)
 
 	const Real THRESH = 0.01f;	// in radians, this is approx 1/2 degree.
 
-	if (fabs(a - b) > THRESH)
+	if (WWMath::Fabs(a - b) > THRESH)
 		return true;
 
 	return false;
@@ -1719,7 +1719,7 @@ void Object::reactToTransformChange(const Matrix3D* oldMtx, const Coord3D* oldPo
 
 		Region3D mapExtent;
 		TheTerrainLogic->getExtent(&mapExtent);
-		if (mapExtent.isInRegion(getPosition()->asCoord2D()))
+		if (mapExtent.containsWithin(getPosition()->asCoord2D()))
 			m_privateStatus &= ~OFF_MAP;
 		else
 			m_privateStatus |= OFF_MAP;
@@ -2622,7 +2622,7 @@ void Object::friend_notifyOfNewMapBoundary()
 
 	Region3D mapExtent;
 	TheTerrainLogic->getExtent(&mapExtent);
-	if (mapExtent.isInRegion(getPosition()->asCoord2D()))
+	if (mapExtent.containsWithin(getPosition()->asCoord2D()))
 		m_privateStatus &= ~OFF_MAP;
 	else
 		m_privateStatus |= OFF_MAP;
@@ -4624,10 +4624,10 @@ void Object::unlook()
 
 //			DEBUG_LOG(( "A %s queues an unlook at %f, %f for %x at range %f",
 //									getTemplate()->getName().str(),
-//									m_partitionLastLook.m_where.x,
-//									m_partitionLastLook.m_where.y,
-//									m_partitionLastLook.m_forWhom,
-//									m_partitionLastLook.m_howFar
+//									m_partitionLastLook->m_where.x,
+//									m_partitionLastLook->m_where.y,
+//									m_partitionLastLook->m_forWhom,
+//									m_partitionLastLook->m_howFar
 //									));
 
 	m_partitionLastLook->reset();
