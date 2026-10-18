@@ -653,7 +653,9 @@ void LocomotorStore::reset()
 		Overridable *locoTemp = it->second->deleteOverrides();
 		if (!locoTemp)
 		{
-			m_locomotorTemplates.erase(it);
+			// CoH fix: erase(it) left the loop on an erased iterator, which crashed at game end when an
+			// override INI (a pack, a map.ini) had added a locomotor.
+			m_locomotorTemplates.erase(it++);
 		}
 		else
 		{
