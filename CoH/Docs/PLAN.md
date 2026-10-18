@@ -80,6 +80,7 @@ A new main package is added only for a new kind of thing, never for a feature.
 | 02 | [General's air and super weapons](Tasks/02-GeneralsArsenal.md) | Territory | 00 |
 | 03 | [Upkeep and population](Tasks/03-Upkeep.md) | Territory | 01 |
 | 04 | [Accuracy](Tasks/04-Accuracy.md) | Combat | 00 |
+| 04b | [Fire rate](Tasks/04b-FireRate.md) | Combat | 00 (pairs with 04) |
 | 05 | [Cover](Tasks/05-Cover.md) | Combat | 04 |
 | 06 | [Suppression](Tasks/06-Suppression.md) | Combat | 04 |
 | 07 | [Directional armor](Tasks/07-DirectionalArmor.md) | Combat | 00 |

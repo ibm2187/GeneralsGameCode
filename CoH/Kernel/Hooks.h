@@ -21,9 +21,9 @@ class Snapshot;
 class SpecialPowerTemplate;
 class ThingTemplate;
 class UnicodeString;
-struct AICommandParms;
 class WeaponBonus;
 class WeaponTemplate;
+struct AICommandParms;
 struct Coord3D;
 struct IRegion2D;
 class DamageInfo;
@@ -63,6 +63,7 @@ void onAiCommand(Object *object, const AICommandParms *command);	///< AIUpdateIn
 void onContainRoom(const Object *container, const Object *rider, int &used, int &needed);	///< Transport/GarrisonContain::isValidContainerFor
 bool onWeaponFiringAtObject(const Object *source, const WeaponTemplate *weapon, const WeaponBonus &bonus,
 	const Object *victim, Coord3D &spot);	///< WeaponTemplate::fireWeaponTemplate: true sends the shot to 'spot' instead
+void onWeaponBonus(const Object *source, const WeaponTemplate *weapon, WeaponBonus &bonus);	///< Weapon::computeBonus, once the bonuses are summed
 
 void onInGameUIPostDraw();	///< InGameUI::postDraw: over the 3D view, under the windows
 void onRadarDraw(int x, int y, int width, int height);	///< W3DRadar::draw: over the map and shroud, under the icons
@@ -141,6 +142,12 @@ struct WeaponShot
 	bool retargeted;
 };
 Event<WeaponShot &> &weaponFiringAtObject();
+
+// The bonuses a weapon fires with were summed for 'source' (veterancy, upgrades, frenzy, ...): its
+// damage, radius, range, rate of fire and pre-attack delay. A subscriber may change them. Asked for
+// every shot, reload and clip, the damage a projectile does when it goes off (the projectile is then
+// the source), and the AI's damage estimates, so a change applies everywhere the weapon is used.
+Event<const Object *, const WeaponTemplate *, WeaponBonus &> &weaponBonus();
 
 // ---- Client: drawing and text. These don't run in -headless games. ------------------------------
 

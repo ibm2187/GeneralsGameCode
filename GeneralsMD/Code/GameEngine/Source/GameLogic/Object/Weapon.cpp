@@ -1940,6 +1940,8 @@ void Weapon::computeBonus(const Object *source, WeaponBonusConditionFlags extraB
 	const WeaponBonusSet* extra = m_template->getExtraBonus();
 	if (extra)
 		extra->appendBonuses(flags, bonus);
+
+	CoH::Hooks::onWeaponBonus(source, m_template, bonus); // CoH hook
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -67,6 +67,11 @@ Event<const Object *, const Object *, int &, int &> &containRoom()
 	return event;
 }
 Event<WeaponShot &> &weaponFiringAtObject() { static Event<WeaponShot &> event; return event; }
+Event<const Object *, const WeaponTemplate *, WeaponBonus &> &weaponBonus()
+{
+	static Event<const Object *, const WeaponTemplate *, WeaponBonus &> event;
+	return event;
+}
 
 Event<> &inGameUIPostDraw() { static Event<> event; return event; }
 Event<int, int, int, int> &radarDraw() { static Event<int, int, int, int> event; return event; }
@@ -235,6 +240,11 @@ bool onWeaponFiringAtObject(const Object *source, const WeaponTemplate *weapon, 
 	WeaponShot shot = { source, weapon, &bonus, victim, &spot, false };
 	weaponFiringAtObject().raise(shot);
 	return shot.retargeted;
+}
+
+void onWeaponBonus(const Object *source, const WeaponTemplate *weapon, WeaponBonus &bonus)
+{
+	weaponBonus().raise(source, weapon, bonus);
 }
 
 // ---- Client ------------------------------------------------------------------------------------
