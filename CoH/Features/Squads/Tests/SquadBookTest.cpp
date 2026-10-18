@@ -83,6 +83,84 @@ TEST(SquadsBook, FullHealthCountsSlotsNotYetFilled)
 	EXPECT_FLOAT_EQ(squad.fullHealth(), 480.0f);
 }
 
+TEST(SquadsBook, TheFirstRiderInSlotOrderSpeaksForTheRiders)
+{
+	SquadBook book;
+	Squad &squad = book.create("R", 4);
+	book.join(squad.id(), 1, 100.0f);
+	book.join(squad.id(), 2, 100.0f);
+	book.join(squad.id(), 3, 100.0f);
+	EXPECT_EQ(squad.leaderAmong({ 3, 2, 99 }), 2u);	// slot order, not the container's order
+	EXPECT_EQ(squad.leaderAmong({ 1, 2, 3 }), 1u);
+	EXPECT_EQ(squad.leaderAmong({ 99 }), 0u);
+	book.leave(2);
+	EXPECT_EQ(squad.leaderAmong({ 3, 2 }), 3u);
+}
+
+TEST(SquadsBook, ASavedBookComesBackWithItsSlots)
+{
+	SquadBook book;
+	const SquadId a = book.create("AmericaInfantryRanger", 4).id();
+	const SquadId b = book.create("ChinaInfantryRedguard", 2).id();
+	book.join(a, 11, 120.0f);
+	book.join(a, 12, 120.0f);
+	book.join(a, 13, 130.0f);
+	book.join(b, 21, 90.0f);
+	book.join(b, 22, 90.0f);
+	book.leave(12);	// an empty slot in the middle, with its max health
+
+	const SavedBook saved = book.save();
+	SquadBook loaded;
+	EXPECT_EQ(loaded.restore(saved, [](MemberId) { return true; }), 4);
+
+	const Squad *rangers = loaded.find(a);
+	ASSERT_NE(rangers, nullptr);
+	EXPECT_EQ(rangers->unit(), "AmericaInfantryRanger");
+	EXPECT_EQ(rangers->slotCount(), 4);
+	EXPECT_EQ(rangers->memberIn(0), 11u);
+	EXPECT_EQ(rangers->memberIn(1), 0u);
+	EXPECT_EQ(rangers->memberIn(2), 13u);
+	EXPECT_FLOAT_EQ(rangers->fullHealth(), book.find(a)->fullHealth());
+	EXPECT_EQ(loaded.squadOf(22), b);
+	EXPECT_EQ(loaded.squadOf(12), 0);
+
+	// New squads go on from the saved ids.
+	EXPECT_EQ(loaded.create("X", 1).id(), book.create("X", 1).id());
+}
+
+TEST(SquadsBook, ARestoredBookLeavesOutMembersThatAreGone)
+{
+	SquadBook book;
+	const SquadId a = book.create("R", 2).id();
+	const SquadId b = book.create("S", 2).id();
+	book.join(a, 1, 100.0f);
+	book.join(a, 2, 100.0f);
+	book.join(b, 3, 100.0f);
+
+	SquadBook loaded;
+	EXPECT_EQ(loaded.restore(book.save(), [](MemberId member) { return member != 2 && member != 3; }), 1);
+	ASSERT_NE(loaded.find(a), nullptr);
+	EXPECT_EQ(loaded.find(a)->memberCount(), 1);
+	EXPECT_EQ(loaded.find(b), nullptr);	// no one left
+	EXPECT_GT(loaded.create("X", 1).id(), b);	// its id isn't given out again
+}
+
+TEST(SquadsBook, ARestoredBookTakesAMemberOnce)
+{
+	SavedBook saved;
+	saved.nextId = 1;
+	saved.squads.push_back({ 1, "R", { { 5, 100.0f }, { 5, 100.0f } } });
+	saved.squads.push_back({ 2, "S", { { 5, 100.0f } } });
+	saved.squads.push_back({ 1, "Again", { { 6, 100.0f } } });	// an id used twice
+
+	SquadBook book;
+	EXPECT_EQ(book.restore(saved, [](MemberId) { return true; }), 1);
+	EXPECT_EQ(book.find(1)->memberCount(), 1);
+	EXPECT_EQ(book.find(2), nullptr);
+	EXPECT_EQ(book.squadOf(6), 0);
+	EXPECT_GE(book.create("X", 1).id(), 3);
+}
+
 TEST(SquadsTypes, AGeneralsVersionUsesTheBaseEntry)
 {
 	SquadTypes types;

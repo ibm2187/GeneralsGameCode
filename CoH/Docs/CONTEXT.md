@@ -41,7 +41,9 @@ Don't read other slices' `Engine/` or `Domain/` code to learn the Kernel. Their 
 | `CoH/Features/Sectors/` | territory economy: capture, income, the cut-off graph, build rule, AI expansion, ground, radar and tooltip UI |
 | `CoH/Features/GeneralsArsenal/` | command points, sortie and air cover powers, super weapons with a warning, AI power use; its README has *Engine notes* on special powers |
 | `CoH/Features/Upkeep/` | population, its cap, upkeep on income, the AI's army limit |
+| `CoH/Features/FireRate/` | slower, harder-hitting fast weapons through the `weaponBonus` hub point; a weapon's fire rate over its clip, reload and spin-up |
 | `CoH/Features/Squads/` | infantry squads: made per order, one selection, formation moves, one unit in containers and population, the squad health bar; `Squads.h` for Reinforce, Retreat, Abilities, Weapon pickup |
+| `CoH/Features/Accuracy/` | hit rolls for direct fire, misses beside the target; `Accuracy.h` has the hit modifier stack Cover, Suppression and Veterancy plug into |
 | `CoH/Docs/CONTEXT.md` | this map |
 | `CoH/Scripts/` | `install.ps1` (build and install), `skirmish.ps1` (test game), `replaycheck.ps1` (determinism) |
 | `CoH/Tools/retail.py` | extracts the retail data to `build/retail/`; `read_big` and `read_csf` for packs that generate INI |
@@ -71,15 +73,16 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Replays | `Z/Common/Recorder.cpp` [1.8k]: `updatePlayback` 417 (appends a frame's recorded commands to `TheCommandList`), `updateRecord` 482; the frame 0 CRC is taken in `GameLogic::update` after the scripts, before the commands |
 | Synced random | `Core/GameEngine/Include/GameLogic/LogicRandomValue.h`: `GameLogicRandomValue(lo, hi)`, `GameLogicRandomValueReal` |
 | Objects in range | `ThePartitionManager->iterateObjectsInRange(pos, r, FROM_CENTER_2D, filters)`, `GeneralsMD/Code/GameEngine/Include/GameLogic/PartitionManager.h` 1413 |
-| Save and load | `Xfer` and `Snapshot`; examples are `Player::xfer` (`Z/Common/RTS/Player.cpp` around 4050) and Sectors' `SectorPointUpdate` |
+| Save and load | `Xfer` and `Snapshot`; examples are `Player::xfer` (`Z/Common/RTS/Player.cpp` around 4050) and Sectors' `SectorPointUpdate`. State outside modules: `CoH::registerSaveData` (Kernel.h), loaded after the objects; example Squads `Engine/Save.cpp`. Blocks are listed in `GameState::init` (`Z/Common/System/SaveGame/GameState.cpp` 310); unknown blocks are skipped on load |
 
 ### Combat
 
 | Thing | Where |
 |---|---|
 | Firing | `Z/GameLogic/Object/Weapon.cpp` [3.7k]: `Weapon::privateFireWeapon` 2621, `WeaponTemplate::fireWeaponTemplate` 774, projectiles inside it |
+| Shot redirect (a miss) | hub `weaponFiringAtObject` in `fireWeaponTemplate`, after the range checks: a retargeted shot becomes a shot at a spot; Accuracy `Engine/Shots.cpp`. A hit modifier goes through `Accuracy.h` `addHitModifier`, not a new hook |
 | Damage dealt | `WeaponTemplate::dealDamageInternal` 1377 (victims, radius, damage type), then `Object::attemptDamage` (`Object.cpp` 1906), then `ActiveBody::attemptDamage` (`Body/ActiveBody.cpp` 354) |
-| Weapon bonuses, reload | `Weapon::computeBonus` 1952, `getDelayBetweenShots` 506, `getClipReloadTime` 527 and 2001 |
+| Weapon bonuses, reload | `Weapon::computeBonus` 1913, `getDelayBetweenShots` 502, `getClipReloadTime` 520 and 1953; hub `weaponBonus` changes the summed bonuses (FireRate). Read delays with `getMin/MaxDelayBetweenShots` (`getDelayBetweenShots` draws synced random); a gattling's spin-up is `CONTINUOUS_FIRE_FAST` in `getExtraBonus()` |
 | Weapon choice | `Z/GameLogic/Object/WeaponSet.cpp` [1.2k] |
 | Veterancy | `Z/GameLogic/Object/ExperienceTracker.cpp` [300]: `addExperiencePoints` 162, `setVeterancyLevel` 120; `Object::onVeterancyLevelChanged` 3169 |
 | Kills and score | `Object::scoreTheKill` 2993, `Player::addSkillPointsForKill` 2528 |
@@ -127,6 +130,7 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Thing | Where |
 |---|---|
 | Command bar | `C/GameClient/GUI/ControlBar/ControlBar.cpp` [3.8k], `ControlBarCommand.cpp` [1.6k] (`updateContextCommand` 715) |
+| Passenger buttons and pips | a transport's: `ControlBar::doTransportInventoryUI`, `populateInvDataCallback` (`ControlBarCommand.cpp` 89); a garrison's: `ControlBarStructureInventory.cpp`; the pips: `Drawable::drawContained` (`Drawable.cpp` 2936). A click sends `MSG_EXIT` for the rider (`ControlBarCommandProcessing.cpp` 671). Hub `riderShown` hides riders another speaks for (Squads) |
 | Tooltips | `C/GameClient/GUI/GUICallbacks/ControlBarPopupDescription.cpp`, `ControlBar::populateBuildTooltipLayout` 244 |
 | General's power screen | `C/GameClient/GUI/GUICallbacks/GeneralsExpPoints.cpp`; `ControlBar::populatePurchaseScience` (`ControlBar.cpp` 178) |
 | World overlay, floating text | `Z/GameClient/InGameUI.cpp` [6.4k]: `postDraw` 3785, `addFloatingText` 5366 |
@@ -185,8 +189,11 @@ Its hooks table (`git show ibm-engine:IbmEngine/README.md`, *Hooks in original c
 - `SpecialPowerStore` and similar stores must keep IDs stable across games, or replays of later games break.
 - A multi-config build without `--config Release` builds Debug, and the installed exe stays old.
 - A pack's new object lists all its modules inside `AddModule`; a `Locomotor` line goes after the AI module; a block names only what an earlier file defined. Crash reasons are in `ReleaseCrashInfo.txt` in the user data folder.
-- `objectCreated` fires before a loaded object gets its saved ID: register modules (constructor and destructor), not object IDs.
+- `objectCreated` fires before a loaded object gets its saved ID: register modules (constructor and destructor), not object IDs. State kept by object ID is saved with `CoH::registerSaveData`, which loads after the objects.
+- A skirmish can be saved: the Squads self-test saves with `TheGameState->saveGame` from its logic frame, and `-loadsave <file>` loads a save from the save folder at startup.
 - `Object::crc` doesn't include modules, and `Player::computeSuperweaponTarget` draws synced random numbers (never call it just to log).
 - Upgraded command sets (`CommandSetUpgrade`, such as China's airfield after the mines upgrade) need a pack's changes too.
 - Several `-cohSkirmish` games can run at once (own `CoH_InstanceNN.log`); replacing the installed exe needs every game closed.
 - A quick skirmish takes its starting money from the skirmish preferences (the user's is $50,000): pass `-cohCash 10000` for economy tests. `-win` without `-xres 1600 -yres 900` makes a window taller than the screen.
+- `near` and `far` are empty macros from the Windows headers: a member named that fails with "syntax error: '='", even in Domain code.
+- Known, not yet fixed (2026-10-17): with Sectors on, a replay whose AIs are America's Superweapon and Laser generals mismatches at frame 0 (repro in `Replays\CoHDiag`); China against GLA plays clean. Pick sides with `-cohOpponentSides` when recording replays for a check.

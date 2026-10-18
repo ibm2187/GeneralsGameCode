@@ -21,6 +21,8 @@ class Snapshot;
 class SpecialPowerTemplate;
 class ThingTemplate;
 class UnicodeString;
+class WeaponBonus;
+class WeaponTemplate;
 struct AICommandParms;
 struct Coord3D;
 struct IRegion2D;
@@ -38,6 +40,7 @@ void onShellShown();		///< GameClient::update, the intro is over and the shell i
 void onModuleFactoryInit(ModuleFactory &factory);	///< ModuleFactory::init, after the original modules
 INIBlockParse findIniBlock(const char *token);	///< INI block table lookup, for a block it doesn't know
 Snapshot *saveBlock();		///< GameState::init: the save block, saved before the map
+Snapshot *featureSaveBlock();	///< GameState::init: the features' saved state, after the objects
 
 void onGameStartBeforeMap(bool loadingSaveGame);	///< GameLogic::startNewGame, before map.ini loads
 void onGameStartAfterMap(bool loadingSaveGame);		///< GameLogic::startNewGame, map and players set up
@@ -59,6 +62,9 @@ void onBuildTime(const Player *player, const ThingTemplate *build, int &frames);
 void onPlayerSelection(Player *player, Object *object, bool selected);	///< GameLogicDispatch: a player's (de)select message
 void onAiCommand(Object *object, const AICommandParms *command);	///< AIUpdateInterface::aiDoCommand, once it is accepted
 void onContainRoom(const Object *container, const Object *rider, int &used, int &needed);	///< Transport/GarrisonContain::isValidContainerFor
+bool onWeaponFiringAtObject(const Object *source, const WeaponTemplate *weapon, const WeaponBonus &bonus,
+	const Object *victim, Coord3D &spot);	///< WeaponTemplate::fireWeaponTemplate: true sends the shot to 'spot' instead
+void onWeaponBonus(const Object *source, const WeaponTemplate *weapon, WeaponBonus &bonus);	///< Weapon::computeBonus, once the bonuses are summed
 
 void onInGameUIPostDraw();	///< InGameUI::postDraw: over the 3D view, under the windows
 void onRadarDraw(int x, int y, int width, int height);	///< W3DRadar::draw: over the map and shroud, under the icons
@@ -67,6 +73,7 @@ void onCommandTooltip(const CommandButton *button, UnicodeString &description);	
 bool onMoneyDisplay(const Player *player, GameWindow *moneyWindow);	///< InGameUI: true when a feature writes the money text
 const UnicodeString *findText(const char *label);	///< GameTextManager::fetch: text a pack adds, for a label the game lacks
 void onHealthBar(const Object *object, const IRegion2D *bar, float &health, float &maxHealth);	///< Drawable::drawHealthBar
+bool isRiderShown(const Object *container, const Object *rider);	///< ControlBar passenger buttons, Drawable::drawContained
 
 AsciiString gameOptions(const GameInfo *game);	///< appended to the game options string; empty with no flags
 bool isGameOptionKey(const AsciiString &key);	///< tells the options parser the CoH key is known
@@ -123,6 +130,27 @@ Event<Object *, const AICommandParms *> &aiCommand();
 // is at most the container's maximum. A subscriber may change both.
 Event<const Object *, const Object *, int &, int &> &containRoom();
 
+// A weapon is about to fire at an object: a shot leaving the weapon, not a projectile going off. A
+// subscriber may send the shot to a spot instead (a miss): it writes the spot and sets 'retargeted'.
+// The shot then goes there as a shot at the ground does: its tracers aim there, a projectile flies
+// there, and the damage lands there, hurting whatever its radius reaches. The first to retarget wins.
+struct WeaponShot
+{
+	const Object *source;
+	const WeaponTemplate *weapon;
+	const WeaponBonus *bonus;
+	const Object *victim;
+	Coord3D *spot;			///< where a retargeted shot goes
+	bool retargeted;
+};
+Event<WeaponShot &> &weaponFiringAtObject();
+
+// The bonuses a weapon fires with were summed for 'source' (veterancy, upgrades, frenzy, ...): its
+// damage, radius, range, rate of fire and pre-attack delay. A subscriber may change them. Asked for
+// every shot, reload and clip, the damage a projectile does when it goes off (the projectile is then
+// the source), and the AI's damage estimates, so a change applies everywhere the weapon is used.
+Event<const Object *, const WeaponTemplate *, WeaponBonus &> &weaponBonus();
+
 // ---- Client: drawing and text. These don't run in -headless games. ------------------------------
 
 Event<> &inGameUIPostDraw();			///< draw over the 3D view with TheDisplay, in screen pixels
@@ -134,6 +162,11 @@ Event<const Player *, UnicodeString &> &moneyDisplay();	///< the viewed player; 
 // An object's health bar is drawn in 'bar' (screen pixels) from 'health' of 'maxHealth'. A subscriber
 // may change both; a max of 0 draws no bar. Asked for selected and moused-over objects.
 Event<const Object *, const IRegion2D *, float &, float &> &healthBar();
+
+// Does 'rider' get a passenger button of its own on its container's command bar (a transport's or a
+// garrison's), and a pip over the container? A no hides it: another rider speaks for it (a squad's
+// leader, whose button lets the whole squad out). Each hidden rider takes one pip less.
+Veto<const Object *, const Object *> &riderShown();
 
 // ---- Client: drawing the display offers but TheDisplay doesn't. Original code provides it. ---------
 

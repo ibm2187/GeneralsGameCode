@@ -7,10 +7,12 @@
 #include "Features/Squads/Domain/SquadBook.h"
 #include "Features/Squads/Domain/SquadTypes.h"
 
+#include <map>
 #include <vector>
 
 class Object;
 class Player;
+class Snapshot;
 class ThingTemplate;
 struct AICommandParms;
 struct Coord3D;
@@ -43,6 +45,10 @@ int rawSquadCost(const ThingTemplate *unit);	///< no player modifiers; the unit'
 void startProduction();
 void forgetProduction();
 
+// The squad each factory is making, while an order that makes several units (Red Guards) still has
+// units to come: they join it rather than start squads of their own.
+std::map<ObjectID, SquadId> &openSquads();
+
 // ---- Orders (Orders.cpp) ----
 
 void onPlayerSelection(Player *player, Object *object, bool selected);
@@ -51,12 +57,18 @@ void carryOutOrders();		///< each logic frame: formation moves and following mat
 void sendInFormation(const std::vector<Object *> &movers, const Coord3D &goal, CommandSourceType source,
 	bool attackMove, int maxShots);
 bool lastSlotPosition(MemberId member, Coord3D *position);
+std::map<MemberId, Coord3D> &slotPositions();	///< where each member's formation slot last put it
 void forgetMember(MemberId member);
 void forgetOrders();
 
 // ---- Containers (Containers.cpp) ----
 
 void onContainRoom(const Object *container, const Object *rider, int &used, int &needed);
+bool isRiderShown(const Object *container, const Object *rider);	///< the squad's first rider there speaks for it
+
+// ---- Saving (Save.cpp) ----
+
+Snapshot *saveData();	///< the book, the open orders and the slot positions, loaded after the objects
 
 // ---- UI (UI/HealthBar.cpp) ----
 
@@ -64,6 +76,7 @@ void onHealthBar(const Object *object, const IRegion2D *bar, float &health, floa
 
 // ---- The in-game self-test, with -cohSquadsSelfTest (SelfTest.cpp) ----
 
+void startSelfTest(bool loadedGame);	///< a loaded game checks the squads of the test's save
 void runSelfTest();
 void resetSelfTest();
 

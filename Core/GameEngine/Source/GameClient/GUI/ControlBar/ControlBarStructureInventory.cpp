@@ -44,6 +44,10 @@
 #include "GameClient/GadgetPushButton.h"
 #include "GameClient/HotKey.h"
 
+#if RTS_ZEROHOUR
+#include "Kernel/Hooks.h" // CoH hook
+#endif
+
 
 #define STOP_ID			10
 #define EVACUATE_ID	11
@@ -63,6 +67,12 @@ struct PopulateButtonInfo
 void ControlBar::populateButtonProc( Object *obj, void *userData )
 {
 	PopulateButtonInfo* info = (PopulateButtonInfo*)userData;
+
+#if RTS_ZEROHOUR
+	// another rider speaks for this one, such as a squad's leader for the squad
+	if( !CoH::Hooks::isRiderShown( info->source, obj ) ) // CoH hook
+		return;
+#endif
 
 	// sanity
 	DEBUG_ASSERTCRASH( info->buttonIndex < MAX_STRUCTURE_INVENTORY_BUTTONS,

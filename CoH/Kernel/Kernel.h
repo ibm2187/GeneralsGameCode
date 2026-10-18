@@ -28,6 +28,12 @@ void registerModule(NewModuleProc create, NewModuleDataProc createData, ModuleTy
 // An INI block the slice's pack can contain, such as CoHSectors. Packs load with INI_LOAD_CREATE_OVERRIDES.
 void registerIniBlock(const char *token, INIBlockParse parse);
 
+// Game state the slice saves with the game, under 'name', while the feature is on. It is saved after
+// the objects, so on load its xfer runs once every object has its saved ID, and its loadPostProcess
+// once the whole save is in. A save without it (made with the flag off, or before the slice saved
+// anything) doesn't call it: the slice keeps the state a new game starts with. Register it in init.
+void registerSaveData(const Feature &self, const char *name, Snapshot *data);
+
 // Whether the game was started with this command-line option (for a slice's test options).
 bool hasCommandLineOption(const char *option);
 

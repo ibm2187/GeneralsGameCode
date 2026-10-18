@@ -260,6 +260,11 @@ void sendInFormation(const std::vector<Object *> &movers, const Coord3D &goal,
 	}
 }
 
+std::map<MemberId, Coord3D> &slotPositions()
+{
+	return orders().slotPositions;
+}
+
 bool lastSlotPosition(MemberId member, Coord3D *position)
 {
 	const auto found = orders().slotPositions.find(member);

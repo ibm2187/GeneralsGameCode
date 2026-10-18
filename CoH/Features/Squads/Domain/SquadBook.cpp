@@ -86,6 +86,21 @@ std::vector<MemberId> Squad::members() const
 	return members;
 }
 
+MemberId Squad::leaderAmong(const std::vector<MemberId> &others) const
+{
+	for (const Slot &slot : m_slots)
+	{
+		if (slot.member == 0)
+			continue;
+		for (MemberId other : others)
+		{
+			if (other == slot.member)
+				return slot.member;
+		}
+	}
+	return 0;
+}
+
 float Squad::fullHealth() const
 {
 	float total = 0.0f;
@@ -162,6 +177,51 @@ void SquadBook::clear()
 	m_squads.clear();
 	m_memberSquads.clear();
 	m_nextId = 1;
+}
+
+SavedBook SquadBook::save() const
+{
+	SavedBook saved;
+	saved.nextId = m_nextId;
+	for (const auto &entry : m_squads)
+	{
+		const Squad &squad = entry.second;
+		SavedSquad savedSquad;
+		savedSquad.id = squad.id();
+		savedSquad.unit = squad.unit();
+		for (const Squad::Slot &slot : squad.m_slots)
+			savedSquad.slots.push_back({ slot.member, slot.maxHealth });
+		saved.squads.push_back(savedSquad);
+	}
+	return saved;
+}
+
+int SquadBook::restore(const SavedBook &saved, const std::function<bool(MemberId)> &exists)
+{
+	clear();
+	m_nextId = saved.nextId > 0 ? saved.nextId : 1;
+	int restored = 0;
+	for (const SavedSquad &savedSquad : saved.squads)
+	{
+		if (savedSquad.id <= 0 || savedSquad.slots.empty() || m_squads.count(savedSquad.id) != 0)
+			continue;
+		Squad squad(savedSquad.id, savedSquad.unit, (int)savedSquad.slots.size());
+		for (size_t i = 0; i < savedSquad.slots.size(); ++i)
+		{
+			const SavedSlot &slot = savedSquad.slots[i];
+			squad.m_slots[i].maxHealth = slot.maxHealth;
+			if (slot.member == 0 || m_memberSquads.count(slot.member) != 0 || !exists(slot.member))
+				continue;
+			squad.m_slots[i].member = slot.member;
+			m_memberSquads[slot.member] = savedSquad.id;
+			++restored;
+		}
+		if (m_nextId <= savedSquad.id)
+			m_nextId = savedSquad.id + 1;
+		if (!squad.isEmpty())
+			m_squads.emplace(savedSquad.id, squad);
+	}
+	return restored;
 }
 
 } // namespace CoH::Squads
