@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <map>
 #include <string>
 #include <vector>
@@ -37,11 +38,17 @@ public:
 	MemberId leader() const;	///< the first member in slot order: speaks for the squad
 	std::vector<MemberId> members() const;	///< in slot order
 
+	// The first member in slot order that is among 'others' (the riders of one container): speaks
+	// for the members there. 0 when none of them is.
+	MemberId leaderAmong(const std::vector<MemberId> &others) const;
+
 	// The squad's whole health when full: every slot's max health. An empty slot that never had a
 	// member counts as its neighbours do.
 	float fullHealth() const;
 
 private:
+	friend class SquadBook;
+
 	struct Slot
 	{
 		MemberId member = 0;
@@ -51,6 +58,27 @@ private:
 	SquadId m_id;
 	std::string m_unit;
 	std::vector<Slot> m_slots;
+};
+
+// What a saved game keeps of a book: every squad with all its slots, the empty ones too (they keep
+// the max health of the member that was lost), and the id the next squad gets.
+struct SavedSlot
+{
+	MemberId member = 0;
+	float maxHealth = 0.0f;
+};
+
+struct SavedSquad
+{
+	SquadId id = 0;
+	std::string unit;
+	std::vector<SavedSlot> slots;
+};
+
+struct SavedBook
+{
+	SquadId nextId = 1;
+	std::vector<SavedSquad> squads;
 };
 
 class SquadBook
@@ -71,6 +99,13 @@ public:
 
 	const std::map<SquadId, Squad> &squads() const { return m_squads; }	///< in the order they were made
 	void clear();
+
+	SavedBook save() const;
+
+	// Replaces the book with a saved one. A member 'exists' says no to (it is gone from the game) leaves
+	// its slot empty, and so does a member listed twice after its first slot; a squad left with no
+	// one is dropped. Returns the members put back.
+	int restore(const SavedBook &saved, const std::function<bool(MemberId)> &exists);
 
 private:
 	SquadId m_nextId = 1;

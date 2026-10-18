@@ -12,10 +12,11 @@ namespace
 
 using namespace CoH::Squads;
 
-void onGameStartAfterMap(bool /*loadingSaveGame*/)
+void onGameStartAfterMap(bool loadingSaveGame)
 {
 	startGame();
 	startProduction();
+	startSelfTest(loadingSaveGame);
 }
 
 void onGameEnd()
@@ -46,6 +47,9 @@ void init(CoH::Feature &self)
 	CoH::Hooks::aiCommand().subscribe(self, onAiCommand);
 	CoH::Hooks::containRoom().subscribe(self, onContainRoom);
 	CoH::Hooks::healthBar().subscribe(self, onHealthBar);
+	CoH::Hooks::riderShown().subscribe(self, isRiderShown);
+
+	CoH::registerSaveData(self, "Squads", saveData());
 }
 
 void reset()

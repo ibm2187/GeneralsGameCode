@@ -5,9 +5,13 @@
 // player's clicks send (select, deselect, move, enter, exit, evacuate) and checks what game logic
 // made of them. Each check writes "Squads test: PASS ..." or "FAIL ..." to the CoH log, then a
 // summary. Its objects come from the test, not from messages, so its replay doesn't play back.
+//
+// At the end the test saves the game as CoHSquadsSelfTest.sav. Loading it with the option on
+// (-loadsave CoHSquadsSelfTest.sav -cohSquadsSelfTest -cohLog -cohSeveralGames) checks that the squads came back.
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
+#include "Common/GameState.h"
 #include "Common/MessageStream.h"
 #include "Common/Player.h"
 #include "Common/PlayerList.h"
@@ -42,10 +46,12 @@ namespace
 {
 
 const UnsignedInt kFirstFrame = 90;	///< the test starts 3 seconds into the game
+const char *const kSaveFile = "CoHSquadsSelfTest.sav";
 
 struct TestState
 {
 	int stage = 0;
+	bool loadedGame = false;	///< checks the squads of a loaded save instead
 	UnsignedInt nextFrame = 0;
 	int passed = 0;
 	int failed = 0;
@@ -227,6 +233,35 @@ bool noneInside(int squad)
 	return !members(squad).empty();
 }
 
+// The riders that get a passenger button and a pip of their own.
+std::vector<ObjectID> shownRiders(const Object *container)
+{
+	std::vector<ObjectID> shown;
+	if (container == nullptr || container->getContain() == nullptr)
+		return shown;
+	if (const ContainedItemsList *items = container->getContain()->getContainedItemsList())
+	{
+		for (const Object *rider : *items)
+		{
+			if (CoH::Hooks::isRiderShown(container, rider))
+				shown.push_back(rider->getID());
+		}
+	}
+	std::sort(shown.begin(), shown.end());
+	CoH::log("Squads test: %d of %d riders shown", (int)shown.size(), (int)container->getContain()->getContainCount());
+	return shown;
+}
+
+std::vector<ObjectID> leaderIds(std::initializer_list<int> squads)
+{
+	std::vector<ObjectID> ids;
+	for (int squad : squads)
+		if (Object *first = leader(squad))
+			ids.push_back(first->getID());
+	std::sort(ids.begin(), ids.end());
+	return ids;
+}
+
 bool isInFormationAt(int squad, const Coord3D &goal)
 {
 	const std::vector<Object *> squadMembers = members(squad);
@@ -338,31 +373,50 @@ void runStage()
 		case 5:
 			check(isInFormationAt(state.squadA, state.goal), "a moved squad stands in its formation slots at the goal");
 			if (humvee != nullptr)
+			{
+				sendSelect({ a[0] }, true);
 				sendEnter(humvee);
+				sendSelect({ b[0] }, true);
+				sendEnter(humvee);
+			}
 			waitFrames(450);
 			break;
 		case 6:
 			check(allInside(state.squadA, humvee), "the squad rides in the Humvee");
+			check(allInside(state.squadB, humvee), "a second squad rides too: 8 soldiers in the Humvee's 5 slots");
+			check(shownRiders(humvee) == leaderIds({ state.squadA, state.squadB }),
+				"the Humvee shows one passenger button and pip per squad, its first rider's");
+			if (humvee != nullptr && !b.empty())
+			{
+				sendSelect({ humvee }, true);
+				sendExit(leader(state.squadB));	// squad B's passenger button
+			}
+			waitFrames(300);
+			break;
+		case 7:
+			check(noneInside(state.squadB) && allInside(state.squadA, humvee),
+				"a squad's passenger button lets that squad out, not the other");
 			check(humvee != nullptr && humvee->getContain()->isValidContainerFor(b[0], TRUE),
 				"a squad in a Humvee takes one slot: another squad still fits");
 			if (humvee != nullptr && !a.empty())
 			{
 				sendSelect({ humvee }, true);
-				sendExit(a[1]);	// the passenger button of one member
+				sendExit(a[1]);	// a member that isn't the one shown
 			}
 			waitFrames(300);
 			break;
-		case 7:
+		case 8:
 			check(noneInside(state.squadA), "one member getting out takes the squad out");
 			sendSelect({ a[0] }, true);
 			if (pub != nullptr)
 				sendEnter(pub);
 			waitFrames(900);
 			break;
-		case 8:
+		case 9:
 			check(allInside(state.squadA, pub), "the squad garrisons the pub");
 			check(pub != nullptr && pub->getContain()->isValidContainerFor(b[0], TRUE),
 				"a squad in a garrison takes one place: another squad still fits");
+			check(shownRiders(pub) == leaderIds({ state.squadA }), "the pub shows one passenger button for the squad");
 			if (pub != nullptr)
 			{
 				sendSelect({ pub }, true);
@@ -370,7 +424,7 @@ void runStage()
 			}
 			waitFrames(300);
 			break;
-		case 9:
+		case 10:
 		{
 			check(noneInside(state.squadA), "evacuating the pub lets the squad out");
 			Object *oldLeader = leader(state.squadA);
@@ -379,7 +433,7 @@ void runStage()
 			waitFrames(150);
 			break;
 		}
-		case 10:
+		case 11:
 		{
 			const std::vector<Object *> left = members(state.squadA);
 			check(left.size() == 3 && missingMembers(state.squadA) == 1, "a lost member leaves an empty slot");
@@ -387,6 +441,12 @@ void runStage()
 			check(emptySlots(state.squadA).size() == 1 && emptySlots(state.squadA)[0] == 0 &&
 				unitOfSlot(state.squadA, 0) == TheThingFactory->findTemplate("AmericaInfantryRanger"),
 				"the empty slot is known for Reinforce");
+
+			const SaveResult saved = TheGameState->saveGame(AsciiString(kSaveFile), UnicodeString(L"CoH Squads self-test"),
+				SAVE_FILE_TYPE_NORMAL);
+			CoH::log("Squads test: saved %s (code %d) with %d squads; load it with -loadsave %s -cohSquadsSelfTest",
+				saved.filename.str(), (int)saved.saveCode, (int)book().squads().size(), kSaveFile);
+			check(saved.saveCode == SC_OK, "the game saves with its squads");
 			CoH::log("Squads test: done, %d passed, %d failed", state.passed, state.failed);
 			state.stage = -1;
 			break;
@@ -397,7 +457,69 @@ void runStage()
 	}
 }
 
+// ---- A loaded save of the test ----
+
+// The local player's Ranger squads, in the order they were made.
+std::vector<int> playerRangerSquads()
+{
+	std::vector<int> squads;
+	for (const auto &entry : book().squads())
+	{
+		Object *first = leader(entry.first);
+		if (first != nullptr && first->getControllingPlayer() == test().player &&
+			entry.second.unit() == "AmericaInfantryRanger")
+			squads.push_back(entry.first);
+	}
+	return squads;
+}
+
+void runLoadedStage()
+{
+	TestState &state = test();
+	switch (state.stage)
+	{
+		case 0:
+		{
+			state.player = ThePlayerList->getLocalPlayer();
+			const std::vector<int> squads = playerRangerSquads();
+			CoH::log("Squads test: the loaded game has %d squads, %d of them the player's Rangers",
+				(int)book().squads().size(), (int)squads.size());
+			check(squads.size() == 2, "the loaded game has the test's two Ranger squads");
+			if (squads.size() != 2)
+			{
+				CoH::log("Squads test: done, %d passed, %d failed", state.passed, state.failed);
+				state.stage = -1;
+				break;
+			}
+			state.squadA = squads[0];
+			state.squadB = squads[1];
+			check(members(state.squadA).size() == 3 && emptySlots(state.squadA) == std::vector<int>{ 0 } &&
+				members(state.squadB).size() == 4 && slotCount(state.squadB) == 4,
+				"the loaded squads have their members, and the lost member's empty slot");
+			check(countsAsUnit(members(state.squadA)[0]) && !countsAsUnit(members(state.squadA)[1]),
+				"a loaded squad's leader counts as the unit");
+			sendSelect({ members(state.squadB)[2] }, true);
+			waitFrames(30);
+			break;
+		}
+		case 1:
+			check(isSelectionExactly({ state.squadB }), "clicking a member of a loaded squad selects its squad");
+			CoH::log("Squads test: done, %d passed, %d failed", state.passed, state.failed);
+			state.stage = -1;
+			break;
+		default:
+			state.stage = -1;
+			break;
+	}
+}
+
 } // namespace
+
+void startSelfTest(bool loadedGame)
+{
+	test() = TestState();
+	test().loadedGame = loadedGame;
+}
 
 void runSelfTest()
 {
@@ -405,6 +527,12 @@ void runSelfTest()
 	if (!enabled || test().stage < 0)
 		return;
 	const UnsignedInt frame = TheGameLogic->getFrame();
+	if (test().loadedGame)
+	{
+		if (frame >= test().nextFrame)
+			runLoadedStage();
+		return;
+	}
 	if (test().stage == 0)
 	{
 		if (frame >= kFirstFrame)

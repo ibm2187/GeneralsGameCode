@@ -12,6 +12,7 @@
 #include "Kernel/Domain/GameFlags.h"
 #include "Kernel/Engine/Internal.h"
 #include "Kernel/Hooks.h"
+#include "Kernel/Kernel.h"
 
 namespace CoH::Hooks
 {
@@ -77,14 +78,20 @@ Event<const Object *, const IRegion2D *, float &, float &> &healthBar()
 	static Event<const Object *, const IRegion2D *, float &, float &> event;
 	return event;
 }
+Veto<const Object *, const Object *> &riderShown()
+{
+	static Veto<const Object *, const Object *> veto;
+	return veto;
+}
 
 // ---- Engine ------------------------------------------------------------------------------------
 
-// Quick test skirmishes (-cohSkirmish) may run side by side, as replay playback may. Each game then
-// gets its own replay (the engine's _InstanceNN names) and its own CoH log.
+// Quick test skirmishes (-cohSkirmish) may run side by side, as replay playback may, and so may other
+// test runs started with -cohSeveralGames (loading a test's save with -loadsave). Each game then gets
+// its own replay (the engine's _InstanceNN names) and its own CoH log.
 bool allowsSeveralGames()
 {
-	return QuickSkirmish::isAsked();
+	return QuickSkirmish::isAsked() || hasCommandLineOption("-cohSeveralGames");
 }
 
 void onEngineInit()
@@ -241,6 +248,11 @@ void onRadarDraw(int x, int y, int width, int height)
 void onHealthBar(const Object *object, const IRegion2D *bar, float &health, float &maxHealth)
 {
 	healthBar().raise(object, bar, health, maxHealth);
+}
+
+bool isRiderShown(const Object *container, const Object *rider)
+{
+	return riderShown().allows(container, rider);
 }
 
 namespace

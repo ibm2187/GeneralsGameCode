@@ -38,6 +38,7 @@ void onShellShown();		///< GameClient::update, the intro is over and the shell i
 void onModuleFactoryInit(ModuleFactory &factory);	///< ModuleFactory::init, after the original modules
 INIBlockParse findIniBlock(const char *token);	///< INI block table lookup, for a block it doesn't know
 Snapshot *saveBlock();		///< GameState::init: the save block, saved before the map
+Snapshot *featureSaveBlock();	///< GameState::init: the features' saved state, after the objects
 
 void onGameStartBeforeMap(bool loadingSaveGame);	///< GameLogic::startNewGame, before map.ini loads
 void onGameStartAfterMap(bool loadingSaveGame);		///< GameLogic::startNewGame, map and players set up
@@ -67,6 +68,7 @@ void onCommandTooltip(const CommandButton *button, UnicodeString &description);	
 bool onMoneyDisplay(const Player *player, GameWindow *moneyWindow);	///< InGameUI: true when a feature writes the money text
 const UnicodeString *findText(const char *label);	///< GameTextManager::fetch: text a pack adds, for a label the game lacks
 void onHealthBar(const Object *object, const IRegion2D *bar, float &health, float &maxHealth);	///< Drawable::drawHealthBar
+bool isRiderShown(const Object *container, const Object *rider);	///< ControlBar passenger buttons, Drawable::drawContained
 
 AsciiString gameOptions(const GameInfo *game);	///< appended to the game options string; empty with no flags
 bool isGameOptionKey(const AsciiString &key);	///< tells the options parser the CoH key is known
@@ -134,6 +136,11 @@ Event<const Player *, UnicodeString &> &moneyDisplay();	///< the viewed player; 
 // An object's health bar is drawn in 'bar' (screen pixels) from 'health' of 'maxHealth'. A subscriber
 // may change both; a max of 0 draws no bar. Asked for selected and moused-over objects.
 Event<const Object *, const IRegion2D *, float &, float &> &healthBar();
+
+// Does 'rider' get a passenger button of its own on its container's command bar (a transport's or a
+// garrison's), and a pip over the container? A no hides it: another rider speaks for it (a squad's
+// leader, whose button lets the whole squad out). Each hidden rider takes one pip less.
+Veto<const Object *, const Object *> &riderShown();
 
 // ---- Client: drawing the display offers but TheDisplay doesn't. Original code provides it. ---------
 
