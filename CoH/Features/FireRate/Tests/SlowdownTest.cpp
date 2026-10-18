@@ -175,3 +175,18 @@ TEST(FireRateScaling, NoLimitOrNoRateMeansNoChange)
 	noRate.cycle = everyFrames(0);
 	EXPECT_FALSE(scalingFor(noRate, Rules(), Fps).changes());
 }
+
+TEST(FireRateScaling, AGattlingIsHeldToTheLimitOnceFullySpunUp)
+{
+	WeaponFacts gattlingTank;
+	gattlingTank.cycle = everyFrames(12);	// 2.5 a second at first...
+	gattlingTank.spinUp = 3;				// ...7.5 once spun up
+	gattlingTank.classSeconds = 1;
+	EXPECT_DOUBLE_EQ(topShotsPerSecond(gattlingTank, Fps), 7.5);
+	const Scaling scaling = scalingFor(gattlingTank, Rules(), Fps);
+	EXPECT_DOUBLE_EQ(scaling.slowDown, 7.5);
+	EXPECT_DOUBLE_EQ(scaling.damage, 7.5);
+
+	gattlingTank.spinUp = 0.5;	// a slowing bonus doesn't count
+	EXPECT_DOUBLE_EQ(topShotsPerSecond(gattlingTank, Fps), 2.5);
+}

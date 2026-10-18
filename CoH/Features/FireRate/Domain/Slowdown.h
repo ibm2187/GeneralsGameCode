@@ -25,6 +25,7 @@ double shotsPerSecond(const FireCycle &cycle, double framesPerSecond);
 struct WeaponFacts
 {
 	FireCycle cycle;
+	double spinUp = 1;			///< rate of fire at full spin, for a gattling that speeds up as it keeps firing
 	double classSeconds = 0;	///< its damage type's Class line: at least this many seconds a shot; 0 is no line
 	bool hasOwnLine = false;	///< a Weapon line names it...
 	double ownSeconds = 0;		///< ...with this many seconds a shot; 0 never slows it
@@ -49,10 +50,14 @@ struct Scaling
 	bool changes() const { return slowDown != 1 || damage != 1; }
 };
 
+// The shots a second the weapon fires at its fastest: over its clip and reload, fully spun up.
+double topShotsPerSecond(const WeaponFacts &facts, double framesPerSecond);
+
 // The seconds a shot the weapon is held to, 0 when it isn't held to any: its own line, else its
 // class's line unless it is an area weapon, scatters, or goes off where it stands.
 double secondsPerShotLimit(const WeaponFacts &facts, const Rules &rules);
 
+// The weapon is slowed so that even fully spun up it fires no faster than its limit.
 Scaling scalingFor(const WeaponFacts &facts, const Rules &rules, double framesPerSecond);
 
 } // namespace CoH::FireRate

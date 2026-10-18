@@ -83,6 +83,12 @@ WeaponFacts factsOf(const Config &config, const WeaponTemplate *weapon)
 	facts.cycle.maxDelay = weapon->getMaxDelayBetweenShots();
 	facts.cycle.clipSize = weapon->getClipSize();
 	facts.cycle.clipReload = weapon->getClipReloadTime(noBonus);
+	if (const WeaponBonusSet *extra = weapon->getExtraBonus())
+	{
+		WeaponBonus spunUp;
+		extra->appendBonuses(1 << WEAPONBONUSCONDITION_CONTINUOUS_FIRE_FAST, spunUp);
+		facts.spinUp = spunUp.getField(WeaponBonus::RATE_OF_FIRE);
+	}
 
 	const DamageType type = weapon->getDamageType();
 	if (type >= 0 && type < DAMAGE_NUM_TYPES)
@@ -110,7 +116,7 @@ Scaling lookUpScaling(const WeaponTemplate *weapon)
 	const Scaling scaling = scalingFor(facts, rules, LOGICFRAMES_PER_SECOND);
 	if (scaling.changes())
 	{
-		const double rate = shotsPerSecond(facts.cycle, LOGICFRAMES_PER_SECOND);
+		const double rate = topShotsPerSecond(facts, LOGICFRAMES_PER_SECOND);
 		CoH::log("FireRate: %s %.2f shots/s, now %.2f: x%.2f slower, x%.2f damage", weapon->getName().str(),
 			rate, rate / scaling.slowDown, scaling.slowDown, scaling.damage);
 	}

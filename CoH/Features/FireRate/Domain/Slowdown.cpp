@@ -18,6 +18,11 @@ double shotsPerSecond(const FireCycle &cycle, double framesPerSecond)
 	return shots * framesPerSecond / frames;
 }
 
+double topShotsPerSecond(const WeaponFacts &facts, double framesPerSecond)
+{
+	return shotsPerSecond(facts.cycle, framesPerSecond) * (facts.spinUp > 1 ? facts.spinUp : 1);
+}
+
 double secondsPerShotLimit(const WeaponFacts &facts, const Rules &rules)
 {
 	if (facts.hasOwnLine)
@@ -30,7 +35,7 @@ double secondsPerShotLimit(const WeaponFacts &facts, const Rules &rules)
 Scaling scalingFor(const WeaponFacts &facts, const Rules &rules, double framesPerSecond)
 {
 	const double limit = secondsPerShotLimit(facts, rules);
-	const double rate = shotsPerSecond(facts.cycle, framesPerSecond);
+	const double rate = topShotsPerSecond(facts, framesPerSecond);
 	if (limit <= 0 || rate <= 0)
 		return {};
 

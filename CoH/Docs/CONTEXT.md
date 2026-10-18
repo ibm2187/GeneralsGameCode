@@ -41,6 +41,7 @@ Don't read other slices' `Engine/` or `Domain/` code to learn the Kernel. Their 
 | `CoH/Features/Sectors/` | territory economy: capture, income, the cut-off graph, build rule, AI expansion, ground, radar and tooltip UI |
 | `CoH/Features/GeneralsArsenal/` | command points, sortie and air cover powers, super weapons with a warning, AI power use; its README has *Engine notes* on special powers |
 | `CoH/Features/Upkeep/` | population, its cap, upkeep on income, the AI's army limit |
+| `CoH/Features/FireRate/` | slower, harder-hitting fast weapons through the `weaponBonus` hub point; a weapon's fire rate over its clip, reload and spin-up |
 | `CoH/Features/Squads/` | infantry squads: made per order, one selection, formation moves, one unit in containers and population, the squad health bar; `Squads.h` for Reinforce, Retreat, Abilities, Weapon pickup |
 | `CoH/Docs/CONTEXT.md` | this map |
 | `CoH/Scripts/` | `install.ps1` (build and install), `skirmish.ps1` (test game), `replaycheck.ps1` (determinism) |
@@ -78,7 +79,7 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 |---|---|
 | Firing | `Z/GameLogic/Object/Weapon.cpp` [3.7k]: `Weapon::privateFireWeapon` 2621, `WeaponTemplate::fireWeaponTemplate` 774, projectiles inside it |
 | Damage dealt | `WeaponTemplate::dealDamageInternal` 1377 (victims, radius, damage type), then `Object::attemptDamage` (`Object.cpp` 1906), then `ActiveBody::attemptDamage` (`Body/ActiveBody.cpp` 354) |
-| Weapon bonuses, reload | `Weapon::computeBonus` 1952, `getDelayBetweenShots` 506, `getClipReloadTime` 527 and 2001 |
+| Weapon bonuses, reload | `Weapon::computeBonus` 1913, `getDelayBetweenShots` 502, `getClipReloadTime` 520 and 1953; hub `weaponBonus` changes the summed bonuses (FireRate). Read delays with `getMin/MaxDelayBetweenShots` (`getDelayBetweenShots` draws synced random); a gattling's spin-up is `CONTINUOUS_FIRE_FAST` in `getExtraBonus()` |
 | Weapon choice | `Z/GameLogic/Object/WeaponSet.cpp` [1.2k] |
 | Veterancy | `Z/GameLogic/Object/ExperienceTracker.cpp` [300]: `addExperiencePoints` 162, `setVeterancyLevel` 120; `Object::onVeterancyLevelChanged` 3169 |
 | Kills and score | `Object::scoreTheKill` 2993, `Player::addSkillPointsForKill` 2528 |
