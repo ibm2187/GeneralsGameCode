@@ -63,6 +63,8 @@ Averages over both AIs of both maps (the flags-on Tournament Desert game before 
 - Population before counts dozers and after doesn't (see below), so compare armies by units and worth.
 - A first pass with dozers still taking population (a $1,000 dozer took 4) left the AIs 6 units at minute 10, a quarter of before: half their cap was builders. Upkeep's pack now leaves dozers out.
 
+**Play-test (2026-10-17)**, the user against a Hard GLA AI on Tournament Desert with every flag and Pacing: still too fast. The AI had two or three tanks, two Quads and infantry while the user had taken two points. The opening is the problem: $10,000 of starting money is five minutes of income, and GLA's cheap vehicles turn it into an army at once. The fix is CoH's resources and a small start, task [03c Resources](../../Docs/Tasks/03c-Resources.md); Pacing's multipliers, handicap and `AIScriptMoney` stay under it.
+
 Each AI, before (flags on and retail):
 
 | run | side | min | income/min (3 min avg) | built/min (3 min avg) | army units | army worth | population (cap, upkeep) |
