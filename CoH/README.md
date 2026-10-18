@@ -121,6 +121,105 @@ The script does four things:
 
 A subscriber only runs while its feature is on.
 
+### In C++20, against the Kernel wrapper
+
+New code is written in modern C++20 against the Kernel's wrapper headers (`Docs/PLAN.md`, *Conventions* 10). Existing slices keep their style.
+
+| Header | For |
+|---|---|
+| `Kernel/Time.h` | `now()`, `everySeconds(s)`, `secondsFromNow(s)`, `framesFromSeconds(s)`, `isEvery(frame, period)` |
+| `Kernel/Random.h` | synced `chance(p)`, `pick(items)`, `between(lo, hi)` |
+| `Kernel/Objects.h` | `objectsNear(center, radius, filter)`, `objectsOf(player, filter)`, `allObjects(filter)`, `kinds(...)`, `findObject(id)`, `findLiving(id)` |
+| `Kernel/Players.h` | `players()`, `sides()`, `activeSides()`, `aiSides()`; `isEnemy`, `isAlly` |
+| `Kernel/Ini.h` | `Ini::Table` of `Ini::field`, `Ini::seconds`, `Ini::percent`, `Ini::custom` |
+
+A whole feature, *FieldAid*: every two seconds, infantry near a friendly heal pad may heal a little.
+`Kernel/Tests/WrapperExampleTest.cpp` compiles this code, so it stays correct. In a real slice the heal rule would be a pure function in `Domain/` with a test.
+
+```cpp
+// Features/FieldAid/Engine/FieldAid.cpp
+#include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
+
+#include "GameLogic/Object.h"
+
+#include "Kernel/Ini.h"
+#include "Kernel/Kernel.h"
+#include "Kernel/Objects.h"
+#include "Kernel/Players.h"
+#include "Kernel/Random.h"
+#include "Kernel/Time.h"
+
+namespace CoH::FieldAid
+{
+
+namespace
+{
+
+struct Config	// the CoHFieldAid block of Data/INI/FieldAid.ini; these are the defaults
+{
+	Real radius = 150.0f;
+	Real healChance = 0.5f;
+	Real healAmount = 10.0f;
+	UnsignedInt intervalFrames = framesFromSeconds(2.0f);
+	KindOfMaskType medicKinds = kinds(KINDOF_HEAL_PAD);
+};
+
+Config &config()
+{
+	static Config theConfig;
+	return theConfig;
+}
+
+void parseConfigBlock(INI *ini)
+{
+	static const Ini::Table<Config> fields = {
+		Ini::field("Radius", &Config::radius),
+		Ini::percent("HealChance", &Config::healChance),	// "50%"
+		Ini::field("HealAmount", &Config::healAmount),
+		Ini::seconds("Interval", &Config::intervalFrames),	// "2.0", kept as 60 frames
+		Ini::field("MedicKinds", &Config::medicKinds),
+	};
+	fields.read(ini, config());
+}
+
+void onLogicFrame()
+{
+	const Config &settings = config();
+	if (!isEvery(now(), settings.intervalFrames))
+		return;
+	for (Player *player : activeSides())
+	{
+		for (Object *medic : objectsOf(*player, { .anyKind = settings.medicKinds }))
+		{
+			for (Object *patient : objectsNear(*medic, settings.radius, { .alliesOf = medic, .anyKind = kinds(KINDOF_INFANTRY) }))
+			{
+				if (chance(settings.healChance))	// synced: one draw per patient, in the engine's order
+					patient->attemptHealing(settings.healAmount, medic);
+			}
+		}
+	}
+}
+
+void init(Feature &self)
+{
+	registerIniBlock("CoHFieldAid", parseConfigBlock);
+	Hooks::logicFrame().subscribe(self, onLogicFrame);
+}
+
+void reset()
+{
+	config() = Config();
+}
+
+} // namespace
+
+} // namespace CoH::FieldAid
+
+COH_FEATURE(FieldAid, CoH::FieldAid::init, CoH::FieldAid::reset)
+```
+
+The range from `objectsNear` deletes the engine's iterator itself. A module's data uses the same tables: `p.add(fields)` in its `buildFieldParse`.
+
 ## Hook hub
 
 These are the points of `Kernel/Hooks.h` that features subscribe to:
