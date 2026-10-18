@@ -98,6 +98,17 @@ TEST(FireRateLimit, AreaWeaponsScatterAndSelfBlastsAreLeftAlone)
 	EXPECT_DOUBLE_EQ(secondsPerShotLimit(suicide, Rules()), 0.0);
 }
 
+TEST(FireRateLimit, AWeaponThatDoesNoDamageIsLeftAlone)
+{
+	WeaponFacts dummy = rifle(2);	// aims or designates for a real weapon
+	dummy.dealsDamage = false;
+	EXPECT_DOUBLE_EQ(secondsPerShotLimit(dummy, Rules()), 0.0);
+
+	dummy.hasOwnLine = true;
+	dummy.ownSeconds = 1;
+	EXPECT_DOUBLE_EQ(secondsPerShotLimit(dummy, Rules()), 0.0);
+}
+
 TEST(FireRateLimit, AWeaponsOwnLineWinsEvenForAnAreaWeapon)
 {
 	WeaponFacts heavyGun = rifle(2);

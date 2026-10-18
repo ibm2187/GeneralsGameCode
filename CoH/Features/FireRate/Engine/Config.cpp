@@ -98,6 +98,7 @@ WeaponFacts factsOf(const Config &config, const WeaponTemplate *weapon)
 		facts.hasOwnLine = true;
 		facts.ownSeconds = own->seconds;
 	}
+	facts.dealsDamage = weapon->getPrimaryDamage(noBonus) > 0 || weapon->getSecondaryDamage(noBonus) > 0;
 	facts.damageRadius = max(weapon->getPrimaryDamageRadius(noBonus), weapon->getSecondaryDamageRadius(noBonus));
 	facts.scatterRadius = weapon->getScatterRadius();
 	facts.damageAtSelf = weapon->getDamageDealtAtSelfPosition();
