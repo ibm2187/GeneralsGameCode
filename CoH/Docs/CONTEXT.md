@@ -72,7 +72,7 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Every unit command | hub `aiCommand` (`AIUpdateInterface::aiDoCommand`); infantry group moves arrive as `AICMD_FOLLOW_PATH`. Re-issue orders at frame end, not inside it (Squads `Engine/Orders.cpp`) |
 | Synced random | `Core/GameEngine/Include/GameLogic/LogicRandomValue.h`: `GameLogicRandomValue(lo, hi)`, `GameLogicRandomValueReal` |
 | Objects in range | `ThePartitionManager->iterateObjectsInRange(pos, r, FROM_CENTER_2D, filters)`, `GeneralsMD/Code/GameEngine/Include/GameLogic/PartitionManager.h` 1413 |
-| Save and load | `Xfer` and `Snapshot`; examples are `Player::xfer` (`Z/Common/RTS/Player.cpp` around 4050) and Sectors' `SectorPointUpdate` |
+| Save and load | `Xfer` and `Snapshot`; examples are `Player::xfer` (`Z/Common/RTS/Player.cpp` around 4050) and Sectors' `SectorPointUpdate`. State outside modules: `CoH::registerSaveData` (Kernel.h), loaded after the objects; example Squads `Engine/Save.cpp`. Blocks are listed in `GameState::init` (`Z/Common/System/SaveGame/GameState.cpp` 310); unknown blocks are skipped on load |
 
 ### Combat
 
@@ -129,6 +129,7 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Thing | Where |
 |---|---|
 | Command bar | `C/GameClient/GUI/ControlBar/ControlBar.cpp` [3.8k], `ControlBarCommand.cpp` [1.6k] (`updateContextCommand` 715) |
+| Passenger buttons and pips | a transport's: `ControlBar::doTransportInventoryUI`, `populateInvDataCallback` (`ControlBarCommand.cpp` 89); a garrison's: `ControlBarStructureInventory.cpp`; the pips: `Drawable::drawContained` (`Drawable.cpp` 2936). A click sends `MSG_EXIT` for the rider (`ControlBarCommandProcessing.cpp` 671). Hub `riderShown` hides riders another speaks for (Squads) |
 | Tooltips | `C/GameClient/GUI/GUICallbacks/ControlBarPopupDescription.cpp`, `ControlBar::populateBuildTooltipLayout` 244 |
 | General's power screen | `C/GameClient/GUI/GUICallbacks/GeneralsExpPoints.cpp`; `ControlBar::populatePurchaseScience` (`ControlBar.cpp` 178) |
 | World overlay, floating text | `Z/GameClient/InGameUI.cpp` [6.4k]: `postDraw` 3785, `addFloatingText` 5366 |
@@ -186,7 +187,8 @@ Its hooks table (`git show ibm-engine:IbmEngine/README.md`, *Hooks in original c
 - `SpecialPowerStore` and similar stores must keep IDs stable across games, or replays of later games break.
 - A multi-config build without `--config Release` builds Debug, and the installed exe stays old.
 - A pack's new object lists all its modules inside `AddModule`; a `Locomotor` line goes after the AI module; a block names only what an earlier file defined. Crash reasons are in `ReleaseCrashInfo.txt` in the user data folder.
-- `objectCreated` fires before a loaded object gets its saved ID: register modules (constructor and destructor), not object IDs.
+- `objectCreated` fires before a loaded object gets its saved ID: register modules (constructor and destructor), not object IDs. State kept by object ID is saved with `CoH::registerSaveData`, which loads after the objects.
+- A skirmish can be saved: the Squads self-test saves with `TheGameState->saveGame` from its logic frame, and `-loadsave <file>` loads a save from the save folder at startup.
 - `Object::crc` doesn't include modules, and `Player::computeSuperweaponTarget` draws synced random numbers (never call it just to log).
 - Upgraded command sets (`CommandSetUpgrade`, such as China's airfield after the mines upgrade) need a pack's changes too.
 - Several `-cohSkirmish` games can run at once (own `CoH_InstanceNN.log`); replacing the installed exe needs every game closed.

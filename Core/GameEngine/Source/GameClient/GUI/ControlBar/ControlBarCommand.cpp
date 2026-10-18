@@ -90,6 +90,12 @@ void ControlBar::populateInvDataCallback( Object *obj, void *userData )
 {
 	PopulateInvButtonData *data = (PopulateInvButtonData *)userData;
 
+#if RTS_ZEROHOUR
+	// another rider speaks for this one, such as a squad's leader for the squad
+	if( !CoH::Hooks::isRiderShown( data->transport, obj ) ) // CoH hook
+		return;
+#endif
+
 	//
 	// if we're beyond the max the GUI can support, design needs to change the parameters
 	// of the transport object to carry less things

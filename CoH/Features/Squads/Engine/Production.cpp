@@ -26,16 +26,14 @@
 namespace CoH::Squads
 {
 
-namespace
-{
-
-// The squad each factory is making, while an order that makes several units (Red Guards) still has
-// units to come: they join it rather than start squads of their own.
 std::map<ObjectID, SquadId> &openSquads()
 {
 	static std::map<ObjectID, SquadId> theSquads;
 	return theSquads;
 }
+
+namespace
+{
 
 // Units a factory makes several of per order (Red Guards: 2), from every factory's QuantityModifier
 // lines. Template data only, so every machine finds the same; read once per game.

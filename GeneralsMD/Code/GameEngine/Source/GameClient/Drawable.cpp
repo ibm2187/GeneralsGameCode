@@ -2963,6 +2963,11 @@ void Drawable::drawContained( const IRegion2D *healthBarRegion )
 	{
 		for (ContainedItemsList::const_iterator it = contained->begin(); it != contained->end(); ++it)
 		{
+			if (!CoH::Hooks::isRiderShown(obj, *it)) // CoH hook
+			{
+				--numFull;	// another rider speaks for it, such as a squad's leader for the squad
+				continue;
+			}
 			if ((*it)->isKindOf(KINDOF_INFANTRY))
 				++numInfantry;
 		}
