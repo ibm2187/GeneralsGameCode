@@ -210,10 +210,11 @@ Every edit to an original file is a minimal call marked `// CoH hook` (`# CoH ho
 
 ## Fixes in original code
 
-Each is marked `// CoH fix` and wrapped in `#if RTS_ZEROHOUR` in `Core/`. With no flag on no pack loads, and a single override (a map.ini's) behaves exactly as before; only a map.ini that overrides the same command set twice, or names `None`, would load differently.
+Each is marked `// CoH fix`, and wrapped in `#if RTS_ZEROHOUR` in `Core/`. With no flag on no pack loads, and a single override (a map.ini's) behaves exactly as before; only a map.ini that overrides the same command set twice, or names `None`, would load differently. The recorder fix changes replay playback only.
 
 | File | Where | Fix |
 |---|---|---|
 | `Core/.../GUI/ControlBar/ControlBar.cpp` | `ControlBar::newCommandSetOverride` | A second override of a command set (a second pack, or a map.ini after a pack) copied the base set and was chained in front of the first, so only the first override counted. It now builds on the last override and goes after it, as `ThingFactory::newOverride` does for objects. Packs that override the same command set add up, button by button. |
 | `GeneralsMD/.../Common/RTS/SpecialPower.cpp` | `SpecialPowerStore::reset` | Special powers a pack (or a map.ini) adds took new IDs every game, since the counter was never wound back, so the same power had another ID in a replay or on another machine. The counter now restarts after the base powers, as `ThingFactory::reset` already does for object templates. |
 | `Core/.../GUI/ControlBar/ControlBar.cpp` | `CommandSet::parseCommandButton` | In an override file, `N = None` empties slot N, so a pack can take a button out without restating the set. |
+| `GeneralsMD/.../Common/Recorder.cpp` | `RecorderClass::updatePlayback` | A `-replay` playback appended its frame 0 commands in the update that was still starting the game, so they ran before the game existed; a recording runs them after the frame 0 CRC. Every game records one (`MSG_ENABLE_RETALIATION_MODE`), and its AI group took an ID ahead of the frame 0 groups, so a replay with a group alive at the frame 0 CRC (America's Superweapon and Laser generals' scripts) mismatched at frame 0, flags on or off. The playback now appends nothing while its `MSG_NEW_GAME` waits, as one started from the shell already did. Only playback changes; games and recordings are as before. |

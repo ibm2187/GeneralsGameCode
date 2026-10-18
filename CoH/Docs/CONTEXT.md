@@ -68,6 +68,7 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Player orders (move, attack, power, build) | `C/GameLogic/System/GameLogicDispatch.cpp` [2.4k], the `MSG_*` switch from about line 500 |
 | Player selection | in game logic: `Player::m_currentSelection` (a `Squad` of IDs, no duplicate check); `GameLogic::selectObject`/`deselectObject` (`GameLogic.cpp` 2721; also called on death); hub `playerSelection` for the player's own messages; Squads `Engine/Orders.cpp` |
 | Every unit command | hub `aiCommand` (`AIUpdateInterface::aiDoCommand`); infantry group moves arrive as `AICMD_FOLLOW_PATH`. Re-issue orders at frame end, not inside it (Squads `Engine/Orders.cpp`) |
+| Replays | `Z/Common/Recorder.cpp` [1.8k]: `updatePlayback` 417 (appends a frame's recorded commands to `TheCommandList`), `updateRecord` 482; the frame 0 CRC is taken in `GameLogic::update` after the scripts, before the commands |
 | Synced random | `Core/GameEngine/Include/GameLogic/LogicRandomValue.h`: `GameLogicRandomValue(lo, hi)`, `GameLogicRandomValueReal` |
 | Objects in range | `ThePartitionManager->iterateObjectsInRange(pos, r, FROM_CENTER_2D, filters)`, `GeneralsMD/Code/GameEngine/Include/GameLogic/PartitionManager.h` 1413 |
 | Save and load | `Xfer` and `Snapshot`; examples are `Player::xfer` (`Z/Common/RTS/Player.cpp` around 4050) and Sectors' `SectorPointUpdate` |
@@ -161,6 +162,7 @@ The full steps are in `CoH/README.md`, *Install* and *Testing*.
   Use `-cohLog` and grep `CoH.log` in the user data folder, rather than reading it.
 - Determinism: `CoH\Scripts\replaycheck.ps1` (headless). Retail `GeneralsReplays` always mismatch on this compiler; that's expected.
 - Replays run in `GAME_REPLAY` mode. A check like `isInSkirmishGame()` must also accept replays, or playback mismatches at frame 0.
+- A frame 0 mismatch with every flag off, too, is the engine. To find one, log each part of `GameLogic::getCRC` (objects, partition, players, `TheAI`) at the frame 0 CRC while recording and while playing back, and diff. `TheAI` holds the AI group IDs, which any group made earlier shifts.
 
 ## 7. Prior art (reference only)
 

@@ -431,6 +431,22 @@ void RecorderClass::updatePlayback() {
 		// This is reached if there are no more commands to be executed.
 		return;
 	}
+
+	// CoH fix: the update that handles MSG_NEW_GAME runs at frame 0 before the game starts, and the
+	// game's own frame 0 is the next update. A recording writes what that first update posts (every
+	// game's MSG_ENABLE_RETALIATION_MODE) as frame 0 and runs it after the frame 0 CRC. So while the
+	// playback's MSG_NEW_GAME still waits, the playback appends nothing, as a replay started from the
+	// shell already does. Before, a -replay playback ran those commands before the game started,
+	// which shifted the IDs of the AI groups made on frame 0 and mismatched at frame 0.
+	if (!m_doingAnalysis)
+	{
+		for (GameMessage *msg = TheCommandList->getFirstMessage(); msg != nullptr; msg = msg->next())
+		{
+			if (msg->getType() == GameMessage::MSG_NEW_GAME)
+				return;
+		}
+	}
+
 	UnsignedInt curFrame = TheGameLogic->getFrame();
 	if (m_doingAnalysis)
 		curFrame = m_nextFrame;
