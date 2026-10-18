@@ -66,6 +66,11 @@ Event<const Object *, const Object *, int &, int &> &containRoom()
 	static Event<const Object *, const Object *, int &, int &> event;
 	return event;
 }
+Event<const Object *, const WeaponTemplate *, WeaponBonus &> &weaponBonus()
+{
+	static Event<const Object *, const WeaponTemplate *, WeaponBonus &> event;
+	return event;
+}
 
 Event<> &inGameUIPostDraw() { static Event<> event; return event; }
 Event<int, int, int, int> &radarDraw() { static Event<int, int, int, int> event; return event; }
@@ -224,6 +229,11 @@ void onAiCommand(Object *object, const AICommandParms *command)
 void onContainRoom(const Object *container, const Object *rider, int &used, int &needed)
 {
 	containRoom().raise(container, rider, used, needed);
+}
+
+void onWeaponBonus(const Object *source, const WeaponTemplate *weapon, WeaponBonus &bonus)
+{
+	weaponBonus().raise(source, weapon, bonus);
 }
 
 // ---- Client ------------------------------------------------------------------------------------

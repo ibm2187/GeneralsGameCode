@@ -77,6 +77,8 @@
 #include "GameLogic/Module/SpawnBehavior.h"
 #include "GameLogic/TerrainLogic.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 #define RATIONALIZE_ATTACK_RANGE
 #define ATTACK_RANGE_IS_2D
 
@@ -1930,6 +1932,8 @@ void Weapon::computeBonus(const Object *source, WeaponBonusConditionFlags extraB
 	const WeaponBonusSet* extra = m_template->getExtraBonus();
 	if (extra)
 		extra->appendBonuses(flags, bonus);
+
+	CoH::Hooks::onWeaponBonus(source, m_template, bonus); // CoH hook
 }
 
 //-------------------------------------------------------------------------------------------------
