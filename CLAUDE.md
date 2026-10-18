@@ -9,6 +9,7 @@ Rules that always apply:
 - **One feature is one slice in `CoH/Features/<Name>/`** with Domain/, Engine/, UI/, Data/INI/, Tests/, a README and a public `<Name>.h`. Slices see each other only through `<Name>.h` or hub events.
 - **Every feature has a flag.** With every flag off, the game plays exactly like `main`.
 - **Game logic is deterministic.** Use `GameLogicRandomValue` only, and logic frames for time.
+- **New CoH code is modern C++20** against the Kernel wrapper (`Kernel/Time.h`, `Random.h`, `Objects.h`, `Players.h`, `Ini.h`). Hook calls in original files and existing slices keep their style (PLAN.md, *Conventions* 10).
 - **Build with `--config Release`**, or `generalszh.exe` silently stays stale. `CoH/Scripts/install.ps1` does this and checks the exe's timestamp.
 - **Never close the user's running game.** Ask first.
 - **The user watches test games.** Run them windowed at normal speed. Headless is fine for replay checks.

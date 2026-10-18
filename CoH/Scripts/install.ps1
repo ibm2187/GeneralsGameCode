@@ -50,10 +50,12 @@ function Invoke-Build {
 }
 
 # A build that didn't really happen leaves an exe older than the code it should contain.
+# Files under a Tests folder are never built into the exe, so they don't count.
 function Assert-ExeIsCurrent {
     if (-not (Test-Path $exe)) { throw "No exe at $exe" }
     $sourceDirs = 'CoH', 'Core', 'GeneralsMD', 'Dependencies' | ForEach-Object { Join-Path $CoHRepo $_ }
     $newest = Get-ChildItem $sourceDirs -Recurse -File -Include *.cpp, *.h, *.inl, *.c, *.in |
+        Where-Object { $_.FullName.Substring("$CoHRepo".Length) -notmatch '\\Tests\\' } |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
     $built = (Get-Item $exe).LastWriteTime
     if ($newest -and $newest.LastWriteTime -gt $built) {

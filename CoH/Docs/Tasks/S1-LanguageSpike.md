@@ -1,5 +1,7 @@
 # S1 Spike: a modern language for CoH code
 
+> **Set aside (2026-10-17).** The user chose plain C++20 against a Kernel wrapper instead: see [K1](K1-ModernCpp.md). Kept for reference.
+
 **Starts** after both 04 Accuracy and 09 Squads are merged · **Rides on** the next feature task started after them (for example 05 Cover, 06 Suppression, 10 Reinforce, 11 Retreat or 12 Veterancy)
 
 ## Question

@@ -14,6 +14,7 @@ This map says what to read for each job, so a session opens only the files it ne
    It is long, so jump to the section you need.
 
 Don't read other slices' `Engine/` or `Domain/` code to learn the Kernel. Their README and `Kernel/Kernel.h` and `Kernel/Hooks.h` are the interface.
+New code is C++20 against the Kernel wrapper (`PLAN.md`, *Conventions* 10). Its headers (§3) are its documentation, and `CoH/README.md` has an example feature.
 
 ## 2. Context budget rules
 
@@ -36,7 +37,12 @@ Don't read other slices' `Engine/` or `Domain/` code to learn the Kernel. Their 
 |---|---|
 | `CoH/Kernel/Kernel.h` | `COH_FEATURE(Name, init, reset)`, `registerIniBlock`, `COH_ADD_MODULE`, flags |
 | `CoH/Kernel/Hooks.h` | the hub: one event per engine point; features `subscribe(self, fn)` |
-| `CoH/Kernel/Domain/` | flags, the feature set and argument parsing, as pure code |
+| `CoH/Kernel/Time.h` | C++20 wrapper: `now`, `everySeconds`, `secondsFromNow`; pure `framesFromSeconds`, `isEvery` in `Domain/Frames.h` |
+| `CoH/Kernel/Random.h` | C++20 wrapper: synced `chance(p)`, `pick(items)`, `between(lo, hi)` over `GameLogicRandomValue` |
+| `CoH/Kernel/Objects.h` | C++20 wrapper: `objectsNear` (owns the partition iterator), `objectsOf(player)`, `allObjects`, an `ObjectFilter` with designated initializers, `kinds(...)`, `findObject`, `findLiving` |
+| `CoH/Kernel/Players.h` | C++20 wrapper: `players`, `sides`, `activeSides`, `aiSides` views; `isEnemy`, `isAlly` |
+| `CoH/Kernel/Ini.h` | C++20 wrapper: `Ini::Table` of `field` (parser from the member's type), `seconds` (kept as frames), `percent`, `custom`; for config blocks and module data |
+| `CoH/Kernel/Domain/` | flags, the feature set, argument parsing, frames and chance rolls, as pure code |
 | `CoH/Kernel/Engine/` | packs, game options sync, the save block, quick skirmish, `CoH.log` |
 | `CoH/Features/Sectors/` | territory economy: capture, income, the cut-off graph, build rule, AI expansion, ground, radar and tooltip UI |
 | `CoH/Features/GeneralsArsenal/` | command points, sortie and air cover powers, super weapons with a warning, AI power use; its README has *Engine notes* on special powers |
