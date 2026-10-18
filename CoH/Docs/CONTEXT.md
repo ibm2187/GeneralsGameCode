@@ -196,4 +196,3 @@ Its hooks table (`git show ibm-engine:IbmEngine/README.md`, *Hooks in original c
 - Several `-cohSkirmish` games can run at once (own `CoH_InstanceNN.log`); replacing the installed exe needs every game closed.
 - A quick skirmish takes its starting money from the skirmish preferences (the user's is $50,000): pass `-cohCash 10000` for economy tests. `-win` without `-xres 1600 -yres 900` makes a window taller than the screen.
 - `near` and `far` are empty macros from the Windows headers: a member named that fails with "syntax error: '='", even in Domain code.
-- Known, not yet fixed (2026-10-17): with Sectors on, a replay whose AIs are America's Superweapon and Laser generals mismatches at frame 0 (repro in `Replays\CoHDiag`); China against GLA plays clean. Pick sides with `-cohOpponentSides` when recording replays for a check.
