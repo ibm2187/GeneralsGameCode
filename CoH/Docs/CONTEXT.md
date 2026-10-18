@@ -49,9 +49,11 @@ New code is C++20 against the Kernel wrapper (`PLAN.md`, *Conventions* 10). Its 
 | `CoH/Features/Upkeep/` | population, its cap, upkeep on income, the AI's army limit |
 | `CoH/Features/FireRate/` | slower, harder-hitting fast weapons through the `weaponBonus` hub point; a weapon's fire rate over its clip, reload and spin-up |
 | `CoH/Features/Squads/` | infantry squads: made per order, one selection, formation moves, one unit in containers and population, the squad health bar; `Squads.h` for Reinforce, Retreat, Abilities, Weapon pickup |
+| `CoH/Features/Pacing/` | unit prices and build times by class or unit, the skirmish AI's handicap by difficulty, the AI scripts' gifts of money |
 | `CoH/Features/Accuracy/` | hit rolls for direct fire, misses beside the target; `Accuracy.h` has the hit modifier stack Cover, Suppression and Veterancy plug into |
 | `CoH/Docs/CONTEXT.md` | this map |
 | `CoH/Scripts/` | `install.ps1` (build and install), `skirmish.ps1` (test game), `replaycheck.ps1` (determinism) |
+| `CoH/Kernel/Engine/Stats.cpp` | `-cohStats [seconds]`: each side's income, units built, army and its worth in `CoH.log`, with any flags (retail too); `-cohLog <name>` names the log for games side by side |
 | `CoH/Tools/retail.py` | extracts the retail data to `build/retail/`; `read_big` and `read_csf` for packs that generate INI |
 
 Worked examples in Sectors, to copy the shape of:
@@ -127,7 +129,8 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Production limits (population, max of a type) | hub `production` veto in `Player::canBuildMoreOfType`, which `BuildAssistant::canMakeUnit` (buttons, `ProductionUpdate::queueCreateUnit`), `Player::canBuild` and `isPossibleToMakeUnit` (the AI's `findFactory`) all ask; Upkeep `Engine/Rules.cpp` |
 | Income | hub `income` in `Money::deposit` (tracked income only); Sectors pays with `deposit(amount, FALSE)`; Upkeep takes its share there |
 | Super weapon warning | GeneralsArsenal `StrikeCountdownUpdate` (marker, then a hidden building copy at `TerrainLogic::findClosestEdgePoint` fires its power) and `UI/MarkerOverlay.cpp` |
-| Cost and build time | `Core/GameEngine/Source/Common/Thing/ThingTemplate.cpp`: `calcCostToBuild` 1567, `calcTimeToBuild` 1586; hub `buildCost`, `buildTime` change them (Squads) |
+| Cost and build time | `Core/GameEngine/Source/Common/Thing/ThingTemplate.cpp`: `calcCostToBuild` 1567, `calcTimeToBuild` 1586; hub `buildCost`, `buildTime` change them (Squads, then Pacing) |
+| The skirmish AI's money cheats | `SkirmishScripts.scb` scripts "<Side> AI Bonus Early/Mid/Late/Really Late" (Hard, $55,000 by minute 13 on the `_ESCALATION` counter) and "Give AI money to cover bug"; `PLAYER_GIVE_MONEY` is a tracked deposit (`ScriptActions::doGiveMoney`). Pacing `Engine/AIScripts.cpp` scales them |
 | Modules | `Z/Common/Thing/ModuleFactory.cpp`, `ModuleFactory::init` 321; features use `COH_ADD_MODULE` |
 | INI blocks | `C/Common/INI/INI.cpp`, the block table; features use `CoH::registerIniBlock` |
 
@@ -185,7 +188,7 @@ Its hooks table (`git show ibm-engine:IbmEngine/README.md`, *Hooks in original c
 | 07 Directional armor | `IbmEngine/Features/Armor` | `WeaponTemplate::dealDamageInternal`: the penetration roll |
 | 10 Reinforce | `IbmEngine/Features/Squads` (`SquadReinforce.cpp`) | refilling near the Barracks. Squads (09) is done differently (no leader object): build on `Squads.h` (`emptySlots`, `unitOfSlot`, `addMember`) |
 | 02 Arsenal | `IbmEngine/Features/AirPower`, `WatchZones` | `canDoSpecialPowerAtLocation`, `DeliverPayloadAIUpdate` (jets following a target), new power types appended |
-| 03 Upkeep | `IbmEngine/Features/Economy` | `ThingTemplate::calcCostToBuild` and `calcTimeToBuild`, `ActiveBody` constructor, `Weapon::computeBonus` |
+| 03b Pacing | `IbmEngine/Features/Economy` | `ThingTemplate::calcCostToBuild` and `calcTimeToBuild` (now the hub's `buildCost`, `buildTime`), `ActiveBody` constructor, `Weapon::computeBonus` |
 
 ## 8. Gotchas already paid for
 
@@ -201,4 +204,5 @@ Its hooks table (`git show ibm-engine:IbmEngine/README.md`, *Hooks in original c
 - Upgraded command sets (`CommandSetUpgrade`, such as China's airfield after the mines upgrade) need a pack's changes too.
 - Several `-cohSkirmish` games can run at once (own `CoH_InstanceNN.log`); replacing the installed exe needs every game closed.
 - A quick skirmish takes its starting money from the skirmish preferences (the user's is $50,000): pass `-cohCash 10000` for economy tests. `-win` without `-xres 1600 -yres 900` makes a window taller than the screen.
+- A Hard AI's money is more than half script gifts once supplies are gone (Pacing README, *Measurements*): measure an economy change with `-cohStats` and count them in.
 - `near` and `far` are empty macros from the Windows headers: a member named that fails with "syntax error: '='", even in Domain code.

@@ -10,6 +10,7 @@
 
 class AsciiString;
 class GameInfo;
+class Player;
 class UnicodeString;
 class INI;
 class ModuleFactory;
@@ -91,3 +92,13 @@ void startIfAsked();
 void quitIfDue();
 
 } // namespace CoH::QuickSkirmish
+
+namespace CoH::Stats
+{
+
+// With -cohStats [seconds] and -cohLog: each side's income, units and army in CoH.log (Engine/Stats.cpp).
+void onIncome(const Player &player, unsigned int amount);	///< income paid, after the features took their share
+void logIfDue();
+void reset();
+
+} // namespace CoH::Stats

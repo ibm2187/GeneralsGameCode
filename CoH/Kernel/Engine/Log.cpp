@@ -19,14 +19,20 @@ namespace
 {
 
 // CoH.log; a second game running at the same time writes CoH_Instance02.log, as its replay is named.
+// "-cohLog <name>" names the file instead, for test games run side by side.
 FILE *openLog()
 {
 	AsciiString path = TheGlobalData ? TheGlobalData->getPath_UserData() : AsciiString::TheEmptyString;
-	if (rts::ClientInstance::getInstanceId() > 1u)
+	const std::optional<std::string> name = findOption(Kernel::processArguments(), "-cohLog");
+	if (name && !name->empty())
 	{
-		AsciiString name;
-		name.format("CoH_Instance%.2u.log", rts::ClientInstance::getInstanceId());
-		path.concat(name);
+		path.concat(name->c_str());
+	}
+	else if (rts::ClientInstance::getInstanceId() > 1u)
+	{
+		AsciiString instanceName;
+		instanceName.format("CoH_Instance%.2u.log", rts::ClientInstance::getInstanceId());
+		path.concat(instanceName);
 	}
 	else
 	{

@@ -60,7 +60,7 @@ The generated files come from the retail `INIZH.big`: `python CoH/Features/Secto
 | `CaptureKinds` / `NonCaptureKinds` | INFANTRY VEHICLE / AIRCRAFT DOZER HARVESTER DRONE | which units capture (take AIRCRAFT out for helicopters) |
 | `HighValueKinds` | TECH_BUILDING | map buildings that make a point high-value and follow its owner |
 | `IncomeSeconds` | 10 | pay period |
-| `SupplyIncome` / `HighValueIncome` / `HomeIncome` | 50 / 120 / 75 | pay per period by sector type |
+| `SupplyIncome` / `HighValueIncome` / `HomeIncome` | 40 / 100 / 100 | pay per period by sector type (see *Income tuning*) |
 | `BuildInOwnedSectorsOnly` | Yes | build only in owned sectors |
 | `DefensesOnNeutralNeighbors` / `DefenseKinds` | Yes / FS_BASE_DEFENSE | defenses may go in a neutral sector next to an owned one |
 | `AIThinkInterval` / `AIGroupSize` / `AIMaxTargets` | 3 / 3 / 4 | how often the AI decides, units per target, targets at once |
@@ -70,6 +70,17 @@ The generated files come from the retail `INIZH.big`: `python CoH/Features/Secto
 | `BorderSmoothing` | 3 | rounding passes for the drawn borders; 0 draws the grid's staircase |
 | `BorderBandWidth` | 40 | the soft band inside a territory's outline, world units |
 | `PointObject` | CoHSectorPoint | the point object |
+
+### Income tuning
+
+Retuned in task [03b Pacing](../../Docs/Tasks/03b-Pacing.md) from 50 / 120 / 75; the measurements are in the [Pacing README](../Pacing/README.md#measurements).
+
+- Sector income was never above retail: a Hard AI earned $4,000 to $6,000 a minute with sectors against $8,000 to $22,000 from retail supplies. More than half of the Hard AI's money with sectors came from its scripts' gifts, which Pacing now scales (`AIScriptMoney`).
+- So the total stays about the same and its shape changes. A home with three supply sectors and a high-value one pays $1,920 a minute (6 periods × (100 + 3 × 40 + 100)), against $2,070 before.
+- `HomeIncome` 100 (was 75): $600 a minute that nobody can take, so a side pushed back to its base can still rebuild a few units.
+- `SupplyIncome` 40 (was 50): each sector is worth less, so an AI that grabs sectors early snowballs less, and armies grow from holding ground over time, not from a land rush.
+- `HighValueIncome` 100 (was 120): a tech sector is still worth two and a half supply sectors, so it stays worth fighting over.
+- `IncomeSeconds` 10 stays: the money arrives often enough to queue the next unit.
 
 ## Code
 

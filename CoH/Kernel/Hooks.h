@@ -105,7 +105,8 @@ Event<Object *, const SpecialPowerTemplate *, const Coord3D *> &specialPowerTrig
 Veto<const Player *, const ThingTemplate *> &production();
 
 // Income arrives for the player: gathered supplies, sector income, oil derricks, hackers. A subscriber
-// may lower the amount; what is left is deposited and counted as income.
+// may change the amount (Upkeep takes its share, Pacing the AI's handicap); what is left is deposited
+// and counted as income.
 Event<const Player *, unsigned int &> &income();
 
 // A factory made 'unit' (the factory, the unit). The unit has its team and is on its way out of the

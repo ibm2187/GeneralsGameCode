@@ -39,6 +39,7 @@ coh_add_feature(Upkeep)
 coh_add_feature(Squads)
 coh_add_feature(Accuracy)
 coh_add_feature(FireRate)
+coh_add_feature(Pacing)
 
 # ---- The list of features the Kernel registers ----
 

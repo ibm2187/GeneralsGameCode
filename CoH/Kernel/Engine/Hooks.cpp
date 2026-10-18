@@ -142,6 +142,7 @@ void onGameStartAfterMap(bool loadingSaveGame)
 void onLogicFrame()
 {
 	logicFrame().raise();
+	Stats::logIfDue();
 	QuickSkirmish::quitIfDue();
 }
 
@@ -166,6 +167,7 @@ void onGameEnd()
 	registry.deactivateAll();
 	GameFlags::clearSaved();
 	PackText::clear();
+	Stats::reset();
 }
 
 bool isBuildLocationAllowed(const ThingTemplate *build, const Coord3D *position, const Player *player,
@@ -203,8 +205,10 @@ bool isProductionAllowed(const Player *player, const ThingTemplate *build)
 
 void onIncome(const Player *player, unsigned int &amount)
 {
-	if (player != nullptr)
-		income().raise(player, amount);
+	if (player == nullptr)
+		return;
+	income().raise(player, amount);
+	Stats::onIncome(*player, amount);
 }
 
 void onUnitProduced(Object *factory, Object *unit)
