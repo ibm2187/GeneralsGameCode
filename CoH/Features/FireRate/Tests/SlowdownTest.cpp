@@ -98,15 +98,19 @@ TEST(FireRateLimit, AreaWeaponsScatterAndSelfBlastsAreLeftAlone)
 	EXPECT_DOUBLE_EQ(secondsPerShotLimit(suicide, Rules()), 0.0);
 }
 
-TEST(FireRateLimit, AWeaponThatDoesNoDamageIsLeftAlone)
+TEST(FireRateLimit, ADummyWeaponIsLeftAlone)
 {
 	WeaponFacts dummy = rifle(2);	// aims or designates for a real weapon
-	dummy.dealsDamage = false;
+	dummy.damage = 0.0001;
 	EXPECT_DOUBLE_EQ(secondsPerShotLimit(dummy, Rules()), 0.0);
 
 	dummy.hasOwnLine = true;
 	dummy.ownSeconds = 1;
 	EXPECT_DOUBLE_EQ(secondsPerShotLimit(dummy, Rules()), 0.0);
+
+	WeaponFacts droneGun = rifle(2);	// a Battle Drone's machine gun does 1
+	droneGun.damage = 1;
+	EXPECT_DOUBLE_EQ(secondsPerShotLimit(droneGun, Rules()), 2.0);
 }
 
 TEST(FireRateLimit, AWeaponsOwnLineWinsEvenForAnAreaWeapon)

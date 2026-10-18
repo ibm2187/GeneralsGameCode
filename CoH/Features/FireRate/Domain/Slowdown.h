@@ -29,7 +29,7 @@ struct WeaponFacts
 	double classSeconds = 0;	///< its damage type's Class line: at least this many seconds a shot; 0 is no line
 	bool hasOwnLine = false;	///< a Weapon line names it...
 	double ownSeconds = 0;		///< ...with this many seconds a shot; 0 never slows it
-	bool dealsDamage = true;	///< false for a dummy weapon that only aims or designates
+	double damage = 1;			///< a shot's primary and secondary damage together
 	double damageRadius = 0;	///< the larger of its primary and secondary blast
 	double scatterRadius = 0;
 	bool damageAtSelf = false;	///< goes off where the shooter stands
@@ -37,6 +37,7 @@ struct WeaponFacts
 
 struct Rules
 {
+	double minDamage = 1;			///< a weapon doing less a shot is a dummy that aims or designates: never slowed
 	double maxDamageRadius = 8;		///< a weapon with a bigger blast is an area weapon: never slowed by its class
 	double maxSlowDown = 8;			///< a weapon is slowed at most this many times
 	double damagePerSecond = 1;		///< the share of its damage per second a slowed weapon keeps
@@ -54,8 +55,8 @@ struct Scaling
 // The shots a second the weapon fires at its fastest: over its clip and reload, fully spun up.
 double topShotsPerSecond(const WeaponFacts &facts, double framesPerSecond);
 
-// The seconds a shot the weapon is held to, 0 when it isn't held to any: none for a weapon that does
-// no damage; else its own line; else its class's line unless it is an area weapon, scatters, or goes
+// The seconds a shot the weapon is held to, 0 when it isn't held to any: none for a dummy weapon (less
+// than MinDamage a shot); else its own line; else its class's line unless it is an area weapon, scatters, or goes
 // off where it stands.
 double secondsPerShotLimit(const WeaponFacts &facts, const Rules &rules);
 

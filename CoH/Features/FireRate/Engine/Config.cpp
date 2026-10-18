@@ -58,6 +58,7 @@ const FieldParse configFields[] =
 {
 	{ "Class",				parseClass,					nullptr, 0 },
 	{ "Weapon",				parseWeapon,				nullptr, 0 },
+	{ "MinDamage",			INI::parseReal,				nullptr, offsetof(Config, minDamage) },
 	{ "MaxDamageRadius",	INI::parseReal,				nullptr, offsetof(Config, maxDamageRadius) },
 	{ "MaxSlowDown",		INI::parseReal,				nullptr, offsetof(Config, maxSlowDown) },
 	{ "DamagePerSecond",	INI::parsePercentToReal,	nullptr, offsetof(Config, damagePerSecond) },
@@ -98,7 +99,7 @@ WeaponFacts factsOf(const Config &config, const WeaponTemplate *weapon)
 		facts.hasOwnLine = true;
 		facts.ownSeconds = own->seconds;
 	}
-	facts.dealsDamage = weapon->getPrimaryDamage(noBonus) > 0 || weapon->getSecondaryDamage(noBonus) > 0;
+	facts.damage = weapon->getPrimaryDamage(noBonus) + weapon->getSecondaryDamage(noBonus);
 	facts.damageRadius = max(weapon->getPrimaryDamageRadius(noBonus), weapon->getSecondaryDamageRadius(noBonus));
 	facts.scatterRadius = weapon->getScatterRadius();
 	facts.damageAtSelf = weapon->getDamageDealtAtSelfPosition();
@@ -109,6 +110,7 @@ Scaling lookUpScaling(const WeaponTemplate *weapon)
 {
 	const Config &config = storage();
 	Rules rules;
+	rules.minDamage = config.minDamage;
 	rules.maxDamageRadius = config.maxDamageRadius;
 	rules.maxSlowDown = config.maxSlowDown;
 	rules.damagePerSecond = config.damagePerSecond;

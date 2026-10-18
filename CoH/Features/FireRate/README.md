@@ -11,7 +11,7 @@ Fewer, bigger shots. Zero Hour's rifles and machine guns fire 3 to 10 times a se
   - **Machine guns** (`GATTLING`, `COMANCHE_VULCAN`, and the heavy machine guns with `SMALL_ARMS` damage, by `Weapon` lines): one a second. Humvee gun ×5 (50), Comanche gun and the upgraded Quad Cannon ×8. A gattling is held to the limit once fully spun up: the Gattling tank (2.5 shots a second, 7.5 spun up) ×7.5, 112 a shot, starting at one shot every 3 s and reaching one a second as it spins.
   - **Tank guns** (`ARMOR_PIERCING`): one every 5 s. Crusader and Battlemaster ×2.5 (150), Scorpion ×5, Overlord ×4.4.
   - **Rockets and missiles** (`INFANTRY_MISSILE`, `EXPLOSION`): one every 3 s. Tank Hunter and Missile Defender ×3 (120), Patriot ×4.4.
-  - **Unchanged:** weapons already slower than their limit, dummy weapons that do no damage (they aim or designate for a real one), snipers, jet missiles, flame, poison, lasers, microwaves, area weapons (a blast over `MaxDamageRadius`), artillery that scatters, and weapons that go off where the shooter stands.
+  - **Unchanged:** weapons already slower than their limit, dummy weapons (under `MinDamage` a shot: they aim or designate for a real one), snipers, jet missiles, flame, poison, lasers, microwaves, area weapons (a blast over `MaxDamageRadius`), artillery that scatters, and weapons that go off where the shooter stands.
 - The rate counted is the average over a clip and its reload: a Ranger's burst of 3 every 0.9 s is 3.3 shots a second. The clip's shots and the reload stretch alike, so a burst stays a burst, just slower.
 - A weapon is slowed at most `MaxSlowDown` (×8) times, so its shots don't grow far past what kills a target.
 - Veterancy, upgrades and frenzy still speed the weapon up on top, by the same share as before. A gattling's spin-up (`CONTINUOUS_FIRE_FAST`, ×3 in retail) is counted in its rate, so a gattling spun up fires at the limit, and slower while it spins up.
@@ -37,6 +37,7 @@ Nothing to change: its weapons follow the same rule. Its damage estimates ask th
 |---|---|---|
 | `Class = <DamageType> <seconds>` | see the pack | weapons with that damage type fire at most one shot every this many seconds; types without a line are never slowed |
 | `Weapon = <weapon> <seconds>` | see the pack | one weapon's own limit, over its class; 0 never slows it. A `Weapon` line applies even to an area weapon |
+| `MinDamage` | 1 | a weapon doing less a shot (primary and secondary) is a dummy that aims or designates for another, and is never slowed |
 | `MaxDamageRadius` | 8 | a weapon with a bigger blast is an area weapon and isn't slowed by its class |
 | `MaxSlowDown` | 8 | a weapon is slowed at most this many times |
 | `DamagePerSecond` | 100% | the share of its damage per second a slowed weapon keeps; a shot never does less than it did |

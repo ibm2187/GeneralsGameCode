@@ -28,6 +28,7 @@ struct Config
 	Real classSeconds[DAMAGE_NUM_TYPES] = {};	///< by DamageType; 0 is no Class line
 	std::vector<OwnLimit> weapons;				///< each Weapon line adds one
 
+	Real minDamage = 1;
 	Real maxDamageRadius = 8;
 	Real maxSlowDown = 8;
 	Real damagePerSecond = 1;

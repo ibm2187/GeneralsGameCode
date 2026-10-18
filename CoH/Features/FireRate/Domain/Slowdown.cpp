@@ -25,7 +25,7 @@ double topShotsPerSecond(const WeaponFacts &facts, double framesPerSecond)
 
 double secondsPerShotLimit(const WeaponFacts &facts, const Rules &rules)
 {
-	if (!facts.dealsDamage)
+	if (facts.damage < rules.minDamage)
 		return 0;
 	if (facts.hasOwnLine)
 		return facts.ownSeconds;
