@@ -23,7 +23,7 @@ The original code only calls the hook hub, from the places listed in [Hooks in o
 | [FireRate](Features/FireRate/README.md) | `FireRate` | [04b](Docs/Tasks/04b-FireRate.md) | fast weapons fire about as often as in CoH and hit harder by the same factor, so damage per second stays the same but each shot (and Accuracy roll) counts |
 | [Pacing](Features/Pacing/README.md) | `Pacing` | [03b](Docs/Tasks/03b-Pacing.md) | units cost more and take longer to build, by class or by unit; the skirmish AI's income and build times scale with its difficulty |
 | [DirectionalArmor](Features/DirectionalArmor/README.md) | `DirectionalArmor` | [07](Docs/Tasks/07-DirectionalArmor.md) | vehicles have front, side and rear armor and weapons penetration by range; a shot that doesn't penetrate deflects with sparks and a clang; rockets mostly bounce off a tank's front; tank guns and vehicle machine guns shred infantry; skirmish AI flanks vehicles |
-| [UnitScale](Features/UnitScale/README.md) | `UnitScale` | [19](Docs/Tasks/19-UnitScale.md) | vehicles drawn bigger and infantry smaller, in CoH proportions, with the geometry to match (INI pack) |
+| [UnitScale](Features/UnitScale/README.md) | `UnitScale` | [19](Docs/Tasks/19-UnitScale.md) | vehicles drawn bigger next to soldiers, in CoH proportions (tanks x1.45), with the geometry to match (INI pack) |
 
 Every feature has a flag. With every flag off the game plays exactly like `main`, replays included.
 

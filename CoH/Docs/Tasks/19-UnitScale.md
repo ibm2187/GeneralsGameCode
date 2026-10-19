@@ -8,11 +8,12 @@ The user, 2026-10-18: "vehicles size are too small compared to infantry". Make v
 
 ## Behavior
 
-- Vehicles are drawn bigger and infantry a little smaller, by class: tanks, artillery, light vehicles, helicopters, jets, infantry. The factors are at the top of the pack's generator, with presets to compare.
+- Vehicles are drawn bigger next to soldiers, by class: tanks, artillery, heavy machines (dozers, supply trucks), light vehicles, helicopters, jets, infantry. The factors are at the top of the pack's generator, with presets to compare.
+- Sizes the user chose in game (2026-10-19), after trying soldiers shrunk to x0.75 to x0.9 ("troops are too small, tanks are too big", "the humvees look huge"): soldiers x1.0, tanks x1.45, artillery x1.3, dozers and supply trucks x1.35, light vehicles x1.05, helicopters x1.25, jets x1.0.
 - The logic follows the model: a vehicle's geometry (radii and height) grows with it, so shots hit the hull, units don't overlap and the selection box fits. Infantry keep their radius (spacing, footprint, target size) and shrink in height only.
 - A unit's hulk and the add-ons that ride on it take its factor.
 - All in an INI pack generated from the retail INI (`Data/make_pack.py`), so the flag off is retail.
-- Both ways were weighed: scaling infantry down alone keeps vehicles' footprints (pathfinding, placement) but makes soldiers tiny at Zero Hour's camera height; scaling vehicles up alone needs a large factor. A mix reaches CoH's ratio with smaller changes to each.
+- Both ways were weighed: scaling infantry down keeps vehicles' footprints (pathfinding, placement) but makes soldiers tiny at Zero Hour's camera height, which the user saw and rejected; vehicles grow instead, and most tanks need a 5-cell gap like the Overlord.
 
 ## Hook points
 

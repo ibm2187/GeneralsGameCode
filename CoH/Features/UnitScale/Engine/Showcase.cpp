@@ -23,7 +23,6 @@
 #include "Features/UnitScale/Engine/Internal.h"
 
 #include <array>
-#include <span>
 
 namespace CoH::UnitScale
 {
@@ -31,19 +30,24 @@ namespace CoH::UnitScale
 namespace
 {
 
-// One row per faction, soldiers first, then from the lightest vehicle to the biggest.
-constexpr std::array<const char *, 9> americaRow { "AmericaInfantryRanger", "AmericaInfantryRanger",
-	"AmericaInfantryRanger", "AmericaVehicleHumvee", "AmericaTankCrusader", "AmericaTankPaladin",
-	"AmericaVehicleTomahawk", "AmericaVehicleDozer", "AmericaVehicleComanche" };
-constexpr std::array<const char *, 9> chinaRow { "ChinaInfantryRedguard", "ChinaInfantryRedguard",
-	"ChinaInfantryRedguard", "ChinaVehicleTroopCrawler", "ChinaTankBattleMaster", "ChinaTankGattling",
-	"ChinaVehicleInfernoCannon", "ChinaTankOverlord", "ChinaVehicleHelix" };
-constexpr std::array<const char *, 9> glaRow { "GLAInfantryRebel", "GLAInfantryRebel", "GLAInfantryRebel",
-	"GLAVehicleTechnicalChassisOne", "GLAVehicleRocketBuggy", "GLATankScorpion", "GLATankMarauder",
-	"GLAVehicleScudLauncher", "GLAVehicleBattleBus" };
+// One row per faction, from the lightest vehicle to the biggest, a soldier standing beside each.
+struct Row
+{
+	const char *soldier;
+	std::array<const char *, 6> vehicles;
+};
 
-constexpr Real soldierGap = 14.0f;	///< between soldiers, about a squad's spacing
-constexpr Real vehicleGap = 55.0f;	///< between vehicles, room for the biggest scaled hull
+constexpr std::array<Row, 3> rows { {
+	{ "AmericaInfantryRanger", { "AmericaVehicleHumvee", "AmericaTankCrusader", "AmericaTankPaladin",
+		"AmericaVehicleTomahawk", "AmericaVehicleDozer", "AmericaVehicleComanche" } },
+	{ "ChinaInfantryRedguard", { "ChinaVehicleTroopCrawler", "ChinaTankBattleMaster", "ChinaTankGattling",
+		"ChinaVehicleInfernoCannon", "ChinaTankOverlord", "ChinaVehicleHelix" } },
+	{ "GLAInfantryRebel", { "GLAVehicleTechnicalChassisOne", "GLAVehicleRocketBuggy", "GLATankScorpion",
+		"GLATankMarauder", "GLAVehicleScudLauncher", "GLAVehicleBattleBus" } },
+} };
+
+constexpr Real vehicleGap = 70.0f;	///< between vehicles, room for the biggest scaled hull
+constexpr Real soldierBeside = 30.0f;	///< from a vehicle's centre to the soldier at its side
 constexpr Real rowGap = 90.0f;
 constexpr Real distanceFromBase = 160.0f;
 
@@ -69,14 +73,14 @@ void spawn(const char *name, Team *team, const Coord3D &position, Real angle)
 }
 
 // Along +x from 'start', facing the camera's usual view (units pointing -y).
-void spawnRow(std::span<const char *const> names, Team *team, Coord3D start)
+void spawnRow(const Row &row, Team *team, const Coord3D &start)
 {
 	Real x = start.x;
-	for (const char *name : names)
+	for (const char *vehicle : row.vehicles)
 	{
-		const ThingTemplate *kind = TheThingFactory->findTemplate(name);
-		x += (kind != nullptr && kind->isKindOf(KINDOF_INFANTRY)) ? soldierGap : vehicleGap;
-		spawn(name, team, onGround(x, start.y), -PI / 2.0f);
+		x += vehicleGap;
+		spawn(vehicle, team, onGround(x, start.y), -PI / 2.0f);
+		spawn(row.soldier, team, onGround(x - soldierBeside, start.y), -PI / 2.0f);
 	}
 }
 
@@ -103,12 +107,15 @@ void onGameStartAfterMap(bool loadingSave)
 	const Coord3D &at = *base->getPosition();
 	const Real towardMiddle = (at.y < (extent.lo.y + extent.hi.y) / 2.0f) ? 1.0f : -1.0f;
 	const Real firstRowY = at.y + towardMiddle * distanceFromBase;
-	const Real startX = at.x - 4.5f * vehicleGap;
+	const Real startX = at.x - 3.5f * vehicleGap;
 
 	Team *team = player->getDefaultTeam();
-	spawnRow(americaRow, team, onGround(startX, firstRowY));
-	spawnRow(chinaRow, team, onGround(startX, firstRowY + towardMiddle * rowGap));
-	spawnRow(glaRow, team, onGround(startX, firstRowY + towardMiddle * 2.0f * rowGap));
+	Real y = firstRowY;
+	for (const Row &row : rows)
+	{
+		spawnRow(row, team, onGround(startX, y));
+		y += towardMiddle * rowGap;
+	}
 
 	if (TheTacticalView != nullptr)
 	{

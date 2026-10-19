@@ -52,7 +52,7 @@ New code is C++20 against the Kernel wrapper (`PLAN.md`, *Conventions* 10). Its 
 | `CoH/Features/Pacing/` | unit prices and build times by class or unit, the skirmish AI's handicap by difficulty, the AI scripts' gifts of money |
 | `CoH/Features/Accuracy/` | hit rolls for direct fire, misses beside the target; `Accuracy.h` has the hit modifier stack Cover, Suppression and Veterancy plug into |
 | `CoH/Features/DirectionalArmor/` | front, side and rear armor, penetration by range, deflections; vehicles' guns against infantry; AI flanking; `DirectionalArmor.h` has `penetrationChanceFrom` for Vehicle criticals (08) |
-| `CoH/Features/UnitScale/` | CoH proportions: each unit's `Scale` and `Geometry` by class, in a generated pack; `-cohUnitScaleShowcase` lines units up for screenshots |
+| `CoH/Features/UnitScale/` | CoH proportions: each vehicle's `Scale` and `Geometry` by class, in a generated pack; `-cohUnitScaleShowcase` lines units up for screenshots |
 | `CoH/Docs/CONTEXT.md` | this map |
 | `CoH/Scripts/` | `install.ps1` (build and install), `package.ps1` (players' release zip; README *Release*), `skirmish.ps1` (test game), `replaycheck.ps1` (determinism); the shared build steps are in `Common.ps1` |
 | `.github/workflows/coh-release.yml` | on a pushed `coh-v*` tag: build, `package.ps1 -NoBuild`, attach the zip to a GitHub release |

@@ -1,6 +1,6 @@
 """CoH UnitScale: writes the UnitScale pack from the retail INI.
 
-Vehicles are drawn bigger and infantry smaller, so a tank is several soldiers long, as in CoH:
+Vehicles are drawn bigger next to soldiers, so a tank is several soldiers long, as in CoH:
   INI/10_UnitScale.ini   for every faction unit, by class (FACTORS below):
                            Scale                       the model's size
                            GeometryMajorRadius/Minor/  the size the game logic sees, scaled with the model
@@ -32,15 +32,17 @@ from retail import GAME_DIR, read_big  # noqa: E402
 
 # ---- Tuning --------------------------------------------------------------------------------------
 
-# The size on screen of each class, against retail. A retail soldier is about 0.43 of a tank's length;
-# in CoH it is about 0.3 (1.8 m against a 6 m tank).
+# The size on screen of each class, against retail. "chosen" is the pack: the user tried the others in
+# game (2026-10-19) and wanted soldiers at their retail size, tanks much bigger, a Humvee near its real
+# size next to a soldier, and dozers and supply trucks (8 m machines) about as big as tanks.
 PRESETS = {
-    "retail": {"tank": 1.0, "artillery": 1.0, "light": 1.0, "helicopter": 1.0, "jet": 1.0, "infantry": 1.0},
-    "subtle": {"tank": 1.15, "artillery": 1.15, "light": 1.10, "helicopter": 1.15, "jet": 1.0, "infantry": 0.90},
-    "coh":    {"tank": 1.25, "artillery": 1.25, "light": 1.15, "helicopter": 1.20, "jet": 1.0, "infantry": 0.85},
-    "big":    {"tank": 1.40, "artillery": 1.35, "light": 1.25, "helicopter": 1.30, "jet": 1.0, "infantry": 0.80},
+    "retail": {"tank": 1.0, "artillery": 1.0, "light": 1.0, "heavy": 1.0, "helicopter": 1.0, "jet": 1.0, "infantry": 1.0},
+    "subtle": {"tank": 1.15, "artillery": 1.15, "light": 1.10, "heavy": 1.10, "helicopter": 1.15, "jet": 1.0, "infantry": 0.90},
+    "coh":    {"tank": 1.25, "artillery": 1.25, "light": 1.15, "heavy": 1.15, "helicopter": 1.20, "jet": 1.0, "infantry": 0.85},
+    "big":    {"tank": 1.40, "artillery": 1.35, "light": 1.25, "heavy": 1.25, "helicopter": 1.30, "jet": 1.0, "infantry": 0.80},
+    "chosen": {"tank": 1.45, "artillery": 1.30, "light": 1.05, "heavy": 1.35, "helicopter": 1.25, "jet": 1.0, "infantry": 1.00},
 }
-FACTORS = PRESETS["coh"]
+FACTORS = PRESETS["chosen"]  # the user's pick: soldiers at retail size, tanks x1.45
 
 # The engine applies Scale this many times (see the docstring).
 RENDER_POWER = 2
@@ -56,6 +58,8 @@ ARTILLERY = {"AmericaVehicleTomahawk", "ChinaVehicleInfernoCannon", "ChinaVehicl
 TANK_DRAWS = {"W3DTankDraw", "W3DOverlordTankDraw", "W3DOverlordTruckDraw"}
 # Not tanks, whatever they are drawn with.
 LIGHT_KINDS = {"DOZER", "HARVESTER", "TRANSPORT", "DRONE"}
+# Big working machines: a real bulldozer or supply truck is about 8 m long, as long as a tank.
+HEAVY_KINDS = {"DOZER", "HARVESTER"}
 # Files with units that aren't the factions' own: cinematics, civilians, props, map pieces.
 SKIPPED_FILES = re.compile(r"CINE|Civilian|Nature|Hulk|System|WeaponObjects|TechBuildings|FactionBuilding|"
                            r"FactionProp|Buildings", re.IGNORECASE)
@@ -205,6 +209,8 @@ def unit_class(objects, name):
         return "helicopter" if helicopter else "jet"
     if base_name(name) in ARTILLERY:
         return "artillery"
+    if kinds & HEAVY_KINDS:
+        return "heavy"
     if draws[0] in TANK_DRAWS and not kinds & LIGHT_KINDS:
         return "tank"
     return "light"
