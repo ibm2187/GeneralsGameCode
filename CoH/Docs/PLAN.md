@@ -103,6 +103,7 @@ A new main package is added only for a new kind of thing, never for a feature.
 | 15 | [Victory points](Tasks/15-VictoryPoints.md) | Map | 01 |
 | 16 | [Doctrines](Tasks/16-Doctrines.md) | Commanders | 02 |
 | 17 | [Weapon pickup](Tasks/17-WeaponPickup.md) | Stretch | 09 |
+| 19 | [Unit scale: CoH proportions](Tasks/19-UnitScale.md) | Units | 00 |
 
 Tasks whose needs are met can run at the same time on their own branches.
 After the Kernel, 01, 02, 04, 07, 09 and 12 can all start.

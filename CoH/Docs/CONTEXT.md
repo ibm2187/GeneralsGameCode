@@ -52,6 +52,7 @@ New code is C++20 against the Kernel wrapper (`PLAN.md`, *Conventions* 10). Its 
 | `CoH/Features/Pacing/` | unit prices and build times by class or unit, the skirmish AI's handicap by difficulty, the AI scripts' gifts of money |
 | `CoH/Features/Accuracy/` | hit rolls for direct fire, misses beside the target; `Accuracy.h` has the hit modifier stack Cover, Suppression and Veterancy plug into |
 | `CoH/Features/DirectionalArmor/` | front, side and rear armor, penetration by range, deflections; vehicles' guns against infantry; AI flanking; `DirectionalArmor.h` has `penetrationChanceFrom` for Vehicle criticals (08) |
+| `CoH/Features/UnitScale/` | CoH proportions: each vehicle's `Scale` and `Geometry` by class, in a generated pack; `-cohUnitScaleShowcase` lines units up for screenshots |
 | `CoH/Docs/CONTEXT.md` | this map |
 | `CoH/Scripts/` | `install.ps1` (build and install), `package.ps1` (players' release zip; README *Release*), `skirmish.ps1` (test game), `replaycheck.ps1` (determinism); the shared build steps are in `Common.ps1` |
 | `.github/workflows/coh-release.yml` | on a pushed `coh-v*` tag: build, `package.ps1 -NoBuild`, attach the zip to a GitHub release |
@@ -94,6 +95,7 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Damage dealt | `WeaponTemplate::dealDamageInternal` 1377 (victims, radius, damage type), then `Object::attemptDamage` (`Object.cpp` 1906), then `ActiveBody::attemptDamage` (`Body/ActiveBody.cpp` 354). Hub `weaponDetonated` is where the damage goes off (before the victims are found; DirectionalArmor deals its shell blast there), `weaponDamage` changes one victim's amount before `attemptDamage`; `damageInfo.in.m_sourceID` is a projectile's launcher |
 | **Damage order** (one shot, one victim) | 1. hit or miss: Accuracy, hub `weaponFiringAtObject`, at the fire. 2. cover: Cover, hub `weaponDamage`. 3. penetration and vehicles' guns against infantry: DirectionalArmor, hub `weaponDamage`, after Cover by feature order in `CoH/CMakeLists.txt`. 4. the engine's armor (`Armor.ini`) and damage scalar in `ActiveBody::attemptDamage`. 5. veterancy: Veterancy, hub `damageReceived`, after armor. Steps 2 to 5 multiply, so only the rolls depend on the order |
 | Weapon bonuses, reload | `Weapon::computeBonus` 1913, `getDelayBetweenShots` 502, `getClipReloadTime` 520 and 1953; hub `weaponBonus` changes the summed bonuses (FireRate). Read delays with `getMin/MaxDelayBetweenShots` (`getDelayBetweenShots` draws synced random); a gattling's spin-up is `CONTINUOUS_FIRE_FAST` in `getExtraBonus()` |
+| Weapon reach | `Weapon.cpp` `ATTACK_RANGE_CALC_TYPE` (86): ranges are measured between the units' bounding circles (`FROM_BOUNDINGSPHERE_2D`), so bigger geometry reaches further |
 | Weapon choice | `Z/GameLogic/Object/WeaponSet.cpp` [1.2k] |
 | Veterancy | `Z/GameLogic/Object/ExperienceTracker.cpp` [300]: `addExperiencePoints` 162, `setVeterancyLevel` 120; `Object::onVeterancyLevelChanged` 3169 |
 | Kills and score | `Object::scoreTheKill` 2993, `Player::addSkillPointsForKill` 2528 |
@@ -111,6 +113,7 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | AI scripts | `build/retail/Scripts/SkirmishScripts.scb` (binary; §5); the engine side is `Z/GameLogic/ScriptEngine/` [ScriptEngine 10k, Actions 7.8k, Conditions 3k] |
 | AI teams | `Z/Common/RTS/Team.cpp` [2.8k], `TeamTemplateInfo`; the retail teams are in the `.scb` |
 | Pathfinding | `Core/GameEngine/Source/GameLogic/AI/AIPathfind.cpp` [7.5k]; avoid it |
+| A unit's size | `Scale` (ThingTemplate) draws the model at Scale² (`W3DModelDraw::doDrawModule` scales a model already made scaled); the logic's bones match it. `Geometry*` is what logic sees: pathfinding footprint (`Pathfinder::getRadiusAndCenter`, 1 to 5 cells), weapon reach, collisions. UnitScale README, *Engine notes* |
 | Containers and garrisons | `Z/GameLogic/Object/Contain/OpenContain.cpp` [2k], `TransportContain.cpp`, `GarrisonContain.cpp`; capacity through hub `containRoom` (`isValidContainerFor`: transports count slots, garrisons objects) |
 | Unit made by a factory | hub `unitProduced` (`ProductionUpdate::update`, after the door and the team); more objects may leave with `getObjectExitInterface()->exitObjectViaDoor(obj, DOOR_1)`; `QuantityModifier` makes several per order (Red Guards). Squads `Engine/Production.cpp` |
 | Spawned members | `Z/GameLogic/Object/Behavior/SpawnBehavior.cpp` [1.2k], `Update/MobMemberSlavedUpdate.cpp` |
