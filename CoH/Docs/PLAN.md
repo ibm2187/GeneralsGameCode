@@ -91,7 +91,7 @@ A new main package is added only for a new kind of thing, never for a feature.
 | 04 | [Accuracy](Tasks/04-Accuracy.md) | Combat | 00 |
 | 04b | [Fire rate](Tasks/04b-FireRate.md) | Combat | 00 (pairs with 04) |
 | 05 | ~~[Cover](Tasks/05-Cover.md)~~ cancelled 2026-10-19 | Combat | 04 |
-| 06 | [Suppression](Tasks/06-Suppression.md) | Combat | 04 |
+| 06 | [Suppression](Tasks/06-Suppression.md) (postponed 2026-10-19) | Combat | 04 |
 | 07 | [Directional armor](Tasks/07-DirectionalArmor.md) | Combat | 00 |
 | 08 | [Vehicle criticals](Tasks/08-VehicleCriticals.md) | Combat | 07 |
 | 09 | [Squads](Tasks/09-Squads.md) | Units | 00 |

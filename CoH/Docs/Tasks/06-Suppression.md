@@ -1,4 +1,6 @@
-# 06 Suppression
+# 06 Suppression (postponed)
+
+**Postponed 2026-10-19** by the user; not cancelled. Pick it up again only when the user asks.
 
 **Branch** `coh/suppression` · **Needs** 04 · **Slice** `CoH/Features/Suppression/` · **Flag** `Suppression`
 
