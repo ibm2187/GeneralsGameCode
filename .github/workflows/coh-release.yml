@@ -1,0 +1,76 @@
+name: CoH Release
+
+# Builds the CoH drop-in release for players and attaches it to a GitHub release, when a coh-v* tag is
+# pushed (coh-v0.1 makes CoH-0.1.zip). The zip is made by CoH/Scripts/package.ps1, as on a developer's
+# machine; see "Release" in CoH/README.md.
+
+permissions:
+  contents: read
+
+on:
+  push:
+    tags:
+      - 'coh-v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-generalsmd:
+    name: Build GeneralsMD win32-profile
+    permissions:
+      contents: read
+    uses: ./.github/workflows/reusable-build-toolchain.yml
+    with:
+      game: "GeneralsMD"
+      preset: "win32-profile"
+      tools: false
+      extras: false
+
+  create-release:
+    name: Package and Release
+    needs: [build-generalsmd]
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      # package.ps1 takes the Visual C++ runtime DLLs from the redistributable folder this sets up.
+      - name: Set Up VC2022 Environment
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+        with:
+          arch: x86
+
+      - name: Download GeneralsMD win32-profile Artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: GeneralsMD-win32-profile
+          path: build\win32-profile\GeneralsMD\Release
+
+      - name: Package CoH Release
+        id: package
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^coh-v', ''
+          CoH\Scripts\package.ps1 -NoBuild -Version $version
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          "zip=build/release/CoH-$version.zip" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: CoH ${{ github.ref_name }}
+          body: |
+            Drop-in CoH build for Zero Hour 1.04. Unzip into your Zero Hour folder and read README-CoH.txt.
+            Every player of a network game needs this same release; the host's Features.ini decides the features.
+          files: ${{ steps.package.outputs.zip }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

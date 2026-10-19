@@ -5,7 +5,7 @@ Company of Heroes ideas for Zero Hour, kept apart from the original code. [PLAN.
 Everything lives in this folder, in main packages:
 - `Kernel/` is shared by every feature: the feature registry, the flags, the INI packs and the hook hub.
 - `Features/<Name>/` holds one vertical slice per feature.
-- `Scripts/` builds, installs and tests: `install.ps1`, `skirmish.ps1`, `replaycheck.ps1`.
+- `Scripts/` builds, installs, packages and tests: `install.ps1`, `package.ps1`, `skirmish.ps1`, `replaycheck.ps1`.
 - `Tools/` holds developer tools: `retail.py` writes the retail data to `build/retail/`.
 - `Docs/` holds the plan, the context map and the task files.
 
@@ -67,6 +67,31 @@ The script does four things:
 4. It replaces `CoH\Packs` in the game folder with the `Data\INI` pack of every feature in the build. A pack only loads in games where its flag is on.
 
 `-NoBuild` installs the last build, after the same timestamp check.
+
+## Release
+
+Players get a zip they unzip into their Zero Hour folder; they never build anything.
+
+```powershell
+CoH\Scripts\package.ps1 *> $log
+CoH\Scripts\package.ps1 -NoBuild -Version 0.1 -WithSymbols
+```
+
+It builds like `install.ps1` (or takes `-NoBuild`) and writes `build\release\CoH-<version>.zip`, with its files at the top so it unzips next to the retail files:
+
+| File | What |
+|---|---|
+| `generalszh.exe` | the build; `generalszh.pdb` too with `-WithSymbols` |
+| `msvcp140.dll`, `vcruntime140.dll`, ... | the Visual C++ runtime DLLs the exe imports, from the building Visual Studio's redistributable folder, so players install no runtime. The exe needs a runtime at least as new as its compiler |
+| `CoH\Packs\<Name>\` | the `Data\INI` pack of every feature in the build |
+| `Features.ini.default` | every feature on. The game reads `Features.ini` only from the user data folder, so `README-CoH.txt` tells the host to copy it there; players who only join need no `Features.ini` (the host's flags apply) |
+| `README-CoH.txt` | what it is, install, multiplayer (same release for everyone, the host's flags, no retail or GenTool players), turning features off, the source link |
+| `LICENSE.txt` | GPL v3 |
+
+- The version is `-Version`, or else `git describe --tags --always --dirty --match coh-v*` without the `coh-v`: a commit hash until there is a `coh-v` tag.
+- The README links to the source at the exact commit, from `git remote get-url origin`. The script warns when the commit isn't on a remote branch or the tree has changes, since the link would then not show the build.
+- No EA data goes in: every file is checked against the allowed types (`.ini` only in the packs) and the script stops on anything else.
+- The `CoH Release` workflow (`.github/workflows/coh-release.yml`) does the same on GitHub when a `coh-v*` tag is pushed (`coh-v0.1` makes `CoH-0.1.zip`): it builds `win32-profile`, runs `package.ps1 -NoBuild` and attaches the zip to a release for that tag.
 
 ## Testing
 
