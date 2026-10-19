@@ -65,6 +65,9 @@ void onContainRoom(const Object *container, const Object *rider, int &used, int 
 bool onWeaponFiringAtObject(const Object *source, const WeaponTemplate *weapon, const WeaponBonus &bonus,
 	const Object *victim, Coord3D &spot);	///< WeaponTemplate::fireWeaponTemplate: true sends the shot to 'spot' instead
 void onWeaponBonus(const Object *source, const WeaponTemplate *weapon, WeaponBonus &bonus);	///< Weapon::computeBonus, once the bonuses are summed
+void onWeaponDetonated(const Object *source, const WeaponTemplate *weapon, const Coord3D *position, float radius);	///< WeaponTemplate::dealDamageInternal: the damage goes off
+void onWeaponDamage(const Object *source, const WeaponTemplate *weapon, const Coord3D *position, Object *victim,
+	DamageInfo *damage);	///< WeaponTemplate::dealDamageInternal: before each victim's attemptDamage
 
 void onInGameUIPostDraw();	///< InGameUI::postDraw: over the 3D view, under the windows
 void onRadarDraw(int x, int y, int width, int height);	///< W3DRadar::draw: over the map and shroud, under the icons
@@ -151,6 +154,28 @@ Event<WeaponShot &> &weaponFiringAtObject();
 // every shot, reload and clip, the damage a projectile does when it goes off (the projectile is then
 // the source), and the AI's damage estimates, so a change applies everywhere the weapon is used.
 Event<const Object *, const WeaponTemplate *, WeaponBonus &> &weaponBonus();
+
+// A weapon's damage goes off at 'position': a shot landing (on its target or on the ground) or a
+// projectile going off, before anything is hurt. 'radius' is its blast; 0 hurts only the target. The
+// source (the shooter, or the projectile) may be gone.
+Event<const Object *, const WeaponTemplate *, const Coord3D &, float> &weaponDetonated();
+
+// A weapon's damage is about to be dealt to one victim (the target, or one caught in the blast). A
+// subscriber may change damage->in.m_amount. 'position' is where it went off; damage->in.m_sourceID
+// is the shooter (a projectile's launcher), 'source' what dealt it (the shooter or the projectile).
+// A weapon killing its own user comes as HUGE_DAMAGE_AMOUNT.
+//
+// Subscribers run in the features' order (CoH/CMakeLists.txt): Cover, then DirectionalArmor. The
+// whole damage order is in CoH/Docs/CONTEXT.md §4, Combat.
+struct WeaponDamage
+{
+	const Object *source;
+	const WeaponTemplate *weapon;
+	const Coord3D *position;
+	Object *victim;
+	DamageInfo *damage;
+};
+Event<WeaponDamage &> &weaponDamage();
 
 // ---- Client: drawing and text. These don't run in -headless games. ------------------------------
 

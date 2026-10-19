@@ -1393,6 +1393,7 @@ void WeaponTemplate::dealDamageInternal(ObjectID sourceID, ObjectID victimID, co
 
 		Real primaryRadiusSqr = sqr(primaryRadius);
 		Real radius = max(primaryRadius, secondaryRadius);
+		CoH::Hooks::onWeaponDetonated(source, this, pos, radius); // CoH hook
 		if (radius > 0.0f)
 		{
 			iter = ThePartitionManager->iterateObjectsInRange(pos, radius, DAMAGE_RANGE_CALC_TYPE);
@@ -1582,6 +1583,7 @@ void WeaponTemplate::dealDamageInternal(ObjectID sourceID, ObjectID victimID, co
 				}
 			}
 
+			CoH::Hooks::onWeaponDamage(source, this, pos, curVictim, &damageInfo); // CoH hook
 			curVictim->attemptDamage(&damageInfo);
 			//DEBUG_ASSERTLOG(damageInfo.out.m_noEffect, ("WeaponTemplate::dealDamageInternal: dealt to %s %08lx: attempted %f, actual %f (%f)",
 			//	curVictim->getTemplate()->getName().str(),curVictim,
