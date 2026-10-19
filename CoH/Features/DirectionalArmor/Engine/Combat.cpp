@@ -128,7 +128,8 @@ void rollPenetration(Hooks::WeaponDamage &hit, const Object *shooter)
 	const float distance = std::sqrt(towardsShot.x * towardsShot.x + towardsShot.y * towardsShot.y);
 	const float pushing = penetrationAt(*penetration, distance, hit.weapon->getAttackRange(noBonus));
 
-	const Hit result = resolveHit(side, *armor, pushing, c.deflectedDamage, [](float p) { return CoH::chance(p); });
+	const HitRules rules = { .deflectedShare = c.deflectedDamage, .sideDamage = c.sideDamage };
+	const Hit result = resolveHit(side, *armor, pushing, rules, [](float p) { return CoH::chance(p); });
 	hit.damage->in.m_amount *= result.damageScale;
 
 	Tally &t = tally();

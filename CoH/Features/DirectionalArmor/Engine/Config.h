@@ -40,6 +40,7 @@ struct KindLine
 struct Config
 {
 	Real deflectedDamage = 0.1f;
+	SideDamage sideDamage;		///< how hard a hit on each side lands
 	Real frontArc = 90.0f;		///< full width, degrees
 	Real rearArc = 90.0f;
 	Real areaRadius = 20.0f;	///< weapons with a bigger damage radius never roll

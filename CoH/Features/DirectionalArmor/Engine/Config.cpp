@@ -190,6 +190,9 @@ void parseConfigBlock(INI *ini)
 {
 	static const Ini::Table<Config> fields = {
 		Ini::percent("DeflectedDamage", &Config::deflectedDamage),
+		Ini::percent("FrontDamage", &Config::sideDamage, &SideDamage::front),
+		Ini::percent("SideDamage", &Config::sideDamage, &SideDamage::side),
+		Ini::percent("RearDamage", &Config::sideDamage, &SideDamage::rear),
 		Ini::field("FrontArc", &Config::frontArc),
 		Ini::field("RearArc", &Config::rearArc),
 		Ini::field("AreaRadius", &Config::areaRadius),

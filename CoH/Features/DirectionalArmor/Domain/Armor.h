@@ -73,6 +73,26 @@ float penetrationChance(float penetration, float armor);
 // What a hit does to the damage: all of it on a penetration, 'deflectedShare' of it on a deflection.
 float damageScale(bool penetrated, float deflectedShare);
 
+// How hard a hit on each side lands, whether it penetrates or not: a hit on the front does less, one
+// on the side or rear more, so where a shot lands matters beyond the roll.
+struct SideDamage
+{
+	float front = 1.0f;
+	float side = 1.0f;
+	float rear = 1.0f;
+
+	float of(Side hit) const;
+};
+
+struct HitRules
+{
+	float deflectedShare = 0.1f;	///< of a deflected shot's damage
+	SideDamage sideDamage;
+};
+
+// The share of a shot's damage a hit on 'side' does on average, with 'chance' to penetrate.
+float expectedDamage(float chance, Side side, const HitRules &rules);
+
 // The whole roll for one hit. 'passes' rolls a chance from 0 to 1 and says whether it came up: the
 // Kernel's synced CoH::chance in game, anything in tests. It is asked once per hit, whatever the chance.
 struct Hit
@@ -82,11 +102,11 @@ struct Hit
 	float armor = 0.0f;
 	float chance = 1.0f;
 	bool penetrated = true;
-	float damageScale = 1.0f;
+	float damageScale = 1.0f;	///< the deflection's share (or 1) times the side's damage
 };
 
 template <std::predicate<float> Roll>
-Hit resolveHit(Side side, const ArmorValues &armor, float penetration, float deflectedShare, Roll &&passes)
+Hit resolveHit(Side side, const ArmorValues &armor, float penetration, const HitRules &rules, Roll &&passes)
 {
 	Hit hit;
 	hit.side = side;
@@ -94,7 +114,7 @@ Hit resolveHit(Side side, const ArmorValues &armor, float penetration, float def
 	hit.armor = armor.of(side);
 	hit.chance = penetrationChance(penetration, hit.armor);
 	hit.penetrated = passes(hit.chance);
-	hit.damageScale = damageScale(hit.penetrated, deflectedShare);
+	hit.damageScale = damageScale(hit.penetrated, rules.deflectedShare) * rules.sideDamage.of(side);
 	return hit;
 }
 

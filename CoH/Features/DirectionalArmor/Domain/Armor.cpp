@@ -90,6 +90,23 @@ float ArmorValues::of(Side hit) const
 	return front;
 }
 
+float SideDamage::of(Side hit) const
+{
+	switch (hit)
+	{
+		case Side::Front: return front;
+		case Side::Side: return side;
+		case Side::Rear: return rear;
+	}
+	return front;
+}
+
+float expectedDamage(float chance, Side side, const HitRules &rules)
+{
+	const float through = std::clamp(chance, 0.0f, 1.0f);
+	return (through + (1.0f - through) * damageScale(false, rules.deflectedShare)) * rules.sideDamage.of(side);
+}
+
 float penetrationAt(const Penetration &penetration, float distance, float range)
 {
 	if (range <= 0.0f)

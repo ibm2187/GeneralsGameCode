@@ -132,6 +132,7 @@ std::optional<Flat> flankFor(Object &vehicle, const Object &target)
 		.armor = *armor,
 		.penetration = *penetration,
 		.range = weapon->getAttackRange(&vehicle),
+		.hits = { .deflectedShare = c.deflectedDamage, .sideDamage = c.sideDamage },
 	};
 	return flankSpot(situation, c.flank);
 }

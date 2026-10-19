@@ -10,6 +10,8 @@ Flanking tanks pays. Facing the enemy with your strongest armor matters. Tanks a
 
 - "Rocket launchers do a lot of damage from the front." Today any rocket wrecks a tank from any angle; frontal armor must stop most of that.
 - "We also need tanks to do a lot more damage against infantry."
+- "Tanks should shoot like CoH; obliterating infantry."
+- After watching the first version: "rear hits and side hits should do more damage; frontal should do less damage", and "the goal is to be close to realistic".
 
 ## Behavior
 

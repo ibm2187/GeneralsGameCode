@@ -14,6 +14,8 @@ using namespace CoH::DirectionalArmor;
 
 const Arcs quarters = arcsFromDegrees(90.0f, 90.0f);
 const Flat east = { 1.0f, 0.0f };
+const HitRules plainHits = { .deflectedShare = 0.1f };
+const HitRules packHits = { .deflectedShare = 0.05f, .sideDamage = { .front = 0.75f, .side = 1.25f, .rear = 1.5f } };
 
 // From the vehicle, the direction 'degrees' counterclockwise from east.
 Flat at(float degrees)
@@ -97,9 +99,9 @@ TEST(DirectionalArmorOdds, PenetrationOverArmor)
 
 TEST(DirectionalArmorOdds, RocketsBounceOffTheFrontAndGetThroughTheRear)
 {
-	// The pack's rocket soldier against the pack's Crusader, at mid range.
-	const Penetration rocket = { .atNear = 55.0f, .atFar = 40.0f };
-	const ArmorValues crusader = { .front = 130.0f, .side = 90.0f, .rear = 55.0f };
+	// The pack's rocket soldier (a shaped charge: the same at any range) against the pack's Crusader.
+	const Penetration rocket = { .atNear = 55.0f, .atFar = 55.0f };
+	const ArmorValues crusader = { .front = 160.0f, .side = 85.0f, .rear = 45.0f };
 	const float pushing = penetrationAt(rocket, 87.5f, 175.0f);
 	EXPECT_LT(penetrationChance(pushing, crusader.front), 0.4f);	// most bounce off the front
 	EXPECT_GT(penetrationChance(pushing, crusader.side), 0.5f);
@@ -122,14 +124,14 @@ TEST(DirectionalArmorDeflection, ResolveRollsOnceAndScales)
 	float askedChance = -1.0f;
 	const auto failing = [&](float chance) { ++asked; askedChance = chance; return false; };
 
-	const Hit bounced = resolveHit(Side::Front, armor, 60.0f, 0.1f, failing);
+	const Hit bounced = resolveHit(Side::Front, armor, 60.0f, plainHits, failing);
 	EXPECT_EQ(asked, 1);
 	EXPECT_FLOAT_EQ(askedChance, 0.6f);
 	EXPECT_FALSE(bounced.penetrated);
 	EXPECT_FLOAT_EQ(bounced.armor, 100.0f);
 	EXPECT_FLOAT_EQ(bounced.damageScale, 0.1f);
 
-	const Hit through = resolveHit(Side::Rear, armor, 60.0f, 0.1f, [&](float chance) { ++asked; return chance >= 1.0f; });
+	const Hit through = resolveHit(Side::Rear, armor, 60.0f, plainHits, [&](float chance) { ++asked; return chance >= 1.0f; });
 	EXPECT_EQ(asked, 2);	// asked even at a sure chance, so the number of rolls never depends on tuning
 	EXPECT_TRUE(through.penetrated);
 	EXPECT_FLOAT_EQ(through.chance, 1.0f);
@@ -145,9 +147,34 @@ TEST(DirectionalArmorDeflection, ManyRollsMatchTheOdds)
 	for (int i = 0; i < shots; ++i)
 	{
 		const float roll = (i + 0.5f) / shots;
-		through += resolveHit(Side::Front, armor, 52.0f, 0.1f, [&](float chance) { return roll < chance; }).penetrated;
+		through += resolveHit(Side::Front, armor, 52.0f, plainHits, [&](float chance) { return roll < chance; }).penetrated;
 	}
 	EXPECT_NEAR(through / (float)shots, 52.0f / 130.0f, 0.002f);
+}
+
+TEST(DirectionalArmorSideDamage, FrontLessSideAndRearMore)
+{
+	const ArmorValues armor = { .front = 100.0f, .side = 50.0f, .rear = 25.0f };
+	const auto through = [](float) { return true; };
+	const auto bounce = [](float) { return false; };
+	EXPECT_FLOAT_EQ(resolveHit(Side::Front, armor, 200.0f, packHits, through).damageScale, 0.75f);
+	EXPECT_FLOAT_EQ(resolveHit(Side::Side, armor, 200.0f, packHits, through).damageScale, 1.25f);
+	EXPECT_FLOAT_EQ(resolveHit(Side::Rear, armor, 200.0f, packHits, through).damageScale, 1.5f);
+	EXPECT_FLOAT_EQ(resolveHit(Side::Front, armor, 10.0f, packHits, bounce).damageScale, 0.05f * 0.75f);
+	EXPECT_FLOAT_EQ(resolveHit(Side::Rear, armor, 10.0f, packHits, bounce).damageScale, 0.05f * 1.5f);
+}
+
+TEST(DirectionalArmorSideDamage, ExpectedDamageOfARocket)
+{
+	// The pack's rocket soldier (55 at any range) against the pack's Crusader (160 / 85 / 45).
+	const float front = expectedDamage(penetrationChance(55.0f, 160.0f), Side::Front, packHits);
+	const float side = expectedDamage(penetrationChance(55.0f, 85.0f), Side::Side, packHits);
+	const float rear = expectedDamage(penetrationChance(55.0f, 45.0f), Side::Rear, packHits);
+	EXPECT_LT(front, 0.3f);
+	EXPECT_GT(side, 0.8f);
+	EXPECT_FLOAT_EQ(rear, 1.5f);
+	EXPECT_FLOAT_EQ(expectedDamage(0.5f, Side::Side, plainHits), 0.55f);
+	EXPECT_FLOAT_EQ(expectedDamage(2.0f, Side::Front, plainHits), 1.0f);
 }
 
 TEST(DirectionalArmorNames, OwnLineAndGeneralsVersions)

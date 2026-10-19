@@ -47,9 +47,9 @@ std::optional<Flat> flankSpot(const FlankSituation &s, const FlankRules &rules)
 	const float distance = s.range * rules.rangeShare;
 	const Flat spot = { s.target.x + away.x * distance, s.target.y + away.y * distance };
 
-	const float chanceThere = penetrationChance(penetrationAt(s.penetration, distance, s.range),
-		s.armor.of(sideHit(forward, away, s.arcs)));
-	if (chanceThere - chanceNow < rules.minGain)
+	const Side sideThere = sideHit(forward, away, s.arcs);
+	const float chanceThere = penetrationChance(penetrationAt(s.penetration, distance, s.range), s.armor.of(sideThere));
+	if (expectedDamage(chanceThere, sideThere, s.hits) - expectedDamage(chanceNow, Side::Front, s.hits) < rules.minGain)
 		return std::nullopt;
 	if (length(minus(spot, s.attacker)) > rules.maxTravel)
 		return std::nullopt;
