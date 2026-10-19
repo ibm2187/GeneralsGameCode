@@ -84,3 +84,25 @@ void W3DModuleFactory::init()
 #endif
 
 }
+
+#if RTS_ZEROHOUR
+//-------------------------------------------------------------------------------------------------
+// CoH fix: a model draw module's data caches its model's bones (projectile launch points, turrets,
+// an attach bone) the first time game logic asks, at the scale of the object asking. An object
+// template and its overrides share their module data, so bones cached in one game at an override's
+// Scale (a CoH pack's, or a map.ini's) were still used in the next game played in the same process,
+// and that game played differently (a replay of it mismatched). Each game now starts with no cached
+// bones, as the first game after launch does.
+//-------------------------------------------------------------------------------------------------
+void W3DModuleFactory::reset()
+{
+	ModuleFactory::reset();
+
+	for (ModuleDataList::const_iterator it = m_moduleDataList.begin(); it != m_moduleDataList.end(); ++it)
+	{
+		const W3DModelDrawModuleData* data = (*it)->getAsW3DModelDrawModuleData();
+		if (data)
+			data->clearCachedBones();
+	}
+}
+#endif

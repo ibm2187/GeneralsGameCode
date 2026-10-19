@@ -44,5 +44,8 @@ class W3DModuleFactory : public ModuleFactory
 public:
 
 	virtual void init() override;
+#if RTS_ZEROHOUR
+	virtual void reset() override;	// CoH fix: see the .cpp
+#endif
 
 };

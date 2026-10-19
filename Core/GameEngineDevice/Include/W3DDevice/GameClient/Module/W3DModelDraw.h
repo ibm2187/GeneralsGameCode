@@ -314,6 +314,9 @@ public:
 	W3DModelDrawModuleData();
 	virtual ~W3DModelDrawModuleData() override;
 	void validateStuffForTimeAndWeather(const Drawable* draw, Bool night, Bool snowy) const;
+#if RTS_ZEROHOUR
+	void clearCachedBones() const;	// CoH fix: W3DModuleFactory::reset
+#endif
 	static void buildFieldParse(MultiIniFieldParse& p);
  	AsciiString getBestModelNameForWB(const ModelConditionFlags& c) const;
 	const ModelConditionInfo* findBestInfo(const ModelConditionFlags& c) const;

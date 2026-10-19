@@ -1114,6 +1114,32 @@ void W3DModelDrawModuleData::validateStuffForTimeAndWeather(const Drawable* draw
 	}
 }
 
+#if RTS_ZEROHOUR
+//-------------------------------------------------------------------------------------------------
+// CoH fix: forget the bones cached at the last game's scale (W3DModuleFactory::reset); the next
+// game caches them again when it asks, as the first game after launch does.
+//-------------------------------------------------------------------------------------------------
+void W3DModelDrawModuleData::clearCachedBones() const
+{
+	const Byte cached = ModelConditionInfo::PRISTINE_BONES_VALID | ModelConditionInfo::TURRETS_VALID | ModelConditionInfo::BARRELS_VALID;
+
+	for (ModelConditionVector::iterator it = m_conditionStates.begin(); it != m_conditionStates.end(); ++it)
+	{
+		it->m_pristineBones.clear();
+		it->m_validStuff &= ~cached;
+	}
+	for (TransitionMap::iterator it = m_transitionMap.begin(); it != m_transitionMap.end(); ++it)
+	{
+		it->second.m_pristineBones.clear();
+		it->second.m_validStuff &= ~cached;
+	}
+	m_validated = 0;
+#ifdef CACHE_ATTACH_BONE
+	m_attachToDrawableBoneOffsetValid = false;
+#endif
+}
+#endif
+
 //-------------------------------------------------------------------------------------------------
 W3DModelDrawModuleData::~W3DModelDrawModuleData()
 {
