@@ -50,6 +50,7 @@ New code is C++20 against the Kernel wrapper (`PLAN.md`, *Conventions* 10). Its 
 | `CoH/Features/FireRate/` | slower, harder-hitting fast weapons through the `weaponBonus` hub point; a weapon's fire rate over its clip, reload and spin-up |
 | `CoH/Features/Squads/` | infantry squads: made per order, one selection, formation moves, one unit in containers and population, the squad health bar; `Squads.h` for Reinforce, Retreat, Abilities, Weapon pickup |
 | `CoH/Features/Pacing/` | unit prices and build times by class or unit, the skirmish AI's handicap by difficulty, the AI scripts' gifts of money |
+| `CoH/Features/Veterancy/` | experience from damage, rank bonuses per unit type (accuracy through Accuracy's modifier, damage taken, speed, sight, reload, an upgrade), squads sharing a rank; `Veterancy.h` has suppression resistance for Suppression |
 | `CoH/Features/Accuracy/` | hit rolls for direct fire, misses beside the target; `Accuracy.h` has the hit modifier stack Cover, Suppression and Veterancy plug into |
 | `CoH/Features/DirectionalArmor/` | front, side and rear armor, penetration by range, deflections; vehicles' guns against infantry; AI flanking; `DirectionalArmor.h` has `penetrationChanceFrom` for Vehicle criticals (08) |
 | `CoH/Features/UnitScale/` | CoH proportions: each vehicle's `Scale` and `Geometry` by class, in a generated pack; `-cohUnitScaleShowcase` lines units up for screenshots |
@@ -97,7 +98,10 @@ Headers are under the matching `Include/`. Zero Hour code is in `GeneralsMD/`; `
 | Weapon bonuses, reload | `Weapon::computeBonus` 1913, `getDelayBetweenShots` 502, `getClipReloadTime` 520 and 1953; hub `weaponBonus` changes the summed bonuses (FireRate). Read delays with `getMin/MaxDelayBetweenShots` (`getDelayBetweenShots` draws synced random); a gattling's spin-up is `CONTINUOUS_FIRE_FAST` in `getExtraBonus()` |
 | Weapon reach | `Weapon.cpp` `ATTACK_RANGE_CALC_TYPE` (86): ranges are measured between the units' bounding circles (`FROM_BOUNDINGSPHERE_2D`), so bigger geometry reaches further |
 | Weapon choice | `Z/GameLogic/Object/WeaponSet.cpp` [1.2k] |
-| Veterancy | `Z/GameLogic/Object/ExperienceTracker.cpp` [300]: `addExperiencePoints` 162, `setVeterancyLevel` 120; `Object::onVeterancyLevelChanged` 3169 |
+| Veterancy | `Z/GameLogic/Object/ExperienceTracker.cpp` [300]: `addExperiencePoints` 162, `setVeterancyLevel` 120; `Object::onVeterancyLevelChanged` 3172 (rank weapon bonus and set, health in `ActiveBody::onVeterancyLevelChanged` 1461); hub `veterancyChanged`. A rank's bonuses: Veterancy `Veterancy.h` |
+| Damage taken | hub `damageReceived` scales it in `ActiveBody::attemptDamage`, after the armor and `m_damageScalar` (Veterancy); weapon-level changes before armor go through `weaponDamage` (Cover, DirectionalArmor) |
+| Unit speed | hub `unitSpeed` (the current locomotor's top speed, `Locomotor::getMaxSpeedForCondition`); a `Locomotor` doesn't know its object, so the hub keeps that (`chooseGoodLocomotorFromCurrentSet`) |
+| Sight | `Object::setVisionRange`, `setShroudClearingRange`; scale by ratio as `BattlePlanUpdate.cpp` 770 does |
 | Kills and score | `Object::scoreTheKill` 2993, `Player::addSkillPointsForKill` 2528 |
 | Disabled states | `Object::setDisabled` 2147, `setDisabledUntil` 2153 (stun, immobile, and so on) |
 

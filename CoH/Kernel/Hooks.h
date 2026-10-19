@@ -14,6 +14,7 @@ class CommandButton;
 class GameInfo;
 class GameWindow;
 class INI;
+class Locomotor;
 class ModuleFactory;
 class Object;
 class Player;
@@ -68,6 +69,10 @@ void onWeaponBonus(const Object *source, const WeaponTemplate *weapon, WeaponBon
 void onWeaponDetonated(const Object *source, const WeaponTemplate *weapon, const Coord3D *position, float radius);	///< WeaponTemplate::dealDamageInternal: the damage goes off
 void onWeaponDamage(const Object *source, const WeaponTemplate *weapon, const Coord3D *position, Object *victim,
 	DamageInfo *damage);	///< WeaponTemplate::dealDamageInternal: before each victim's attemptDamage
+void onDamageReceived(const Object *victim, const DamageInfo *damage, float &amount);	///< ActiveBody::attemptDamage, after armor and the damage scalar
+void onVeterancyChanged(Object *object, int oldLevel, int newLevel);	///< Object::onVeterancyLevelChanged, once the engine's own changes are made
+void onLocomotorChosen(const Object *object, const Locomotor *locomotor);	///< AIUpdateInterface::chooseGoodLocomotorFromCurrentSet
+void onLocomotorSpeed(const Locomotor *locomotor, float &speed);	///< Locomotor::getMaxSpeedForCondition
 
 void onInGameUIPostDraw();	///< InGameUI::postDraw: over the 3D view, under the windows
 void onRadarDraw(int x, int y, int width, int height);	///< W3DRadar::draw: over the map and shroud, under the icons
@@ -176,6 +181,19 @@ struct WeaponDamage
 	DamageInfo *damage;
 };
 Event<WeaponDamage &> &weaponDamage();
+
+// The damage 'victim' is about to take, after its armor and the engine's damage scalar (the defensive
+// battle plan): a subscriber may scale 'amount'. Asked for damage that takes health, not for healing,
+// subdual, status damage or unresistable damage (scripts' kills).
+Event<const Object *, const DamageInfo *, float &> &damageReceived();
+
+// The object's rank changed (VeterancyLevel: 0 regular, 1 veteran, 2 elite, 3 heroic), by experience,
+// a crate, a script or production; the engine has applied its own bonuses (health, weapon sets).
+Event<Object *, int, int> &veterancyChanged();
+
+// The fastest the unit's current locomotor may move it (its template's speed, or the damaged speed):
+// a subscriber may change it. Asked for its moves, its group's speed and the AI's estimates alike.
+Event<const Object *, float &> &unitSpeed();
 
 // ---- Client: drawing and text. These don't run in -headless games. ------------------------------
 

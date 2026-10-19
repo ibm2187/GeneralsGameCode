@@ -7,12 +7,17 @@
 #include "Common/Player.h"
 #include "GameClient/GadgetStaticText.h"
 #include "GameClient/GameText.h"
+#include "GameLogic/GameLogic.h"
+#include "GameLogic/Locomotor.h"
+#include "GameLogic/Module/AIUpdate.h"
 #include "GameLogic/Object.h"
 
 #include "Kernel/Domain/GameFlags.h"
 #include "Kernel/Engine/Internal.h"
 #include "Kernel/Hooks.h"
 #include "Kernel/Kernel.h"
+
+#include <map>
 
 namespace CoH::Hooks
 {
@@ -79,6 +84,13 @@ Event<const Object *, const WeaponTemplate *, const Coord3D &, float> &weaponDet
 	return event;
 }
 Event<WeaponDamage &> &weaponDamage() { static Event<WeaponDamage &> event; return event; }
+Event<const Object *, const DamageInfo *, float &> &damageReceived()
+{
+	static Event<const Object *, const DamageInfo *, float &> event;
+	return event;
+}
+Event<Object *, int, int> &veterancyChanged() { static Event<Object *, int, int> event; return event; }
+Event<const Object *, float &> &unitSpeed() { static Event<const Object *, float &> event; return event; }
 
 Event<> &inGameUIPostDraw() { static Event<> event; return event; }
 Event<int, int, int, int> &radarDraw() { static Event<int, int, int, int> event; return event; }
@@ -97,6 +109,19 @@ Veto<const Object *, const Object *> &riderShown()
 }
 
 // ---- Engine ------------------------------------------------------------------------------------
+
+// A locomotor doesn't know its object, so the hub remembers whose current locomotor each one is.
+// The map is only looked up, never walked, and an entry counts only while that object is alive and
+// the locomotor is still its current one, so a freed locomotor's address reused by another object's
+// is never taken for the old owner's.
+namespace
+{
+std::map<const Locomotor *, ObjectID> &locomotorOwners()
+{
+	static std::map<const Locomotor *, ObjectID> owners;
+	return owners;
+}
+}
 
 // Quick test skirmishes (-cohSkirmish) may run side by side, as replay playback may, and so may other
 // test runs started with -cohSeveralGames (loading a test's save with -loadsave). Each game then gets
@@ -167,6 +192,7 @@ void onObjectDestroyed(Object *object)
 void onGameEnd()
 {
 	gameEnd().raise();
+	locomotorOwners().clear();
 
 	FeatureRegistry &registry = Kernel::registry();
 	registry.resetAll();
@@ -277,6 +303,39 @@ void onWeaponDamage(const Object *source, const WeaponTemplate *weapon, const Co
 		return;
 	WeaponDamage hit = { source, weapon, position, victim, damage };
 	weaponDamage().raise(hit);
+}
+
+void onDamageReceived(const Object *victim, const DamageInfo *damage, float &amount)
+{
+	if (victim != nullptr && damage != nullptr)
+		damageReceived().raise(victim, damage, amount);
+}
+
+void onVeterancyChanged(Object *object, int oldLevel, int newLevel)
+{
+	if (object != nullptr && oldLevel != newLevel)
+		veterancyChanged().raise(object, oldLevel, newLevel);
+}
+
+void onLocomotorChosen(const Object *object, const Locomotor *locomotor)
+{
+	if (object == nullptr || locomotor == nullptr || !unitSpeed().hasActiveSubscriber())
+		return;
+	locomotorOwners()[locomotor] = object->getID();
+}
+
+void onLocomotorSpeed(const Locomotor *locomotor, float &speed)
+{
+	if (locomotorOwners().empty() || !unitSpeed().hasActiveSubscriber())
+		return;
+	const auto found = locomotorOwners().find(locomotor);
+	if (found == locomotorOwners().end())
+		return;
+	const Object *owner = TheGameLogic->findObjectByID(found->second);
+	const AIUpdateInterface *ai = owner != nullptr ? owner->getAI() : nullptr;
+	if (ai == nullptr || ai->getCurLocomotor() != locomotor)
+		return;
+	unitSpeed().raise(owner, speed);
 }
 
 // ---- Client ------------------------------------------------------------------------------------

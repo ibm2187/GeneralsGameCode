@@ -42,6 +42,7 @@ coh_add_feature(FireRate)
 coh_add_feature(Pacing)
 coh_add_feature(DirectionalArmor)	# keep after Cover (05): weaponDamage runs cover, then armor
 coh_add_feature(UnitScale)
+coh_add_feature(Veterancy)
 
 # ---- The list of features the Kernel registers ----
 

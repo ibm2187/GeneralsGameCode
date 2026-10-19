@@ -3223,6 +3223,8 @@ void Object::onVeterancyLevelChanged( VeterancyLevel oldLevel, VeterancyLevel ne
 			break;
 	}
 
+	CoH::Hooks::onVeterancyChanged(this, (int)oldLevel, (int)newLevel); // CoH hook
+
 	Bool doAnimation = provideFeedback &&
 		newLevel > oldLevel &&
 		!isKindOf(KINDOF_IGNORED_IN_GUI) &&

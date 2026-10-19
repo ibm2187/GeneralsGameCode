@@ -46,6 +46,8 @@
 #include "GameLogic/Module/BodyModule.h"
 #include "GameLogic/Module/AIUpdate.h"
 
+#include "Kernel/Hooks.h" // CoH hook
+
 
 static const Real DONUT_TIME_DELAY_SECONDS=2.5f;
 static const Real DONUT_DISTANCE=4.0*PATHFIND_CELL_SIZE_F;
@@ -877,6 +879,8 @@ Real Locomotor::getMaxSpeedForCondition(BodyDamageType condition) const
 	Real maxSpeed = getMaxSpeedOverride();
 	if (speed > maxSpeed)
 		speed = maxSpeed;
+
+	CoH::Hooks::onLocomotorSpeed(this, speed); // CoH hook
 
 	return speed;
 }

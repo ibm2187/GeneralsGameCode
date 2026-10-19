@@ -874,6 +874,7 @@ void AIUpdateInterface::chooseGoodLocomotorFromCurrentSet()
 	}
 
 	m_curLocomotor = newLoco;
+	CoH::Hooks::onLocomotorChosen(getObject(), m_curLocomotor); // CoH hook
 
 	if (prevLoco != m_curLocomotor)
 	{
