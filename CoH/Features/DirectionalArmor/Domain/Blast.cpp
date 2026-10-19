@@ -7,12 +7,13 @@
 namespace CoH::DirectionalArmor
 {
 
-float blastScale(const BlastFalloff &falloff, float distance, float primaryRadius, float blastRadius)
+std::optional<float> blastDamage(const BlastShell &shell, const BlastFalloff &falloff, float distance,
+	float primaryRadius)
 {
-	if (distance <= primaryRadius || blastRadius <= primaryRadius)
-		return 1.0f;
-	const float along = std::clamp((distance - primaryRadius) / (blastRadius - primaryRadius), 0.0f, 1.0f);
-	return falloff.atInner + (falloff.atOuter - falloff.atInner) * along;
+	if (shell.damage <= 0.0f || distance <= primaryRadius || distance > shell.radius)
+		return std::nullopt;
+	const float along = std::clamp((distance - primaryRadius) / (shell.radius - primaryRadius), 0.0f, 1.0f);
+	return shell.damage * (falloff.atInner + (falloff.atOuter - falloff.atInner) * along);
 }
 
 } // namespace CoH::DirectionalArmor

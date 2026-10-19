@@ -3,14 +3,20 @@
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
+#include "Common/Player.h"
 #include "Common/ThingTemplate.h"
 #include "GameLogic/Damage.h"
+#include "GameLogic/Module/BehaviorModule.h"
+#include "GameLogic/Module/UpdateModule.h"
 #include "GameLogic/Object.h"
+#include "GameLogic/PartitionManager.h"
 #include "GameLogic/Weapon.h"
 
 #include "Kernel/Log.h"
 #include "Kernel/Objects.h"
 #include "Kernel/Random.h"
+
+#include "Features/FireRate/FireRate.h"
 
 #include "Features/DirectionalArmor/Domain/Blast.h"
 #include "Features/DirectionalArmor/Engine/Config.h"
@@ -20,6 +26,7 @@
 #include <cmath>
 #include <map>
 #include <string>
+#include <vector>
 
 namespace CoH::DirectionalArmor
 {
@@ -38,6 +45,8 @@ struct Tally
 	std::array<Count, 3> bySide;			///< front, side, rear
 	std::map<std::string, Count> byWeapon;	///< for the log only: never read by game logic
 	int infantryHits = 0;
+	int blasts = 0;				///< shells that went off with a blast
+	int blastVictims = 0;		///< soldiers beside the target the blasts hurt
 };
 
 Tally &tally()
@@ -74,21 +83,8 @@ bool isWeaponHit(const Hooks::WeaponDamage &hit)
 		&& IsHealthDamagingDamage(in.m_damageType) && in.m_damageType != DAMAGE_UNRESISTABLE;
 }
 
-// How far the victim's body is from where the damage went off, as the engine measures a blast's reach
-// (FROM_BOUNDINGSPHERE_3D in dealDamageInternal).
-Real blastDistance(const Hooks::WeaponDamage &hit)
-{
-	if (hit.position == nullptr)
-		return 0.0f;
-	const Coord3D &at = *hit.victim->getPosition();
-	const Real dx = at.x - hit.position->x;
-	const Real dy = at.y - hit.position->y;
-	const Real dz = at.z - hit.position->z;
-	return max(0.0f, std::sqrt(dx * dx + dy * dy + dz * dz) - hit.victim->getGeometryInfo().getBoundingSphereRadius());
-}
-
-// Tank guns and vehicle machine guns against soldiers (InfantryDamage lines), and a shell's blast
-// falling off from its middle (InfantryBlast).
+// Tank guns and vehicle machine guns against soldiers (InfantryDamage lines). A soldier a shell with a
+// blast kills is thrown by it.
 void scaleAgainstInfantry(Hooks::WeaponDamage &hit, const Object *shooter)
 {
 	const Config &c = config();
@@ -97,10 +93,9 @@ void scaleAgainstInfantry(Hooks::WeaponDamage &hit, const Object *shooter)
 	if (!shooter->isAnyKindOf(c.infantryDamageFrom) || shooter->isAnyKindOf(c.infantryDamageNotFrom))
 		return;
 
-	const WeaponBonus noBonus;
-	const Real blast = blastScale(c.infantryBlast, blastDistance(hit), hit.weapon->getPrimaryDamageRadius(noBonus),
-		hit.weapon->getSecondaryDamageRadius(noBonus));
-	const Real factor = infantryDamageFactor(hit.damage->in.m_damageType) * blast;
+	if (blastOf(*hit.weapon) != nullptr)
+		hit.damage->in.m_deathType = DEATH_EXPLODED;
+	const Real factor = infantryDamageFactor(hit.damage->in.m_damageType);
 	if (factor == 1.0f)
 		return;
 	hit.damage->in.m_amount *= factor;
@@ -145,7 +140,81 @@ void rollPenetration(Hooks::WeaponDamage &hit, const Object *shooter)
 	}
 }
 
+// Who fired the shot: a projectile's launcher, or the shooter itself (as dealDamageInternal credits it).
+ObjectID launcherOf(const Object *source)
+{
+	if (source == nullptr)
+		return INVALID_ID;
+	if (source->isKindOf(KINDOF_PROJECTILE))
+	{
+		for (BehaviorModule **module = source->getBehaviorModules(); *module != nullptr; ++module)
+		{
+			if (const ProjectileUpdateInterface *projectile = (*module)->getProjectileUpdateInterface())
+				return projectile->projectileGetLauncherID();
+		}
+	}
+	return source->getID();
+}
+
+struct Caught
+{
+	ObjectID soldier;
+	Real damage;
+};
+
+// The soldiers the blast reaches beyond the shell's own radius, found as the engine finds a blast's
+// victims (FROM_BOUNDINGSPHERE_3D, in the partition's order).
+std::vector<Caught> soldiersCaught(const BlastShell &shell, const Coord3D &position, Real primaryRadius)
+{
+	std::vector<Caught> caught;
+	SimpleObjectIterator *iter = ThePartitionManager->iterateObjectsInRange(&position, shell.radius, FROM_BOUNDINGSPHERE_3D);
+	MemoryPoolObjectHolder hold(iter);
+	Real distanceSquared = 0.0f;
+	for (Object *object = iter->firstWithNumeric(&distanceSquared); object != nullptr;
+		object = iter->nextWithNumeric(&distanceSquared))
+	{
+		if (!object->isKindOf(KINDOF_INFANTRY) || object->isEffectivelyDead())
+			continue;
+		const std::optional<Real> damage =
+			blastDamage(shell, config().infantryBlast, std::sqrt(distanceSquared), primaryRadius);
+		if (damage)
+			caught.push_back({ object->getID(), *damage });
+	}
+	return caught;
+}
+
 } // namespace
+
+void detonateBlast(const Object *source, const WeaponTemplate *weapon, const Coord3D &position, float /*radius*/)
+{
+	const BlastShell *shell = weapon != nullptr ? blastOf(*weapon) : nullptr;
+	if (shell == nullptr)
+		return;
+	const WeaponBonus noBonus;
+	const std::vector<Caught> caught = soldiersCaught(*shell, position, weapon->getPrimaryDamageRadius(noBonus));
+	++tally().blasts;
+
+	// FireRate fires slow guns less often and harder by the same factor; the blast keeps up with it.
+	const Real fireRateDamage = FireRate::slowDown(weapon);
+	const ObjectID launcher = launcherOf(source);
+	const Player *owner = source != nullptr ? source->getControllingPlayer() : nullptr;
+	for (const Caught &hit : caught)
+	{
+		Object *soldier = findLiving(hit.soldier);
+		if (soldier == nullptr)
+			continue;
+		DamageInfo damage;
+		damage.in.m_damageType = weapon->getDamageType();
+		damage.in.m_deathType = DEATH_EXPLODED;
+		damage.in.m_sourceID = launcher;
+		damage.in.m_sourcePlayerMask = owner != nullptr ? owner->getPlayerMask() : 0;
+		damage.in.m_damageStatusType = weapon->getDamageStatusType();
+		damage.in.m_amount = hit.damage * fireRateDamage;
+		Hooks::onWeaponDamage(source, weapon, &position, soldier, &damage);	// Cover, then InfantryDamage
+		soldier->attemptDamage(&damage);
+		++tally().blastVictims;
+	}
+}
 
 void dealWeaponDamage(Hooks::WeaponDamage &hit)
 {
@@ -156,10 +225,15 @@ void dealWeaponDamage(Hooks::WeaponDamage &hit)
 	rollPenetration(hit, shooter);
 }
 
+int blastsSoFar()
+{
+	return tally().blasts;
+}
+
 void logTally()
 {
 	const Tally &t = tally();
-	if (!isLogging() || (t.bySide[0].rolls + t.bySide[1].rolls + t.bySide[2].rolls + t.infantryHits) == 0)
+	if (!isLogging() || (t.bySide[0].rolls + t.bySide[1].rolls + t.bySide[2].rolls + t.infantryHits + t.blasts) == 0)
 		return;
 	for (const Side side : { Side::Front, Side::Side, Side::Rear })
 	{
@@ -169,6 +243,7 @@ void logTally()
 	for (const auto &[weapon, count] : t.byWeapon)
 		log("DirectionalArmor:   %s %d hits, %d deflected", weapon.c_str(), count.rolls, count.deflected);
 	log("DirectionalArmor: infantry hit harder by vehicles %d times", t.infantryHits);
+	log("DirectionalArmor: shell blasts %d, soldiers caught beside the target %d", t.blasts, t.blastVictims);
 }
 
 void forgetTally()

@@ -12,7 +12,7 @@ Vehicles have front, side and rear armor and weapons have penetration, like in C
 - **Area damage always gets through:** weapons with a damage radius over 30 (artillery, bombs, super weapons).
 - **Never rolls:** weapons whose DamageType has no `Penetration` line and that have no `Weapon` line: flame, poison, radiation, microwaves, crushing, the pilot snipe, particle beams.
 - **No armor:** infantry, buildings and aircraft (`Exempt = AIRCRAFT`). Any other vehicle without a `Unit` line gets `Kind = VEHICLE 60 40 25`.
-- **Tanks against infantry:** tank guns, vehicle machine guns and the Overlord's gattling obliterate soldiers: much more damage (`InfantryDamage`), a high-explosive blast that falls off from its middle (`InfantryBlast`, `20_TankGuns.ini`), and the dead are thrown.
+- **Tanks against infantry:** tank guns, vehicle machine guns and the Overlord's gattling obliterate soldiers: much more damage (`InfantryDamage`), a high-explosive blast that hurts every soldier near where the shell lands, falling off from its middle (`Blast`, `InfantryBlast`), and the dead are thrown.
 - **Skirmish AI flanks:** an AI vehicle fighting an armored one from in front, where its hits get through less than 75% of the time, drives round to its side (if a hit from there does 15% more damage on average and the drive is under 250), then attacks again. It rests 12 s before flanking again. Its own orders always win.
 - Rolls use the synced random numbers (one per roll), so every PC and replay agrees.
 
@@ -33,10 +33,10 @@ So a rocket from behind does more than five times what one from the front does: 
 The user's notes: "We also need tanks to do a lot more damage against infantry" and "tanks should shoot like CoH; obliterating infantry." Retail `HumanArmor` (every infantry armor alike) takes 10% from `ARMOR_PIERCING`, the tank guns' damage type, so a tank shell did 6 to a soldier and had no blast. Now:
 
 - `InfantryDamage` multiplies what vehicles' weapons do to infantry, on top of its armor: tank guns ×20 (10% becomes 200%), machine guns ×2.
-- `20_TankGuns.ini` gives every tank shell a high-explosive blast (`SecondaryDamage` over `SecondaryDamageRadius`). Against soldiers it is scaled by `InfantryBlast`: ×3 just outside the direct hit, falling to ×1 at the blast's edge, as CoH's falloff. Against vehicles it is only the plain splash (a third of a direct hit).
-- `DeathType = EXPLODED`: soldiers a shell kills are thrown by the blast (their own retail death with `FlingForce`). Vehicles die from it as before.
+- `Blast` lines give every tank shell a high-explosive blast, dealt where the shell goes off (on its target or, a miss, on the ground) to every soldier within its radius beyond the shell's own 5: ×3 of the blast's damage just outside the direct hit, falling to ×1 at its edge (`InfantryBlast`), as CoH's falloff. It catches soldiers of any side, and no vehicles or buildings. Cover scales it as any other hit (it goes through the hub's `weaponDamage`).
+- Soldiers a tank shell or its blast kills die `EXPLODED`: they are thrown (their own retail death with `FlingForce`).
 
-Damage to one soldier, before FireRate (which keeps damage per second the same) and Accuracy:
+Damage to one soldier, with FireRate off and before Accuracy. With FireRate on, a tank gun fires 2.5 times slower and every number in the table is 2.5 times bigger (the blast keeps up with it, through `FireRate.h`): a Crusader shell then kills every soldier it hits directly (300) and does 300 to 100 to those in its blast, once every five seconds.
 
 | Weapon | Retail, direct hit | Now, direct hit | Retail blast | Now, blast: beside it, at the edge (radius) |
 |---|---|---|---|---|
@@ -96,7 +96,8 @@ In `Data/INI/10_DirectionalArmor.ini`. The block starts from the defaults: its l
 | `Exempt = <KindOf> ...` | `AIRCRAFT` | units with any of these get no `Kind` armor |
 | `Unit = <Object> <front> <side> <rear>` | | one unit's armor, and the generals' versions of it (`ChinaTankEmperor` covers `Tank_ChinaTankEmperor`) |
 | `InfantryDamage = <DamageType> <percent>` | AP 2000%, SMALL_ARMS, GATTLING, COMANCHE_VULCAN 200% | damage to infantry from attackers of `InfantryDamageFrom` kinds, on top of the infantry's armor |
-| `InfantryBlast = <near> <edge>` | 300% 100% | a vehicle's shell blast against soldiers, from just outside the direct hit to the blast's edge |
+| `Blast = <Weapon> <damage> <radius>` | Crusader 20 20, Overlord 30 25, ... | a tank shell's blast against soldiers (and the generals' versions of the weapon) |
+| `InfantryBlast = <near> <edge>` | 300% 100% | the blast's share of its damage just outside the direct hit and at its edge |
 | `InfantryDamageFrom`, `InfantryDamageNotFrom` | `VEHICLE PORTABLE_STRUCTURE`, `AIRCRAFT` | which attackers get `InfantryDamage` |
 | `Flanking` | Yes | the skirmish AI flanks |
 | `FlankBelowChance` | 75% | flank only while a hit from where it is gets through less often than this |
@@ -116,14 +117,14 @@ In `Data/INI/10_DirectionalArmor.ini`. The block starts from the defaults: its l
 | `Domain/Names` | which `Unit` or `Weapon` line covers a name (generals' versions) |
 | `Engine/DirectionalArmor.cpp` | the feature, its subscriptions, the public answers |
 | `Engine/Config` | the INI block; each object's armor and weapon's penetration, looked up once per game |
-| `Engine/Combat.cpp` | the hub's `weaponDamage`: the infantry multiplier, then the roll; the log |
+| `Engine/Combat.cpp` | the hub's `weaponDamage`: the infantry multiplier, then the roll; `weaponDetonated`: the shells' blast; the log |
+| `Engine/SelfTest.cpp` | `-cohArmorSelfTest`: a Crusader fires one shell into five Rangers; passes when the blast hurt two or more beside the target |
 | `Engine/Flanking.cpp` | the AI's flanks, from the logic frame |
 | `UI/Deflection.cpp` | the sparks, clang and "Deflected" (only where the local player can see) |
 | `Data/INI/10_DirectionalArmor.ini` | every number above, the effect and the text |
-| `Data/INI/20_TankGuns.ini` | `Weapon` overrides: the tank guns' blast and `EXPLODED` deaths |
 | `Tests/` | the angle-to-side mapping, penetration odds, deflection, blast falloff, names, flanking |
 
-Hooks: subscribes to `weaponDamage` (the roll and the multiplier, after Cover), `logicFrame` (flanking, the log every minute) and `gameEnd`. The `weaponDamage` point is shared with Cover (05): it is the same declaration, so whichever slice merges second keeps one copy of it.
+Hooks: subscribes to `weaponDetonated` (the shells' blast), `weaponDamage` (the roll and the multiplier, after Cover), `logicFrame` (flanking, the self-test, the log every minute) and `gameEnd`. Both weapon points are shared with Cover (05): they are the same declarations and call sites, so whichever slice merges second keeps one copy of each.
 
 ## Damage order
 
@@ -133,7 +134,8 @@ For one shot and one victim: Accuracy's hit roll at the fire (`weaponFiringAtObj
 
 - `WeaponTemplate::dealDamageInternal` (`Weapon.cpp` 1377) deals each victim's damage; for a projectile it runs when the projectile goes off, with the projectile as `source`, and sets `damageInfo.in.m_sourceID` to the launcher just before `attemptDamage`. The hook sits there, so the launcher is known.
 - The hull's facing is `Object::getUnitDirectionVector2D()`; a tank's turret turns on its own, the hull only when it moves.
-- `Armor.ini` blocks can't be pack overrides: `ArmorStore::parseArmorDefinition` clears and refills the template in place, so a pack's change would outlive the game. Hence `InfantryDamage` in code. `Weapon` blocks are overrides (`WeaponStore::newOverride`) and are dropped when the game ends.
+- **A pack's `Weapon` block for an existing weapon does nothing.** `WeaponStore::newOverride` copies the template and fills the copy, but never puts it in the store; objects keep the template their `WeaponSet` named at load. So the first version's `20_TankGuns.ini` (splash on the tank guns) never applied, and shells still hit one soldier at a time (the user's bug report). The blast is now code, at the hub's `weaponDetonated`. New weapon names in a pack do load.
+- `Armor.ini` blocks can't be pack overrides: `ArmorStore::parseArmorDefinition` clears and refills the template in place, so a pack's change would outlive the game. Hence `InfantryDamage` in code.
 - Retail tank guns have `ScatterRadiusVsInfantry = 10`, so they already miss soldiers; with Accuracy on they roll too (51% for a Crusader on a Ranger at mid range). The splash is what makes them deadly.
 - AI units are found with `objectsOf(player)`; a vehicle's fight is `AIUpdateInterface::isAttacking()` and `getCurrentVictim()`. A flank is `aiMoveToPosition(..., CMD_FROM_AI)`, then `aiAttackObject(target, NO_MAX_SHOTS_LIMIT, CMD_FROM_AI)`. A move order's goal is `getGoalPosition()`; when it no longer is the flank spot, the AI ordered something else.
 - Flanks in progress aren't saved. After a load a flanker finishes its drive and the AI picks its fights again.
@@ -142,4 +144,5 @@ For one shot and one victim: Accuracy's hit roll at the fire (`weaponFiringAtObj
 
 - Unit tests: `z_googletest --gtest_filter=DirectionalArmor*`.
 - In game: `CoH\Scripts\skirmish.ps1 -Flags Sectors,GeneralsArsenal,Upkeep,Squads,Accuracy,FireRate,Pacing,DirectionalArmor -Windowed`. Hit a tank with rocket soldiers from the front and from behind; send a tank into infantry.
-- `-cohLog` writes the rolls by side and by weapon, the deflections, the infantry hits and the AI's flanks to `CoH.log` every minute and at the end.
+- Self-test: `generalszh.exe -cohSkirmish "Tournament Desert" -cohSide FactionAmerica -coh DirectionalArmor -cohArmorSelfTest -cohLog -win -xres 1600 -yres 900`. Three seconds in, a Crusader beside your base fires one shell into five enemy Rangers; five seconds later `CoH.log` has each Ranger's health and PASSED when the blast hurt two or more of the four beside the target.
+- `-cohLog` writes the rolls by side and by weapon, the shells' blasts and the soldiers they caught, the deflections, the infantry hits and the AI's flanks to `CoH.log` every minute and at the end.

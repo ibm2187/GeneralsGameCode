@@ -49,10 +49,17 @@ std::unordered_map<const WeaponTemplate *, std::optional<Penetration>> &knownWea
 	return theWeapons;
 }
 
+std::unordered_map<const WeaponTemplate *, std::optional<BlastShell>> &knownBlasts()
+{
+	static std::unordered_map<const WeaponTemplate *, std::optional<BlastShell>> theBlasts;
+	return theBlasts;
+}
+
 void forgetLookUps()
 {
 	knownUnits().clear();
 	knownWeapons().clear();
+	knownBlasts().clear();
 }
 
 Config &configOf(void *instance)
@@ -133,6 +140,16 @@ void parseInfantryDamage(INI *ini, void *instance, void *, const void *)
 	configOf(instance).infantryDamage[type] = INI::scanPercentToReal(ini->getNextToken());
 }
 
+// Blast = <weapon> <damage> <radius>
+void parseBlast(INI *ini, void *instance, void *, const void *)
+{
+	NamedLine<BlastShell> line;
+	line.name = ini->getNextToken();
+	line.values.damage = INI::scanReal(ini->getNextToken());
+	line.values.radius = INI::scanReal(ini->getNextToken());
+	configOf(instance).blasts.push_back(line);
+}
+
 // InfantryBlast = <percent near> <percent at the edge>
 void parseInfantryBlast(INI *ini, void *instance, void *, const void *)
 {
@@ -206,6 +223,7 @@ void parseConfigBlock(INI *ini)
 		Ini::custom<Config>("InfantryDamage", parseInfantryDamage),
 		Ini::field("InfantryDamageFrom", &Config::infantryDamageFrom),
 		Ini::field("InfantryDamageNotFrom", &Config::infantryDamageNotFrom),
+		Ini::custom<Config>("Blast", parseBlast),
 		Ini::custom<Config>("InfantryBlast", parseInfantryBlast),
 		Ini::field("Flanking", &Config::flanking),
 		Ini::percent("FlankBelowChance", &Config::flank, &FlankRules::belowChance),
@@ -253,6 +271,18 @@ const Penetration *penetrationOf(const WeaponTemplate &weapon)
 	auto found = known.find(&weapon);
 	if (found == known.end())
 		found = known.emplace(&weapon, lookUpPenetration(weapon)).first;
+	return found->second ? &*found->second : nullptr;
+}
+
+const BlastShell *blastOf(const WeaponTemplate &weapon)
+{
+	auto &known = knownBlasts();
+	auto found = known.find(&weapon);
+	if (found == known.end())
+	{
+		const BlastShell *own = bestNamed(storage().blasts, weapon.getName());
+		found = known.emplace(&weapon, own != nullptr ? std::optional<BlastShell>(*own) : std::nullopt).first;
+	}
 	return found->second ? &*found->second : nullptr;
 }
 

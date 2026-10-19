@@ -56,7 +56,8 @@ struct Config
 	Real infantryDamage[DAMAGE_NUM_TYPES];		///< InfantryDamage lines; 1 where there is none
 	KindOfMaskType infantryDamageFrom;			///< attackers of these kinds get it
 	KindOfMaskType infantryDamageNotFrom;		///< attackers of these kinds don't
-	BlastFalloff infantryBlast;					///< the splash against infantry, near to far
+	std::vector<NamedLine<BlastShell>> blasts;	///< Blast lines: tank shells' blast against soldiers
+	BlastFalloff infantryBlast;					///< the blast's falloff, near to far
 
 	bool flanking = true;		///< the skirmish AI flanks
 	FlankRules flank;
@@ -80,6 +81,9 @@ const ArmorValues *armorOf(const Object &object);
 // The weapon's penetration in this game, or nothing when it never rolls (no Weapon line, no
 // Penetration line for its DamageType).
 const Penetration *penetrationOf(const WeaponTemplate &weapon);
+
+// The weapon's high-explosive blast against soldiers in this game, or nothing (no Blast line).
+const BlastShell *blastOf(const WeaponTemplate &weapon);
 
 // How much more (or less) damage the weapon's DamageType does to infantry from a vehicle; 1 for none.
 Real infantryDamageFactor(DamageType type);

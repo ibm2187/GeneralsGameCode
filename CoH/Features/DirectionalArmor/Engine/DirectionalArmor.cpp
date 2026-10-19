@@ -29,6 +29,7 @@ const CoH::Feature *&theFeature()
 void onLogicFrame()
 {
 	flankWithAI();
+	runSelfTest();
 	if (CoH::everySeconds(60.0f))
 	{
 		logTally();
@@ -46,6 +47,7 @@ void init(CoH::Feature &self)
 {
 	theFeature() = &self;
 	CoH::registerIniBlock("CoHDirectionalArmor", parseConfigBlock);
+	CoH::Hooks::weaponDetonated().subscribe(self, detonateBlast);
 	CoH::Hooks::weaponDamage().subscribe(self, dealWeaponDamage);
 	CoH::Hooks::logicFrame().subscribe(self, onLogicFrame);
 	CoH::Hooks::gameEnd().subscribe(self, onGameEnd);
@@ -55,6 +57,7 @@ void reset()
 {
 	forgetTally();
 	forgetFlanking();
+	resetSelfTest();
 	resetConfig();
 }
 

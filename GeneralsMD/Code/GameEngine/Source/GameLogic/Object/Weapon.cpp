@@ -1393,6 +1393,7 @@ void WeaponTemplate::dealDamageInternal(ObjectID sourceID, ObjectID victimID, co
 
 		Real primaryRadiusSqr = sqr(primaryRadius);
 		Real radius = max(primaryRadius, secondaryRadius);
+		CoH::Hooks::onWeaponDetonated(source, this, pos, radius); // CoH hook
 		if (radius > 0.0f)
 		{
 			iter = ThePartitionManager->iterateObjectsInRange(pos, radius, DAMAGE_RANGE_CALC_TYPE);
