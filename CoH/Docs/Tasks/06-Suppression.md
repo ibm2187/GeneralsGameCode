@@ -12,7 +12,7 @@ Machine guns and explosions pin infantry, so firepower controls space instead of
 - Hits and near misses fill a target's suppression meter, which drains over time.
 - **Suppressed:** slower movement, worse accuracy and a slower rate of fire.
 - **Pinned:** the unit can't move except to retreat, and fires rarely.
-- Cover reduces how much suppression a unit takes. Vehicles aren't suppressed.
+- Vehicles aren't suppressed. Squads garrisoned in a trench (14) or a building take less.
 - An icon over the unit shows its state.
 - The AI pulls pinned infantry back and flanks machine-gun positions.
 

@@ -90,7 +90,7 @@ A new main package is added only for a new kind of thing, never for a feature.
 | 03c | [Resources: manpower, fuel, munitions; command points unlock tech](Tasks/03c-Resources.md) | Territory | 01, 02, 03, 03b |
 | 04 | [Accuracy](Tasks/04-Accuracy.md) | Combat | 00 |
 | 04b | [Fire rate](Tasks/04b-FireRate.md) | Combat | 00 (pairs with 04) |
-| 05 | [Cover](Tasks/05-Cover.md) | Combat | 04 |
+| 05 | ~~[Cover](Tasks/05-Cover.md)~~ cancelled 2026-10-19 | Combat | 04 |
 | 06 | [Suppression](Tasks/06-Suppression.md) | Combat | 04 |
 | 07 | [Directional armor](Tasks/07-DirectionalArmor.md) | Combat | 00 |
 | 08 | [Vehicle criticals](Tasks/08-VehicleCriticals.md) | Combat | 07 |
@@ -99,7 +99,7 @@ A new main package is added only for a new kind of thing, never for a feature.
 | 11 | [Retreat](Tasks/11-Retreat.md) | Units | 09 |
 | 12 | [Veterancy](Tasks/12-Veterancy.md) | Units | 00 |
 | 13 | [Abilities](Tasks/13-Abilities.md) | Units | 09 |
-| 14 | [Field defenses](Tasks/14-FieldDefenses.md) | Map | 05 |
+| 14 | [Trenches](Tasks/14-FieldDefenses.md) (later) | Map | 09 |
 | 15 | [Victory points](Tasks/15-VictoryPoints.md) | Map | 01 |
 | 16 | [Doctrines](Tasks/16-Doctrines.md) | Commanders | 02 |
 | 17 | [Weapon pickup](Tasks/17-WeaponPickup.md) | Stretch | 09 |

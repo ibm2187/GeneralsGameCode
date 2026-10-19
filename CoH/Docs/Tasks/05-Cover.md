@@ -1,4 +1,6 @@
-# 05 Cover
+# 05 Cover (cancelled)
+
+**Cancelled 2026-10-19.** The user decided the game doesn't need a cover system: squads fight squads, like Axis & Allies (2004). The work is kept on the local branch `coh/cover` (4aff8bea1), unmerged. Positional play comes from garrisonable trenches instead ([14](14-FieldDefenses.md)).
 
 **Branch** `coh/cover` · **Needs** 04 · **Slice** `CoH/Features/Cover/` · **Flag** `Cover`
 
