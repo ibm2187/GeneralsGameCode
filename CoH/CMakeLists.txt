@@ -40,6 +40,7 @@ coh_add_feature(Squads)
 coh_add_feature(Accuracy)
 coh_add_feature(FireRate)
 coh_add_feature(Pacing)
+coh_add_feature(DirectionalArmor)	# keep after Cover (05): weaponDamage runs cover, then armor
 
 # ---- The list of features the Kernel registers ----
 

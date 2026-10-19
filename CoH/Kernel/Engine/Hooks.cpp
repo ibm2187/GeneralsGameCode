@@ -73,6 +73,7 @@ Event<const Object *, const WeaponTemplate *, WeaponBonus &> &weaponBonus()
 	static Event<const Object *, const WeaponTemplate *, WeaponBonus &> event;
 	return event;
 }
+Event<WeaponDamage &> &weaponDamage() { static Event<WeaponDamage &> event; return event; }
 
 Event<> &inGameUIPostDraw() { static Event<> event; return event; }
 Event<int, int, int, int> &radarDraw() { static Event<int, int, int, int> event; return event; }
@@ -256,6 +257,15 @@ bool onWeaponFiringAtObject(const Object *source, const WeaponTemplate *weapon, 
 void onWeaponBonus(const Object *source, const WeaponTemplate *weapon, WeaponBonus &bonus)
 {
 	weaponBonus().raise(source, weapon, bonus);
+}
+
+void onWeaponDamage(const Object *source, const WeaponTemplate *weapon, const Coord3D *position, Object *victim,
+	DamageInfo *damage)
+{
+	if (victim == nullptr || damage == nullptr || !weaponDamage().hasActiveSubscriber())
+		return;
+	WeaponDamage hit = { source, weapon, position, victim, damage };
+	weaponDamage().raise(hit);
 }
 
 // ---- Client ------------------------------------------------------------------------------------
