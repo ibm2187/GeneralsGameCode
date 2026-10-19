@@ -12,7 +12,7 @@ Direct fire can miss. Weapon type, range, target size, movement and veterancy de
 - **Target size.** The bigger the target, the easier it is to hit, from its bounding radius (`SizePoint` curve): a soldier (7) ×0.6, a Rebel (10) ×0.7, a Humvee or Scorpion (16) ×0.9, a Crusader (18) ×0.95, a technical (20) ×1.0, an Overlord (29) ×1.14, buildings ×1.8 however small (`BuildingSizeMin`). So a tank gun hits a tank far more often than a soldier, and a rifle at long range hits infantry about one shot in three.
 - **Buildings** are the easiest targets but are never certain: even a rifle at its full range hits 90%, and the cap is 95% (90% against units).
 - **Movement:** a moving shooter ×0.75, a moving target ×0.85. A soldier riding in a vehicle moves with it.
-- **Veterancy:** +15% per rank: Veteran ×1.15, Elite ×1.30, Heroic ×1.45.
+- **Veterancy:** +15% per rank: Veteran ×1.15, Elite ×1.30, Heroic ×1.45. With the Veterancy flag on, its per-unit rank accuracy stands in for this one (12 Veterancy).
 - **Examples** (regular, nobody moving): a Ranger at mid range hits infantry 42% of the time, a Crusader 66%, a building 95%. A Crusader's gun at mid range hits a Ranger 51% of the time and a Battlemaster 76%.
 - **A miss** lands on the ground beside the target, 4 to 15 beyond its edge, or in the air beside a flying one. The shot goes there as a shot at the ground does: tracers aim there, a rocket or shell flies there and explodes, and its blast still hurts whatever it reaches. A missed bullet hurts nobody and kicks up a puff of dirt (`FX_CoHAccuracyMiss`), shown only where the local player can see.
 - **Never rolls:** weapons whose damage type has no `Class` line (flame, poison, lasers, microwaves, hacking, melee), weapons listed in `NeverMisses` (the Avenger's point-defence lasers), weapons with a blast over `MaxDamageRadius` (8), weapons that scatter (artillery), weapons that go off where the shooter stands, shots at the ground, and a projectile going off. Mines, projectiles and props aren't rolled against.
@@ -40,7 +40,7 @@ void init(CoH::Feature &self)
 - A modifier gets the `Shot`: shooter, target, weapon, distance and range, who is moving, the target's size class and radius, the shooter's rank. It answers `chance * multiply + add` (`scaleChance(m)`, `addToChance(points)`, chances being 0..1).
 - **Order:** modifiers apply to the weapon's accuracy at that range by `ModifierOrder` (Movement 200, TargetSize 300, Cover 400, Suppression 500, Veterancy 600), then by name. Scaling commutes; the order matters for modifiers that add. The min and max apply once, at the end.
 - A modifier counts only while its feature is on (and Accuracy is).
-- **Standing in:** a modifier added under the name of a built-in one (`ShooterMoving`, `TargetMoving`, `TargetSize`, `Veterancy`) replaces it while its feature is on, whichever init ran first; the built-in one is back when that feature is off. Veterancy (12) can replace the +15% per rank this way.
+- **Standing in:** a modifier added under the name of a built-in one (`ShooterMoving`, `TargetMoving`, `TargetSize`, `Veterancy`) replaces it while its feature is on, whichever init ran first; the built-in one is back when that feature is off. Veterancy (12) replaces the +15% per rank this way.
 
 ## Settings (`CoHAccuracy` in [Data/INI/10_Accuracy.ini](Data/INI/10_Accuracy.ini))
 

@@ -24,6 +24,7 @@ The original code only calls the hook hub, from the places listed in [Hooks in o
 | [Pacing](Features/Pacing/README.md) | `Pacing` | [03b](Docs/Tasks/03b-Pacing.md) | units cost more and take longer to build, by class or by unit; the skirmish AI's income and build times scale with its difficulty |
 | [DirectionalArmor](Features/DirectionalArmor/README.md) | `DirectionalArmor` | [07](Docs/Tasks/07-DirectionalArmor.md) | vehicles have front, side and rear armor and weapons penetration by range; a shot that doesn't penetrate deflects with sparks and a clang; rockets mostly bounce off a tank's front; tank guns and vehicle machine guns shred infantry; skirmish AI flanks vehicles |
 | [UnitScale](Features/UnitScale/README.md) | `UnitScale` | [19](Docs/Tasks/19-UnitScale.md) | vehicles drawn bigger next to soldiers, in CoH proportions (tanks x1.45), with the geometry to match (INI pack) |
+| [Veterancy](Features/Veterancy/README.md) | `Veterancy` | [12](Docs/Tasks/12-Veterancy.md) | experience from damage as well as kills; each rank's accuracy, damage taken, suppression resistance, speed, sight and reload set per unit type, and an upgrade at a rank; squads share one rank; the build tooltip lists the ranks |
 
 Every feature has a flag. With every flag off the game plays exactly like `main`, replays included.
 
@@ -280,6 +281,9 @@ These are the points of `Kernel/Hooks.h` that features subscribe to:
 | `weaponFiringAtObject(shot)` | A weapon is about to fire at an object (not a projectile going off). A subscriber may send the shot to a spot instead (a miss) by writing `*shot.spot` and setting `shot.retargeted`; the engine then fires at that spot as at the ground, so tracers, projectiles and blast damage go there. The first to retarget wins. |
 | `weaponDetonated(source, weapon, position, radius)` | A weapon's damage goes off at a spot (a shot landing, a projectile going off), before anything is hurt; `radius` is its blast. |
 | `weaponDamage(hit)` | A weapon's damage is about to be dealt to one victim (`hit.victim`, `hit.damage`, where it went off in `hit.position`). A subscriber may change `hit.damage->in.m_amount`. A weapon killing its user comes as `HUGE_DAMAGE_AMOUNT`. Subscribers run in feature order: Cover, then DirectionalArmor. |
+| `damageReceived(victim, damage, amount)` | The damage an object is about to take, after its armor and the battle plan's damage scalar; a subscriber may scale `amount`. Not healing, subdual, status or unresistable damage. |
+| `veterancyChanged(object, oldLevel, newLevel)` | An object's rank changed (0 regular to 3 heroic), by experience, a crate, a script or production, once the engine's own rank changes (health, weapon bonus condition, weapon set) are made. |
+| `unitSpeed(object, speed)` | The top speed the unit's current locomotor allows; a subscriber may change it. Asked for every move, its group's speed and the AI's estimates. |
 | `riderShown(container, rider)` | A `Veto`: does this rider get a passenger button of its own on the container's command bar (a transport's or a garrison's) and a pip over it? A no hides it, because another rider speaks for it; each hidden rider takes one pip less. |
 
 The hub also passes on drawing that `TheDisplay` doesn't offer, which original code provides:
@@ -351,6 +355,10 @@ Every edit to an original file is a minimal call marked `// CoH hook` (`# CoH ho
 | `Core/.../GUI/ControlBar/ControlBarCommand.cpp` | `ControlBar::populateInvDataCallback` | `isRiderShown(data->transport, obj)` | The `riderShown` veto: a hidden rider gets no transport passenger button; the next rider takes the next button. |
 | `Core/.../GUI/ControlBar/ControlBarStructureInventory.cpp` | `ControlBar::populateButtonProc` | `isRiderShown(info->source, obj)` | The same for a garrisoned building's passenger buttons. |
 | `GeneralsMD/.../GameClient/Drawable.cpp` | `Drawable::drawContained` | `isRiderShown(obj, *it)` | A hidden rider takes one pip less over its container. |
+| `GeneralsMD/.../GameLogic/Object/Body/ActiveBody.cpp` | `ActiveBody::attemptDamage` | `onDamageReceived(obj, damageInfo, amount)` | Right after `amount *= m_damageScalar`, inside `allowModifier` and not for unresistable damage: the `damageReceived` event may scale the damage. |
+| `GeneralsMD/.../GameLogic/Object/Object.cpp` | `Object::onVeterancyLevelChanged` | `onVeterancyChanged(this, oldLevel, newLevel)` | After the engine's own rank changes, before the promotion effects; not for a dead object. |
+| `GeneralsMD/.../GameLogic/Object/Update/AIUpdate.cpp` | `AIUpdateInterface::chooseGoodLocomotorFromCurrentSet` | `onLocomotorChosen(getObject(), m_curLocomotor)` | The hub remembers whose current locomotor this is (a `Locomotor` doesn't know its object), for `unitSpeed`. Runs each `doLocomotor`; nothing is kept while no feature listens. |
+| `GeneralsMD/.../GameLogic/Object/Locomotor.cpp` | `Locomotor::getMaxSpeedForCondition` | `onLocomotorSpeed(this, speed)` | The `unitSpeed` event for the locomotor's object, while it is that object's current locomotor. |
 
 ## Fixes in original code
 
