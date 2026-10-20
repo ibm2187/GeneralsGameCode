@@ -45,7 +45,10 @@ Pacing changes prices and build times only; UnitScale changes sizes only.
 - The user has watched a windowed skirmish at normal speed with their flags plus VehicleMovement: heavies feel heavy, lights feel quick.
 - README, hooks table, CONTEXT.md updated. Merged after the user's OK.
 
-## Phase 2: reversing
+## Phase 2: reversing (dropped)
+
+**Dropped 2026-10-19** by the user: "the movement improvements are good, but drop the reverse action". Phase 1 is the whole feature. The design below is kept for reference only.
+
 
 - A short move to a spot behind a vehicle (within a distance and an angle from INI) drives there in reverse at reduced speed instead of turning round.
 - A **reverse-move command** (button and hotkey) backs away to a spot with the hull keeping its facing; with Directional armor (07) the front is the strong side.
