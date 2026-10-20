@@ -1,4 +1,6 @@
-# 11 Retreat
+# 11 Retreat (dropped)
+
+**Dropped 2026-10-19** by the user. The finished work is kept unmerged on the local branch `coh/retreat` (1fb70df05).
 
 **Branch** `coh/retreat` · **Needs** 09 · **Slice** `CoH/Features/Retreat/` · **Flag** `Retreat`
 

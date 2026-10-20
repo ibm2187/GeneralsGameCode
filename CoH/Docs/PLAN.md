@@ -96,7 +96,7 @@ A new main package is added only for a new kind of thing, never for a feature.
 | 08 | [Vehicle criticals](Tasks/08-VehicleCriticals.md) | Combat | 07 |
 | 09 | [Squads](Tasks/09-Squads.md) | Units | 00 |
 | 10 | [Reinforce](Tasks/10-Reinforce.md) | Units | 09, 01 |
-| 11 | [Retreat](Tasks/11-Retreat.md) | Units | 09 |
+| 11 | ~~[Retreat](Tasks/11-Retreat.md)~~ dropped 2026-10-19 | Units | 09 |
 | 12 | [Veterancy](Tasks/12-Veterancy.md) | Units | 00 |
 | 13 | [Abilities](Tasks/13-Abilities.md) | Units | 09 |
 | 14 | [Trenches](Tasks/14-FieldDefenses.md) (later) | Map | 09 |
