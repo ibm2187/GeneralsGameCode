@@ -91,6 +91,11 @@ Event<const Object *, const DamageInfo *, float &> &damageReceived()
 }
 Event<Object *, int, int> &veterancyChanged() { static Event<Object *, int, int> event; return event; }
 Event<const Object *, float &> &unitSpeed() { static Event<const Object *, float &> event; return event; }
+Event<const Object *, Handling, float &> &unitHandling()
+{
+	static Event<const Object *, Handling, float &> event;
+	return event;
+}
 
 Event<> &inGameUIPostDraw() { static Event<> event; return event; }
 Event<int, int, int, int> &radarDraw() { static Event<int, int, int, int> event; return event; }
@@ -120,6 +125,26 @@ std::map<const Locomotor *, ObjectID> &locomotorOwners()
 {
 	static std::map<const Locomotor *, ObjectID> owners;
 	return owners;
+}
+
+bool wantsLocomotorOwners()
+{
+	return unitSpeed().hasActiveSubscriber() || unitHandling().hasActiveSubscriber();
+}
+
+// The living object whose current locomotor this is, or null.
+const Object *ownerOf(const Locomotor *locomotor)
+{
+	if (locomotorOwners().empty())
+		return nullptr;
+	const auto found = locomotorOwners().find(locomotor);
+	if (found == locomotorOwners().end())
+		return nullptr;
+	const Object *owner = TheGameLogic->findObjectByID(found->second);
+	const AIUpdateInterface *ai = owner != nullptr ? owner->getAI() : nullptr;
+	if (ai == nullptr || ai->getCurLocomotor() != locomotor)
+		return nullptr;
+	return owner;
 }
 }
 
@@ -319,23 +344,25 @@ void onVeterancyChanged(Object *object, int oldLevel, int newLevel)
 
 void onLocomotorChosen(const Object *object, const Locomotor *locomotor)
 {
-	if (object == nullptr || locomotor == nullptr || !unitSpeed().hasActiveSubscriber())
+	if (object == nullptr || locomotor == nullptr || !wantsLocomotorOwners())
 		return;
 	locomotorOwners()[locomotor] = object->getID();
 }
 
 void onLocomotorSpeed(const Locomotor *locomotor, float &speed)
 {
-	if (locomotorOwners().empty() || !unitSpeed().hasActiveSubscriber())
+	if (!unitSpeed().hasActiveSubscriber())
 		return;
-	const auto found = locomotorOwners().find(locomotor);
-	if (found == locomotorOwners().end())
+	if (const Object *owner = ownerOf(locomotor))
+		unitSpeed().raise(owner, speed);
+}
+
+void onLocomotorHandling(const Locomotor *locomotor, Handling handling, float &value)
+{
+	if (!unitHandling().hasActiveSubscriber())
 		return;
-	const Object *owner = TheGameLogic->findObjectByID(found->second);
-	const AIUpdateInterface *ai = owner != nullptr ? owner->getAI() : nullptr;
-	if (ai == nullptr || ai->getCurLocomotor() != locomotor)
-		return;
-	unitSpeed().raise(owner, speed);
+	if (const Object *owner = ownerOf(locomotor))
+		unitHandling().raise(owner, handling, value);
 }
 
 // ---- Client ------------------------------------------------------------------------------------

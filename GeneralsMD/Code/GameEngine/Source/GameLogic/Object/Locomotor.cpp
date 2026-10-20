@@ -916,6 +916,8 @@ Real Locomotor::getMaxTurnRate(BodyDamageType condition) const
 	if (turn > m_maxTurnRate)
 		turn = m_maxTurnRate;
 
+	CoH::Hooks::onLocomotorHandling(this, CoH::Hooks::Handling::TurnRate, turn); // CoH hook
+
 	const Real TURN_FACTOR = 2;
 	if (getFlag(ULTRA_ACCURATE))
 		turn *= TURN_FACTOR;	// monster turning ability
@@ -936,6 +938,8 @@ Real Locomotor::getMaxAcceleration(BodyDamageType condition) const
 	if (accel > m_maxAccel)
 		accel = m_maxAccel;
 
+	CoH::Hooks::onLocomotorHandling(this, CoH::Hooks::Handling::Acceleration, accel); // CoH hook
+
 	return accel;
 }
 
@@ -946,6 +950,8 @@ Real Locomotor::getBraking() const
 
 	if (braking > m_maxBraking)
 		braking = m_maxBraking;
+
+	CoH::Hooks::onLocomotorHandling(this, CoH::Hooks::Handling::Braking, braking); // CoH hook
 
 	return braking;
 }

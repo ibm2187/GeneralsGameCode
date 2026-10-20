@@ -33,6 +33,10 @@ typedef void (*INIBlockParse)( INI *ini );
 namespace CoH::Hooks
 {
 
+// What a locomotor's handling value is: how fast it speeds up and slows down (both a speed change a
+// frame) or turns (radians a frame).
+enum class Handling { Acceleration, Braking, TurnRate };
+
 // ---- Called from original code -----------------------------------------------------------------
 
 bool allowsSeveralGames();	///< CommandLine startup: a quick test skirmish may run beside other games
@@ -73,6 +77,7 @@ void onDamageReceived(const Object *victim, const DamageInfo *damage, float &amo
 void onVeterancyChanged(Object *object, int oldLevel, int newLevel);	///< Object::onVeterancyLevelChanged, once the engine's own changes are made
 void onLocomotorChosen(const Object *object, const Locomotor *locomotor);	///< AIUpdateInterface::chooseGoodLocomotorFromCurrentSet
 void onLocomotorSpeed(const Locomotor *locomotor, float &speed);	///< Locomotor::getMaxSpeedForCondition
+void onLocomotorHandling(const Locomotor *locomotor, Handling handling, float &value);	///< Locomotor::getMaxAcceleration, getBraking, getMaxTurnRate
 
 void onInGameUIPostDraw();	///< InGameUI::postDraw: over the 3D view, under the windows
 void onRadarDraw(int x, int y, int width, int height);	///< W3DRadar::draw: over the map and shroud, under the icons
@@ -194,6 +199,11 @@ Event<Object *, int, int> &veterancyChanged();
 // The fastest the unit's current locomotor may move it (its template's speed, or the damaged speed):
 // a subscriber may change it. Asked for its moves, its group's speed and the AI's estimates alike.
 Event<const Object *, float &> &unitSpeed();
+
+// How quickly the unit's current locomotor speeds up, brakes or turns (its template's value, or the
+// damaged one, under the engine's caps): a subscriber may change it. Asked every frame a unit moves,
+// by every move mode, and for its turn radius.
+Event<const Object *, Handling, float &> &unitHandling();
 
 // ---- Client: drawing and text. These don't run in -headless games. ------------------------------
 
